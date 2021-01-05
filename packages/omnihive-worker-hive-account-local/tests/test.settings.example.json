@@ -1,0 +1,52 @@
+[
+    {
+      "name": "ohAccount",
+      "type": "hiveAccount",
+      "package": "@withonevision/omnihive-worker-hive-account-local",
+      "version": "^4.0.0",
+      "classPath": "@withonevision/omnihive-worker-hive-account-local/index",
+      "default": true,
+      "enabled": true,
+      "metadata": {
+        "clientId": "XXX",
+        "clientSecret": "XXX",
+        "accountName": "XXX",
+        "dataRootUrl": "XXX",
+        "hiveRootUrl": "XXX"
+      }
+    },
+    {
+      "name": "dbOmniHive",
+      "type": "database",
+      "package": "@withonevision/omnihive-worker-knex-mssql",
+      "version": "^4.0.0",
+      "classPath": "@withonevision/omnihive-worker-knex-mssql/index",
+      "default": false,
+      "enabled": true,
+      "metadata": {
+        "serverAddress": "XXX.XXX.XXX.XXX",
+        "serverPort": 9999,
+        "databaseName": "XXX",
+        "userName": "XXX",
+        "password": "XXX",
+        "schemaName": "XXX",
+        "generatorPrefix": "XXX",
+        "rowLimit": 10000
+      }
+    },
+    {
+      "name": "defaultLogWorker",
+      "type": "log",
+      "package": "@withonevision/omnihive-worker-log-elastic",
+      "version": "^4.0.0",
+      "classPath": "@withonevision/omnihive-worker-log-elastic/index",
+      "default": true,
+      "enabled": true,
+      "metadata": {
+        "cloudId": "XXX",
+        "cloudPassword": "XXX",
+        "cloudUser": "XXX",
+        "logIndex": "XXX"
+      }
+    }
+  ]

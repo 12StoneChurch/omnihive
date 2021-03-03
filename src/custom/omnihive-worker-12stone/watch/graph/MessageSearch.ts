@@ -3,7 +3,7 @@ import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { serializeError } from "serialize-error";
-import ElasticWorker, { ElasticSearchFieldModel } from "src/custom/omnihive-worker-elastic";
+import ElasticWorker, { ElasticSearchFieldModel } from "@withonevision/omnihive-worker-elastic";
 import { PaginationModel } from "../../lib/models/PaginationModel";
 import { WatchContent } from "../../lib/models/WatchModels";
 import { GraphService } from "../../lib/services/GraphService";

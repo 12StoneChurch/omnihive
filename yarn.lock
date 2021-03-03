@@ -457,7 +457,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@istanbuljs/nyc-config-typescript@npm:1.0.1":
+"@istanbuljs/nyc-config-typescript@npm:1.0.1, @istanbuljs/nyc-config-typescript@npm:^1.0.1":
   version: 1.0.1
   resolution: "@istanbuljs/nyc-config-typescript@npm:1.0.1"
   dependencies:
@@ -724,7 +724,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai@npm:4.2.15":
+"@types/chai@npm:4.2.15, @types/chai@npm:^4.2.14":
   version: 4.2.15
   resolution: "@types/chai@npm:4.2.15"
   checksum: 671073ece087a7e336f8f32a09713deecc298fab50b51778c5496781f6ee7075c0fe1e6566407fa8da19e231f292353582eab4fc88ec439e83ace90781ae5991
@@ -1020,7 +1020,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mocha@npm:8.2.1":
+"@types/mocha@npm:8.2.1, @types/mocha@npm:^8.2.0":
   version: 8.2.1
   resolution: "@types/mocha@npm:8.2.1"
   checksum: 43585ae2a1034e8f868db181439caf49d1f17b524b3dfdb767a69966965046249f6929f807c1c94e87b21c17abdee5298134053e059a9c08aaac04bff93707e0
@@ -1089,7 +1089,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:14.14.31, @types/node@npm:>=10.0.0":
+"@types/node@npm:14.14.31, @types/node@npm:>=10.0.0, @types/node@npm:^14.14.22":
   version: 14.14.31
   resolution: "@types/node@npm:14.14.31"
   checksum: 635dc8a0898a923621e02ca179e17baa39fdfa44f0096fcc1b7046c9b32317e74a99956a7b45ca0e8069874f51f4e7873a418239a318a4b6e7936f6510ac5992
@@ -1299,7 +1299,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/eslint-plugin@npm:4.16.1":
+"@typescript-eslint/eslint-plugin@npm:4.16.1, @typescript-eslint/eslint-plugin@npm:^4.14.1":
   version: 4.16.1
   resolution: "@typescript-eslint/eslint-plugin@npm:4.16.1"
   dependencies:
@@ -1337,7 +1337,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/parser@npm:4.16.1":
+"@typescript-eslint/parser@npm:4.16.1, @typescript-eslint/parser@npm:^4.14.1":
   version: 4.16.1
   resolution: "@typescript-eslint/parser@npm:4.16.1"
   dependencies:
@@ -1590,7 +1590,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@withonevision/omnihive-client@workspace:src/packages/omnihive-client":
+"@withonevision/omnihive-client@workspace:*, @withonevision/omnihive-client@workspace:src/packages/omnihive-client":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-client@workspace:src/packages/omnihive-client"
   dependencies:
@@ -1613,6 +1613,33 @@ __metadata:
     graphql: 15.5.0
     serialize-error: 8.0.1
     typescript: 4.2.2
+  languageName: unknown
+  linkType: soft
+
+"@withonevision/omnihive-worker-12stone@workspace:src/custom/omnihive-worker-12stone":
+  version: 0.0.0-use.local
+  resolution: "@withonevision/omnihive-worker-12stone@workspace:src/custom/omnihive-worker-12stone"
+  dependencies:
+    "@istanbuljs/nyc-config-typescript": ^1.0.1
+    "@types/chai": ^4.2.14
+    "@types/mocha": ^8.2.0
+    "@types/node": ^14.14.22
+    "@typescript-eslint/eslint-plugin": ^4.14.1
+    "@typescript-eslint/parser": ^4.14.1
+    "@withonevision/omnihive-client": "workspace:*"
+    "@withonevision/omnihive-core": "workspace:*"
+    axios: ^0.21.1
+    chai: ^4.2.0
+    dayjs: ^1.10.4
+    eslint: ^7.18.0
+    eslint-config-prettier: ^7.2.0
+    eslint-plugin-prettier: ^3.3.1
+    mocha: ^8.2.1
+    nyc: ^15.1.0
+    prettier: ^2.2.1
+    serialize-error: ^8.0.1
+    ts-node: ^9.1.1
+    typescript: ^4.1.3
   languageName: unknown
   linkType: soft
 
@@ -1650,6 +1677,18 @@ __metadata:
     dayjs: 1.10.4
     serialize-error: 8.0.1
     typescript: 4.2.2
+  languageName: unknown
+  linkType: soft
+
+"@withonevision/omnihive-worker-elastic@workspace:src/custom/omnihive-worker-elastic":
+  version: 0.0.0-use.local
+  resolution: "@withonevision/omnihive-worker-elastic@workspace:src/custom/omnihive-worker-elastic"
+  dependencies:
+    "@elastic/elasticsearch": 7.11.0
+    "@withonevision/omnihive-core": "workspace:*"
+    chai: 4.2.0
+    serialize-error: 8.0.1
+    typescript: 4.1.3
   languageName: unknown
   linkType: soft
 
@@ -3104,7 +3143,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:4.3.3":
+"chai@npm:4.2.0":
+  version: 4.2.0
+  resolution: "chai@npm:4.2.0"
+  dependencies:
+    assertion-error: ^1.1.0
+    check-error: ^1.0.2
+    deep-eql: ^3.0.1
+    get-func-name: ^2.0.0
+    pathval: ^1.1.0
+    type-detect: ^4.0.5
+  checksum: 91d51bbe9b9f35b26249ff3a9700c175fb7d90bb33d4952aaae46fa921fc0eb94659c228e99f0b111494661c027ebb5b02f0ff469c8f65f3fcec741385c0a192
+  languageName: node
+  linkType: hard
+
+"chai@npm:4.3.3, chai@npm:^4.2.0":
   version: 4.3.3
   resolution: "chai@npm:4.3.3"
   dependencies:
@@ -3818,7 +3871,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:1.10.4":
+"dayjs@npm:1.10.4, dayjs@npm:^1.10.4":
   version: 1.10.4
   resolution: "dayjs@npm:1.10.4"
   checksum: 3b7bb2232fff808209870bc72d4b2000941a1aa45f0226e2907f9dd1dda306d4b3a1eb9058450fd2c324b01a007a37809ac6f9b525806a86902c55e2934cd5d5
@@ -4500,7 +4553,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-prettier@npm:3.3.1":
+"eslint-config-prettier@npm:^7.2.0":
+  version: 7.2.0
+  resolution: "eslint-config-prettier@npm:7.2.0"
+  peerDependencies:
+    eslint: ">=7.0.0"
+  bin:
+    eslint-config-prettier: bin/cli.js
+  checksum: 6812150ea49703cd64035527205b4905bc1edcd34646e71f71665e1acff9ab4648f872598389bdb209964093ad73993830a2c821ba12642764a5293513b92a58
+  languageName: node
+  linkType: hard
+
+"eslint-plugin-prettier@npm:3.3.1, eslint-plugin-prettier@npm:^3.3.1":
   version: 3.3.1
   resolution: "eslint-plugin-prettier@npm:3.3.1"
   dependencies:
@@ -4548,7 +4612,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:7.21.0":
+"eslint@npm:7.21.0, eslint@npm:^7.18.0":
   version: 7.21.0
   resolution: "eslint@npm:7.21.0"
   dependencies:
@@ -7581,7 +7645,7 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"mocha@npm:8.3.0":
+"mocha@npm:8.3.0, mocha@npm:^8.2.1":
   version: 8.3.0
   resolution: "mocha@npm:8.3.0"
   dependencies:
@@ -7957,7 +8021,7 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"nyc@npm:15.1.0":
+"nyc@npm:15.1.0, nyc@npm:^15.1.0":
   version: 15.1.0
   resolution: "nyc@npm:15.1.0"
   dependencies:
@@ -8582,7 +8646,7 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"pathval@npm:^1.1.1":
+"pathval@npm:^1.1.0, pathval@npm:^1.1.1":
   version: 1.1.1
   resolution: "pathval@npm:1.1.1"
   checksum: 81cd01d46cd0cd90fb7a8e0d576f8cb4cbbd0832ed00da14362be32ad79e855cf8ecf7e92fc0c267fdfc2766bd1d8fb3de43a51081e142ffb1fc814958fb8d8f
@@ -8818,7 +8882,7 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"prettier@npm:2.2.1":
+"prettier@npm:2.2.1, prettier@npm:^2.2.1":
   version: 2.2.1
   resolution: "prettier@npm:2.2.1"
   bin:
@@ -9855,7 +9919,7 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"serialize-error@npm:8.0.1":
+"serialize-error@npm:8.0.1, serialize-error@npm:^8.0.1":
   version: 8.0.1
   resolution: "serialize-error@npm:8.0.1"
   dependencies:
@@ -10967,7 +11031,7 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"ts-node@npm:9.1.1":
+"ts-node@npm:9.1.1, ts-node@npm:^9.1.1":
   version: 9.1.1
   resolution: "ts-node@npm:9.1.1"
   dependencies:
@@ -11129,7 +11193,17 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-typescript@4.2.2:
+typescript@4.1.3:
+  version: 4.1.3
+  resolution: "typescript@npm:4.1.3"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 4f7ab1506ea22c7a1c313ec5b4285e93ce08d709ad6086d02d3096adb399ca339972ee56d1e578213c51dd0fb7b0fad50283c2d3c39642405644458ae29774f8
+  languageName: node
+  linkType: hard
+
+"typescript@4.2.2, typescript@^4.1.3":
   version: 4.2.2
   resolution: "typescript@npm:4.2.2"
   bin:
@@ -11139,7 +11213,17 @@ typescript@4.2.2:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@4.2.2#builtin<compat/typescript>":
+"typescript@patch:typescript@4.1.3#builtin<compat/typescript>":
+  version: 4.1.3
+  resolution: "typescript@patch:typescript@npm%3A4.1.3#builtin<compat/typescript>::version=4.1.3&hash=a45b0e"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 28f0f616bf6284543bb14d4bfe0e1a74963e5df0396ebccfc6a57bfd4ab70b4284e51b3a2045ed2466151a4a58c8a549edb886a2f7a2232cf08fcf73496592e6
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@4.2.2#builtin<compat/typescript>, typescript@patch:typescript@^4.1.3#builtin<compat/typescript>":
   version: 4.2.2
   resolution: "typescript@patch:typescript@npm%3A4.2.2#builtin<compat/typescript>::version=4.2.2&hash=a45b0e"
   bin:

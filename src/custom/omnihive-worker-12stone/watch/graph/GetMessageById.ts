@@ -2,6 +2,7 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { serializeError } from "serialize-error";
 import { WatchContent } from "../../lib/models/WatchModels";
+import { GraphService } from "../../lib/services/GraphService";
 import { getMessageById } from "../common/GetMessaegById";
 
 class GetMessageByIdArguemnts {
@@ -20,6 +21,9 @@ export default class GetMessageById extends HiveWorkerBase implements IGraphEndp
         }
 
         try {
+            GraphService.getSingleton().graphRootUrl =
+                this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+
             const latestMessage = await getMessageById(args.id);
 
             if (latestMessage) {

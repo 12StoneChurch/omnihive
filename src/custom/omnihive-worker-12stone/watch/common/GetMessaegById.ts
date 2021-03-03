@@ -1,6 +1,6 @@
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
-import { runQuery } from "../../lib/helpers/GraphHelper";
 import { WatchContent } from "../../lib/models/WatchModels";
+import { GraphService } from "../../lib/services/GraphService";
 import { transformDataToWatchContent } from "./DataToWatchContent";
 
 export const getMessageById = async (siteDocumentId: number = 0): Promise<WatchContent | undefined> => {
@@ -13,7 +13,7 @@ export const getMessageById = async (siteDocumentId: number = 0): Promise<WatchC
             }
         `;
 
-        const results: any = await AwaitHelper.execute(runQuery(messageQuery));
+        const results: any = await AwaitHelper.execute(GraphService.getSingleton().runQuery(messageQuery));
 
         const documentData: any = results.proc[0].document[0][0];
 

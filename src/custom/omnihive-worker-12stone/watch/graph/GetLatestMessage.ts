@@ -3,8 +3,8 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import dayjs from "dayjs";
 import { serializeError } from "serialize-error";
-import { runQuery } from "../../lib/helpers/GraphHelper";
 import { WatchContent } from "../../lib/models/WatchModels";
+import { GraphService } from "../../lib/services/GraphService";
 import { getMessageById } from "../common/GetMessaegById";
 
 export default class GetLatestMessage extends HiveWorkerBase implements IGraphEndpointWorker {
@@ -20,7 +20,8 @@ export default class GetLatestMessage extends HiveWorkerBase implements IGraphEn
               }
           }
       `;
-            const response: any = await AwaitHelper.execute(runQuery(latestMessageQuery));
+
+            const response: any = await AwaitHelper.execute(GraphService.getSingleton().runQuery(latestMessageQuery));
 
             const validSiteDocuments = response.campaign;
 
@@ -55,6 +56,9 @@ export default class GetLatestMessage extends HiveWorkerBase implements IGraphEn
 
     public execute = async (_customArgs: any): Promise<WatchContent | {}> => {
         try {
+            GraphService.getSingleton().graphRootUrl =
+                this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+
             const latestSiteDocId = await this.getLatestMessageId();
 
             const latestMessage = await getMessageById(latestSiteDocId);

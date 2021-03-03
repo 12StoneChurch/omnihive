@@ -6,6 +6,7 @@ import { serializeError } from "serialize-error";
 import ElasticWorker, { ElasticSearchFieldModel } from "src/custom/omnihive-worker-elastic";
 import { PaginationModel } from "../../lib/models/PaginationModel";
 import { WatchContent } from "../../lib/models/WatchModels";
+import { GraphService } from "../../lib/services/GraphService";
 import { getMessageById } from "../common/GetMessaegById";
 import getPastMessages from "./GetPastMessages";
 
@@ -37,10 +38,6 @@ export default class MessageSearch extends HiveWorkerBase implements IGraphEndpo
 
                 const totalCount: number = results.hits.total.value;
                 const endingIndex: number = page * limit;
-
-                const checkData = results.hits.hits.map((x: any) => x._source);
-
-                console.log(checkData);
 
                 const parsedData: { doc: WatchContent; score: number }[] = await Promise.all(
                     results.hits.hits.map(async (x: any) => await this.buildFinalData(x))
@@ -129,6 +126,9 @@ export default class MessageSearch extends HiveWorkerBase implements IGraphEndpo
 
     private async buildFinalData(doc: any): Promise<{ doc: WatchContent; score: number } | undefined> {
         if (doc._source.DocumentTypeId === 2) {
+            GraphService.getSingleton().graphRootUrl =
+                this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+
             const document = await AwaitHelper.execute<WatchContent | undefined>(
                 getMessageById(doc._source.SiteDocumentId)
             );

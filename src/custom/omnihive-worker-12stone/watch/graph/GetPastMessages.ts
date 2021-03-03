@@ -2,9 +2,9 @@ import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import dayjs from "dayjs";
-import { runQuery } from "../../lib/helpers/GraphHelper";
 import { PaginationModel } from "../../lib/models/PaginationModel";
 import { WatchContent } from "../../lib/models/WatchModels";
+import { GraphService } from "../../lib/services/GraphService";
 import { transformDataToWatchContent } from "../common/DataToWatchContent";
 
 export default class getPastMessages extends HiveWorkerBase implements IGraphEndpointWorker {
@@ -22,7 +22,10 @@ export default class getPastMessages extends HiveWorkerBase implements IGraphEnd
           }
       `;
 
-        const results: any = await AwaitHelper.execute(runQuery(query));
+        GraphService.getSingleton().graphRootUrl =
+            this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+
+        const results: any = await AwaitHelper.execute(GraphService.getSingleton().runQuery(query));
 
         const documentData: any = results.proc[0].document[0];
 

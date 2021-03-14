@@ -6,7 +6,7 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import chalk from "chalk";
 import dayjs from "dayjs";
 import { serializeError } from "serialize-error";
-import ElasticWorker from "@withonevision/omnihive-worker-elastic";
+import ElasticWorker from "@12stonechurch/omnihive-worker-elastic";
 
 export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEndpointWorker {
     private graphUrl = "";

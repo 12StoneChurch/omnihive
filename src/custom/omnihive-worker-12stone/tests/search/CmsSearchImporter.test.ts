@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { serializeError } from "serialize-error";
 import { TestConfigSettings } from "../../../../tests/models/TestConfigSettings";
 import { TestService } from "../../../../tests/services/TestService";
-import CmsSearchImporter from "../../search/task/CmsSearchImporter";
+import CmsSearchImporter from "../../cms/task/CmsSearchImporter";
 import packageJson from "../../package.json";
 
 let settings: TestConfigSettings;

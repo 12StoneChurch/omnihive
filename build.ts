@@ -1,52 +1,18 @@
 import chalk from "chalk";
 import childProcess from "child_process";
+import dayjs from "dayjs";
 import figlet from "figlet";
 import fse from "fs-extra";
 import path from "path";
-import replaceInFile, { ReplaceInFileConfig } from "replace-in-file";
-import semver from "semver";
-import yargs from "yargs";
-import { Client } from "@elastic/elasticsearch";
 import readPkgUp from "read-pkg-up";
+import replaceInFile, { ReplaceInFileConfig } from "replace-in-file";
 import writePkg from "write-pkg";
-import dayjs from "dayjs";
-
-// Elastic version record
-type Version = {
-    main: string;
-    beta: string;
-    dev: string;
-};
+import yargs from "yargs";
 
 const orangeHex: string = "#FFC022#";
 
 const build = async (): Promise<void> => {
     const startTime: dayjs.Dayjs = dayjs();
-
-    // Check if Elastic settings are available and get versions
-    if (
-        !process.env.omnihive_build_elastic_cloudId ||
-        !process.env.omnihive_build_elastic_cloudPassword ||
-        !process.env.omnihive_build_elastic_cloudUser
-    ) {
-        throw new Error("There are no elastic settings so the build cannot continue.");
-    }
-
-    const elasticClient = new Client({
-        cloud: {
-            id: process.env.omnihive_build_elastic_cloudId,
-        },
-        auth: {
-            username: process.env.omnihive_build_elastic_cloudUser,
-            password: process.env.omnihive_build_elastic_cloudPassword,
-        },
-    });
-
-    const versionDoc = await elasticClient.get({ index: "master-version", id: "1" });
-    const version: Version = versionDoc.body._source as Version;
-
-    // Get the current git branch
-    const currentBranch: string = execSpawn("git branch --show-current", ".");
 
     // Handle args
     const args = yargs(process.argv.slice(2));
@@ -55,21 +21,12 @@ const build = async (): Promise<void> => {
         .help(false)
         .version(false)
         .strict()
-        .option("channel", {
-            alias: "c",
+        .option("version", {
+            alias: "v",
             type: "string",
-            demandOption: true,
-            description: "Name of the channel you wish to build",
-            choices: ["dev", "beta", "main"],
-            default: "dev",
-        })
-        .option("type", {
-            alias: "t",
-            type: "string",
-            demandOption: false,
-            description: "Release type (major, minor, patch, prerelease)",
-            choices: ["major", "minor", "patch", "prerelease"],
-            default: "prerelease",
+            demandCommand: true,
+            description: "Version number to build",
+            default: "99.99.99",
         })
         .option("publish", {
             alias: "p",
@@ -78,28 +35,20 @@ const build = async (): Promise<void> => {
             description: "Publish to NPM",
             default: false,
         })
-        .check((args) => {
-            if (args.channel !== currentBranch) {
-                throw new Error(
-                    "Your selected channel and your current git branch do not match.  Please choose a different channel or switch branches in git."
-                );
-            }
-
-            if (args.channel === "main" && args.type === "prerelease") {
-                throw new Error(
-                    "You cannot specify the main channel and specify prerelease.  Prerelease is for dev and beta channels only."
-                );
-            }
-
-            if (
-                (args.channel === "dev" || args.channel === "beta") &&
-                (args.type === "major" || args.type === "minor" || args.type === "patch")
-            ) {
-                throw new Error(
-                    "You cannot specify a prerelease type and specify the main channel.  Prerelease is the only option for the dev or beta channel."
-                );
-            }
-            return true;
+        .option("publishAccess", {
+            alias: "a",
+            type: "string",
+            demandCommand: false,
+            description: "Access to use when publishing to NPM",
+            default: "public",
+            choices: ["public", "restricted"],
+        })
+        .option("publishTag", {
+            alias: "t",
+            type: "string",
+            demandCommand: false,
+            default: "latest",
+            description: "Tag to use when publishing",
         }).argv;
 
     // Header
@@ -116,9 +65,6 @@ const build = async (): Promise<void> => {
     const directories: string[] = fse
         .readdirSync(path.join(`.`, `src`, `packages`))
         .filter((f) => fse.statSync(path.join(`.`, `src`, `packages`, f)).isDirectory());
-    const customDirectories: string[] = fse
-        .readdirSync(path.join(`.`, `src`, `custom`))
-        .filter((f) => fse.statSync(path.join(`.`, `src`, `custom`, f)).isDirectory());
 
     // Build core libraries
     console.log();
@@ -133,6 +79,7 @@ const build = async (): Promise<void> => {
                 path.join(`.`, `src`, `packages`, `${value}`, `package.json`),
                 path.join(`.`, `dist`, `packages`, `${value}`, `package.json`)
             );
+            execSpawn("npm pack", path.join(`.`, `dist`, `packages`, `${value}`));
             console.log(chalk.greenBright(`Done building ${value}...`));
         });
 
@@ -151,26 +98,11 @@ const build = async (): Promise<void> => {
                 path.join(`.`, `src`, `packages`, `${value}`, `package.json`),
                 path.join(`.`, `dist`, `packages`, `${value}`, `package.json`)
             );
+            execSpawn("npm pack", path.join(`.`, `dist`, `packages`, `${value}`));
             console.log(chalk.greenBright(`Done building ${value}...`));
         });
 
     console.log(chalk.blue("Done building workers..."));
-    console.log();
-
-    // Build custom workers
-    console.log(chalk.blue("Building custom workers..."));
-
-    customDirectories.forEach((value: string) => {
-        console.log(chalk.yellow(`Building ${value}...`));
-        execSpawn("yarn run build", path.join(`.`, `src`, `custom`, `${value}`));
-        fse.copySync(
-            path.join(`.`, `src`, `custom`, `${value}`, `package.json`),
-            path.join(`.`, `dist`, `custom`, `${value}`, `package.json`)
-        );
-        console.log(chalk.greenBright(`Done building ${value}...`));
-    });
-
-    console.log(chalk.blue("Done building custom workers..."));
     console.log();
 
     // Build client and server
@@ -185,6 +117,7 @@ const build = async (): Promise<void> => {
                 path.join(`.`, `src`, `packages`, `${value}`, `package.json`),
                 path.join(`.`, `dist`, `packages`, `${value}`, `package.json`)
             );
+            execSpawn("npm pack", path.join(`.`, `dist`, `packages`, `${value}`));
             console.log(chalk.greenBright(`Done building ${value}...`));
         });
 
@@ -197,6 +130,7 @@ const build = async (): Promise<void> => {
                 path.join(`.`, `src`, `packages`, `${value}`, `package.json`),
                 path.join(`.`, `dist`, `packages`, `${value}`, `package.json`)
             );
+            execSpawn("npm pack", path.join(`.`, `dist`, `packages`, `${value}`));
             console.log(chalk.greenBright(`Done building main server package ${value}...`));
         });
 
@@ -262,115 +196,39 @@ const build = async (): Promise<void> => {
     // Handle version maintenance
     console.log(chalk.blue("Version maintenance..."));
 
-    // SemVer Updates
-    console.log(chalk.yellow("Getting semver..."));
-
-    let currentVersion: string | null = null;
-
-    switch (args.argv.type) {
-        case "prerelease":
-            switch (args.argv.channel) {
-                case "dev":
-                    currentVersion = semver.inc(version.dev, "prerelease", false, "dev") ?? "";
-
-                    if (!currentVersion || currentVersion === "") {
-                        console.log(chalk.red("SemVer is incorrect"));
-                        process.exit();
-                    }
-
-                    version.dev = currentVersion;
-                    break;
-                case "beta":
-                    currentVersion = semver.inc(version.beta, "prerelease", false, "beta") ?? "";
-
-                    if (!currentVersion || currentVersion === "") {
-                        console.log(chalk.red("SemVer is incorrect"));
-                        process.exit();
-                    }
-
-                    version.beta = currentVersion;
-                    break;
-                default:
-                    console.log(chalk.red("Must have dev or beta channel with prerelease"));
-                    process.exit();
-            }
-            break;
-        case "major":
-            currentVersion = semver.inc(version.main, "major") ?? "";
-
-            if (!currentVersion || currentVersion === "") {
-                console.log(chalk.red("SemVer is incorrect"));
-                process.exit();
-            }
-
-            version.main = currentVersion;
-            version.beta = semver.inc(currentVersion, "prerelease", false, "beta") ?? "";
-            version.dev = semver.inc(currentVersion, "prerelease", false, "dev") ?? "";
-            break;
-        case "minor":
-            currentVersion = semver.inc(version.main, "minor") ?? "";
-
-            if (!currentVersion || currentVersion === "") {
-                console.log(chalk.red("SemVer is incorrect"));
-                process.exit();
-            }
-
-            version.main = currentVersion;
-            version.beta = semver.inc(currentVersion, "prerelease", false, "beta") ?? "";
-            version.dev = semver.inc(currentVersion, "prerelease", false, "dev") ?? "";
-            break;
-        case "patch":
-            currentVersion = semver.inc(version.main, "patch") ?? "";
-
-            if (!currentVersion || currentVersion === "") {
-                console.log(chalk.red("SemVer is incorrect"));
-                process.exit();
-            }
-
-            version.main = currentVersion;
-            version.beta = semver.inc(currentVersion, "prerelease", false, "beta") ?? "";
-            version.dev = semver.inc(currentVersion, "prerelease", false, "dev") ?? "";
-            break;
-    }
-
-    console.log(chalk.greenBright(`Done getting semver ${currentVersion}...`));
-
     // Patch package.json with SemVer
     console.log(chalk.yellow("Patching package.json files..."));
 
     const replaceWorkspaceOptions: ReplaceInFileConfig = {
         allowEmptyPaths: true,
-        files: [path.join(`dist`, `packages`, `**`, `package.json`), path.join(`dist`, `custom`, `**`, `package.json`)],
+        files: [path.join(`dist`, `packages`, `**`, `package.json`)],
         from: /workspace:\*/g,
-        to: `${currentVersion}`,
+        to: `${args.argv.version}`,
     };
 
     await replaceInFile.replaceInFile(replaceWorkspaceOptions);
 
     const replaceVersionOptions: ReplaceInFileConfig = {
         allowEmptyPaths: true,
-        files: [path.join(`dist`, `packages`, `**`, `package.json`), path.join(`dist`, `custom`, `**`, `package.json`)],
+        files: [path.join(`dist`, `packages`, `**`, `package.json`)],
         from: /"version": "0.0.1"/g,
-        to: `"version": "${currentVersion}"`,
+        to: `"version": "${args.argv.version}"`,
     };
 
     await replaceInFile.replaceInFile(replaceVersionOptions);
 
     console.log(chalk.greenBright("Done patching package.json files..."));
 
-    // Upate Elastic with new version
-    console.log(chalk.yellow("Updating version metadata..."));
-
-    await elasticClient.update({ index: "master-version", id: "1", body: { doc: version } });
-
-    console.log(chalk.greenBright("Done updating version metadata..."));
-
     // Tag Github branch with version
-    console.log(chalk.yellow("Tagging GitHub..."));
+    if (!args.argv.publish as boolean) {
+        console.log(chalk.redBright("Publish not specified...skipping Git tagging"));
+    } else {
+        console.log(chalk.yellow("Tagging GitHub..."));
 
-    execSpawn(`git tag ${currentVersion}`, ".");
+        execSpawn(`git tag ${args.argv.version}`, ".");
 
-    console.log(chalk.greenBright("Done tagging GitHub..."));
+        console.log(chalk.greenBright("Done tagging GitHub..."));
+    }
 
     // Finish version maintenance
     console.log(chalk.blue("Done with version maintenance..."));
@@ -378,8 +236,20 @@ const build = async (): Promise<void> => {
 
     // Check for publish flag and start publish if there
     if (!args.argv.publish as boolean) {
-        console.log(chalk.redBright("Publish not specified...skipping"));
+        console.log(chalk.redBright("Publish not specified...skipping npm publish"));
     } else {
+        let publishString: string = "npm publish";
+
+        if (args.argv.publishAccess) {
+            publishString = `${publishString} --access ${args.argv.publishAccess as string}`;
+        } else {
+            publishString = `${publishString} --access public`;
+        }
+
+        if (args.argv.publishTag) {
+            publishString = `${publishString} --tag ${args.argv.publishTag as string}`;
+        }
+
         // Publish core libraries
         console.log(chalk.blue("Publishing core libraries..."));
 
@@ -387,7 +257,7 @@ const build = async (): Promise<void> => {
             .filter((value: string) => value === "omnihive-core")
             .forEach((value: string) => {
                 console.log(chalk.yellow(`Publishing ${value}...`));
-                execSpawn("npm publish --access public", path.join(`.`, `dist`, `packages`, `${value}`));
+                execSpawn(publishString, path.join(`.`, `dist`, `packages`, `${value}`));
                 console.log(chalk.greenBright(`Done publishing ${value}...`));
             });
 
@@ -401,21 +271,12 @@ const build = async (): Promise<void> => {
             .filter((value: string) => value.startsWith("omnihive-worker"))
             .forEach((value: string) => {
                 console.log(chalk.yellow(`Publishing ${value}...`));
-                execSpawn("npm publish --access public", path.join(`.`, `dist`, `packages`, `${value}`));
+                execSpawn(publishString, path.join(`.`, `dist`, `packages`, `${value}`));
                 console.log(chalk.greenBright(`Done publishing ${value}...`));
             });
 
         console.log(chalk.blue("Done publishing workers..."));
         console.log();
-
-        // Publish custom workers
-        console.log(chalk.blue("Publishing custom workers..."));
-
-        customDirectories.forEach((value: string) => {
-            console.log(chalk.yellow(`Publishing ${value}...`));
-            execSpawn("npm publish --access public", path.join(`.`, `dist`, `custom`, `${value}`));
-            console.log(chalk.greenBright(`Done publishing ${value}...`));
-        });
 
         // Publish client and server
         console.log(chalk.blue("Publishing client and server..."));
@@ -424,7 +285,7 @@ const build = async (): Promise<void> => {
             .filter((value: string) => value === "omnihive-client")
             .forEach((value: string) => {
                 console.log(chalk.yellow(`Publishing ${value}...`));
-                execSpawn("npm publish --access public", path.join(`.`, `dist`, `packages`, `${value}`));
+                execSpawn(publishString, path.join(`.`, `dist`, `packages`, `${value}`));
                 console.log(chalk.greenBright(`Done publishing ${value}...`));
             });
 
@@ -432,7 +293,7 @@ const build = async (): Promise<void> => {
             .filter((value: string) => value === "omnihive")
             .forEach((value: string) => {
                 console.log(chalk.yellow(`Publishing ${value}...`));
-                execSpawn("npm publish --access public", path.join(`.`, `dist`, `packages`, `${value}`));
+                execSpawn(publishString, path.join(`.`, `dist`, `packages`, `${value}`));
                 console.log(chalk.greenBright(`Done publishing ${value}...`));
             });
 
@@ -458,9 +319,8 @@ const execSpawn = (commandString: string, cwd: string): string => {
     });
 
     if (execSpawn.status !== 0) {
-        const execError: Error = new Error(execSpawn.stderr.toString().trim());
-        console.log(chalk.red(execError));
-        process.exit();
+        console.log(chalk.red(execSpawn.stdout.toString().trim()));
+        process.exit(1);
     }
 
     const execOut = execSpawn.stdout.toString().trim();

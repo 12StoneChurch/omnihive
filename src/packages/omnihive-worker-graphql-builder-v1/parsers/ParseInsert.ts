@@ -92,6 +92,14 @@ export class ParseInsert {
             insertDbObjects.push(insertDbObject);
         });
 
-        return queryBuilder.insert(insertDbObjects, insertDbColumnList).into(tableName);
+        const primaryKey = tableSchema.find((x) => x.columnIsPrimaryKey);
+
+        if (primaryKey) {
+            insertDbColumnList.push(primaryKey.columnNameDatabase);
+        }
+
+        return queryBuilder
+            .insert(insertDbObjects, insertDbColumnList, { includeTriggerModifications: true })
+            .into(tableName);
     };
 }

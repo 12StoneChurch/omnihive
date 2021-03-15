@@ -1,5 +1,7 @@
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { GraphQLResolveInfo } from "graphql";
+import { ConnectionSchema } from "src/packages/omnihive-core/models/ConnectionSchema";
+import { TableSchema } from "src/packages/omnihive-core/models/TableSchema";
 import { ParseAstQuery } from "./ParseAstQuery";
 import { ParseCustomSql } from "./ParseCustomSql";
 import { ParseDelete } from "./ParseDelete";
@@ -45,7 +47,32 @@ export class ParseMaster {
         omniHiveContext: GraphContext
     ): Promise<any[]> => {
         const parser: ParseInsert = new ParseInsert();
-        return await parser.parse(workerName, tableName, insertObjects, customDmlArgs, omniHiveContext);
+        const results = await parser.parse(workerName, tableName, insertObjects, customDmlArgs, omniHiveContext);
+
+        const schema: ConnectionSchema | undefined = global.omnihive.registeredSchemas.find(
+            (value: ConnectionSchema) => value.workerName === workerName
+        );
+        let tableSchema: TableSchema[] = [];
+
+        if (schema) {
+            tableSchema = schema.tables;
+        }
+        tableSchema = tableSchema.filter((tableSchema: TableSchema) => tableSchema.tableName === tableName);
+
+        const convertedResults: any = {};
+        Object.keys(results[0]).forEach((x) => {
+            const column = tableSchema.find((y) => y.columnNameDatabase === x);
+
+            if (column) {
+                convertedResults[column.columnNameEntity] = results[0][x];
+            } else {
+                convertedResults[x] = results[0][x];
+            }
+        });
+
+        results[0] = convertedResults;
+
+        return results;
     };
 
     public parseStoredProcedure = async (

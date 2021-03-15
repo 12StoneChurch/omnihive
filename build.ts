@@ -1,3 +1,4 @@
+import { Client } from "@elastic/elasticsearch";
 import chalk from "chalk";
 import childProcess from "child_process";
 import dayjs from "dayjs";
@@ -6,6 +7,7 @@ import fse from "fs-extra";
 import path from "path";
 import readPkgUp from "read-pkg-up";
 import replaceInFile, { ReplaceInFileConfig } from "replace-in-file";
+import semver from "semver";
 import writePkg from "write-pkg";
 import yargs from "yargs";
 
@@ -13,6 +15,31 @@ const orangeHex: string = "#FFC022#";
 
 const build = async (): Promise<void> => {
     const startTime: dayjs.Dayjs = dayjs();
+
+    // Check if Elastic settings are available and get versions
+    if (
+        !process.env.omnihive_build_elastic_cloudId ||
+        !process.env.omnihive_build_elastic_cloudPassword ||
+        !process.env.omnihive_build_elastic_cloudUser
+    ) {
+        throw new Error("There are no elastic settings so the build cannot continue.");
+    }
+
+    const elasticClient = new Client({
+        cloud: {
+            id: process.env.omnihive_build_elastic_cloudId,
+        },
+        auth: {
+            username: process.env.omnihive_build_elastic_cloudUser,
+            password: process.env.omnihive_build_elastic_cloudPassword,
+        },
+    });
+
+    const versionDoc = await elasticClient.get({ index: "master-version", id: "1" });
+    const version: Version = versionDoc.body._source as Version;
+
+    // Get the current git branch
+    const currentBranch: string = execSpawn("git branch --show-current", "./");
 
     // Handle args
     const args = yargs(process.argv.slice(2));
@@ -36,7 +63,7 @@ const build = async (): Promise<void> => {
             default: false,
         })
         .option("publishAccess", {
-            alias: "a",
+            alias: "pa",
             type: "string",
             demandCommand: false,
             description: "Access to use when publishing to NPM",
@@ -44,11 +71,38 @@ const build = async (): Promise<void> => {
             choices: ["public", "restricted"],
         })
         .option("publishTag", {
-            alias: "t",
+            alias: "pt",
             type: "string",
             demandCommand: false,
             default: "latest",
             description: "Tag to use when publishing",
+        })
+        .check((args) => {
+            if ((args.publishAccess || args.publishTag) && (args.publish === undefined || args.publish === false)) {
+                throw new Error("You must add a publish flag to use tagging or access levels");
+            }
+
+            if (args.channel !== currentBranch) {
+                throw new Error(
+                    "Your selected channel and your current git branch do not match.  Please choose a different channel or switch branches in git."
+                );
+            }
+
+            if (args.channel === "main" && args.type === "prerelease") {
+                throw new Error(
+                    "You cannot specify the main channel and specify prerelease.  Prerelease is for dev and beta channels only."
+                );
+            }
+
+            if (
+                (args.channel === "dev" || args.channel === "beta") &&
+                (args.type === "major" || args.type === "minor" || args.type === "patch")
+            ) {
+                throw new Error(
+                    "You cannot specify a prerelease type and specify the main channel.  Prerelease is the only option for the dev or beta channel."
+                );
+            }
+            return true;
         }).argv;
 
     // Header
@@ -215,16 +269,10 @@ const build = async (): Promise<void> => {
 
     console.log(chalk.greenBright("Done patching package.json files..."));
 
-    // Tag Github branch with version
-    if (!args.argv.publish as boolean) {
-        console.log(chalk.redBright("Publish not specified...skipping Git tagging"));
-    } else {
-        console.log(chalk.yellow("Tagging GitHub..."));
-
-        execSpawn(`git tag ${args.argv.version}`, ".");
-
-        console.log(chalk.greenBright("Done tagging GitHub..."));
-    }
+    // Upate Elastic with new version
+    console.log(chalk.yellow("Updating version metadata..."));
+    await elasticClient.update({ index: "master-version", id: "1", body: { doc: version } });
+    console.log(chalk.greenBright("Done updating version metadata..."));
 
     // Finish version maintenance
     console.log(chalk.blue("Done with version maintenance..."));
@@ -234,6 +282,11 @@ const build = async (): Promise<void> => {
     if (!args.argv.publish as boolean) {
         console.log(chalk.redBright("Publish not specified...skipping npm publish"));
     } else {
+        // Tag Github branch with version
+        console.log(chalk.yellow("Tagging GitHub..."));
+        execSpawn(`git tag ${currentVersion}`, "./");
+        console.log(chalk.greenBright("Done tagging GitHub..."));
+
         let publishString: string = "npm publish";
 
         if (args.argv.publishAccess) {
@@ -254,6 +307,7 @@ const build = async (): Promise<void> => {
             .forEach((value: string) => {
                 console.log(chalk.yellow(`Publishing ${value}...`));
                 execSpawn(publishString, path.join(`.`, `dist`, `packages`, `${value}`));
+                execSpawn("npm pack", path.join(`.`, `dist`, `packages`, `${value}`));
                 console.log(chalk.greenBright(`Done publishing ${value}...`));
             });
 
@@ -268,6 +322,7 @@ const build = async (): Promise<void> => {
             .forEach((value: string) => {
                 console.log(chalk.yellow(`Publishing ${value}...`));
                 execSpawn(publishString, path.join(`.`, `dist`, `packages`, `${value}`));
+                execSpawn("npm pack", path.join(`.`, `dist`, `packages`, `${value}`));
                 console.log(chalk.greenBright(`Done publishing ${value}...`));
             });
 
@@ -282,6 +337,7 @@ const build = async (): Promise<void> => {
             .forEach((value: string) => {
                 console.log(chalk.yellow(`Publishing ${value}...`));
                 execSpawn(publishString, path.join(`.`, `dist`, `packages`, `${value}`));
+                execSpawn("npm pack", path.join(`.`, `dist`, `packages`, `${value}`));
                 console.log(chalk.greenBright(`Done publishing ${value}...`));
             });
 
@@ -290,6 +346,7 @@ const build = async (): Promise<void> => {
             .forEach((value: string) => {
                 console.log(chalk.yellow(`Publishing ${value}...`));
                 execSpawn(publishString, path.join(`.`, `dist`, `packages`, `${value}`));
+                execSpawn("npm pack", path.join(`.`, `dist`, `packages`, `${value}`));
                 console.log(chalk.greenBright(`Done publishing ${value}...`));
             });
 

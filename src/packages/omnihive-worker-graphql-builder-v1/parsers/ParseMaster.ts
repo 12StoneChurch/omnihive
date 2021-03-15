@@ -1,4 +1,6 @@
+import { ConnectionSchema } from "@withonevision/omnihive-core/models/ConnectionSchema";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
+import { TableSchema } from "@withonevision/omnihive-core/models/TableSchema";
 import { GraphQLResolveInfo } from "graphql";
 import { ConnectionSchema } from "src/packages/omnihive-core/models/ConnectionSchema";
 import { TableSchema } from "src/packages/omnihive-core/models/TableSchema";

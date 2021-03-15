@@ -1,42 +1,57 @@
+/// <reference path="../../../types/globals.omnihive.d.ts" />
+
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
+import { StringHelper } from "@withonevision/omnihive-core/helpers/StringHelper";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
-import { IFileSystemWorker } from "@withonevision/omnihive-core/interfaces/IFileSystemWorker";
-import { OmniHiveConstants } from "@withonevision/omnihive-core/models/OmniHiveConstants";
+import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
+import { ConnectionSchema } from "@withonevision/omnihive-core/models/ConnectionSchema";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { StoredProcSchema } from "@withonevision/omnihive-core/models/StoredProcSchema";
-import { CommonStore } from "@withonevision/omnihive-core/stores/CommonStore";
 import { FieldNode, GraphQLResolveInfo, SelectionNode } from "graphql";
 
 export class ParseStoredProcedure {
     public parse = async (
         workerName: string,
-        resolveInfo: GraphQLResolveInfo
+        resolveInfo: GraphQLResolveInfo,
+        omniHiveContext: GraphContext
     ): Promise<{ procName: string; results: any[][] }[]> => {
-        const fileSystemWorker: IFileSystemWorker | undefined = await AwaitHelper.execute<
-            IFileSystemWorker | undefined
-        >(CommonStore.getInstance().getHiveWorker<IFileSystemWorker | undefined>(HiveWorkerType.FileSystem));
-
-        if (!fileSystemWorker) {
-            throw new Error(
-                "FileSystem Worker Not Defined.  This graph converter will not work without a FileSystem worker."
-            );
-        }
-
-        const databaseWorker: IDatabaseWorker | undefined = await AwaitHelper.execute<IDatabaseWorker | undefined>(
-            CommonStore.getInstance().getHiveWorker<IDatabaseWorker | undefined>(HiveWorkerType.Database, workerName)
+        const databaseWorker: IDatabaseWorker | undefined = global.omnihive.getWorker<IDatabaseWorker | undefined>(
+            HiveWorkerType.Database,
+            workerName
         );
 
         if (!databaseWorker) {
             throw new Error(
-                "FileSystem Worker Not Defined.  This graph converter will not work without a FileSystem worker."
+                "Database Worker Not Defined.  This graph converter will not work without a database worker."
             );
         }
 
-        const schemaFilePath: string = `${fileSystemWorker.getCurrentExecutionDirectory()}/${
-            OmniHiveConstants.SERVER_OUTPUT_DIRECTORY
-        }/connections/${workerName}.json`;
-        const jsonSchema: any = JSON.parse(fileSystemWorker.readFile(schemaFilePath));
-        const fullSchema: StoredProcSchema[] = jsonSchema["storedProcs"];
+        const tokenWorker: ITokenWorker | undefined = global.omnihive.getWorker<ITokenWorker | undefined>(
+            HiveWorkerType.Token
+        );
+
+        if (
+            tokenWorker &&
+            omniHiveContext &&
+            omniHiveContext.access &&
+            !StringHelper.isNullOrWhiteSpace(omniHiveContext.access)
+        ) {
+            const verifyToken: boolean = await AwaitHelper.execute<boolean>(tokenWorker.verify(omniHiveContext.access));
+            if (verifyToken === false) {
+                throw new Error("Access token is invalid or expired.");
+            }
+        }
+
+        const schema: ConnectionSchema | undefined = global.omnihive.registeredSchemas.find(
+            (value: ConnectionSchema) => value.workerName === workerName
+        );
+        let fullSchema: StoredProcSchema[] = [];
+
+        if (schema) {
+            fullSchema = schema.storedProcs;
+        }
+
         const response: { procName: string; results: any[][] }[] = [];
 
         const storedProcCall: readonly SelectionNode[] = resolveInfo.operation.selectionSet.selections;

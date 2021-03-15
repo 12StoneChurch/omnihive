@@ -1,10 +1,13 @@
+/// <reference path="../../../types/globals.omnihive.d.ts" />
+
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
+import { StringHelper } from "@withonevision/omnihive-core/helpers/StringHelper";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
-import { IFileSystemWorker } from "@withonevision/omnihive-core/interfaces/IFileSystemWorker";
-import { OmniHiveConstants } from "@withonevision/omnihive-core/models/OmniHiveConstants";
+import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
+import { ConnectionSchema } from "@withonevision/omnihive-core/models/ConnectionSchema";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { TableSchema } from "@withonevision/omnihive-core/models/TableSchema";
-import { CommonStore } from "@withonevision/omnihive-core/stores/CommonStore";
 import knex, { QueryBuilder } from "knex";
 
 export class ParseInsert {
@@ -12,14 +15,16 @@ export class ParseInsert {
         workerName: string,
         tableName: string,
         insertObjects: any[],
-        _customDmlArgs: any
+        _customDmlArgs: any,
+        omniHiveContext: GraphContext
     ): Promise<any[]> => {
         if (!insertObjects || Object.keys(insertObjects).length === 0) {
             throw new Error("Insert cannot have a zero column count.");
         }
 
-        const databaseWorker: IDatabaseWorker | undefined = await AwaitHelper.execute<IDatabaseWorker | undefined>(
-            CommonStore.getInstance().getHiveWorker<IDatabaseWorker | undefined>(HiveWorkerType.Database, workerName)
+        const databaseWorker: IDatabaseWorker | undefined = global.omnihive.getWorker<IDatabaseWorker | undefined>(
+            HiveWorkerType.Database,
+            workerName
         );
 
         if (!databaseWorker) {
@@ -28,28 +33,35 @@ export class ParseInsert {
             );
         }
 
-        const fileSystemWorker: IFileSystemWorker | undefined = await AwaitHelper.execute<
-            IFileSystemWorker | undefined
-        >(CommonStore.getInstance().getHiveWorker<IFileSystemWorker | undefined>(HiveWorkerType.FileSystem));
+        const tokenWorker: ITokenWorker | undefined = global.omnihive.getWorker<ITokenWorker | undefined>(
+            HiveWorkerType.Token
+        );
 
-        if (!fileSystemWorker) {
-            throw new Error(
-                "FileSystem Worker Not Defined.  This graph converter will not work without a FileSystem worker."
-            );
+        if (
+            tokenWorker &&
+            omniHiveContext &&
+            omniHiveContext.access &&
+            !StringHelper.isNullOrWhiteSpace(omniHiveContext.access)
+        ) {
+            const verifyToken: boolean = await AwaitHelper.execute<boolean>(tokenWorker.verify(omniHiveContext.access));
+            if (verifyToken === false) {
+                throw new Error("Access token is invalid or expired.");
+            }
         }
 
-        const schemaFilePath: string = `${fileSystemWorker.getCurrentExecutionDirectory()}/${
-            OmniHiveConstants.SERVER_OUTPUT_DIRECTORY
-        }/connections/${workerName}.json`;
-        const jsonSchema: any = JSON.parse(fileSystemWorker.readFile(schemaFilePath));
+        const schema: ConnectionSchema | undefined = global.omnihive.registeredSchemas.find(
+            (value: ConnectionSchema) => value.workerName === workerName
+        );
+        let tableSchema: TableSchema[] = [];
 
-        let tableSchema: TableSchema[] = jsonSchema["tables"];
+        if (schema) {
+            tableSchema = schema.tables;
+        }
         tableSchema = tableSchema.filter((tableSchema: TableSchema) => tableSchema.tableName === tableName);
 
         const queryBuilder: QueryBuilder = (databaseWorker.connection as knex).queryBuilder();
 
         const insertDbObjects: any[] = [];
-        const insertDbColumnList: string[] = [];
 
         insertObjects.forEach((insertObject: any) => {
             const insertDbObject: any = {};
@@ -70,15 +82,11 @@ export class ParseInsert {
                 }
 
                 insertDbObject[columnSchema.columnNameDatabase] = insertObject[key];
-
-                if (!insertDbColumnList.some((value: string) => value === columnSchema?.columnNameDatabase)) {
-                    insertDbColumnList.push(columnSchema.columnNameDatabase);
-                }
             });
 
             insertDbObjects.push(insertDbObject);
         });
 
-        return queryBuilder.insert(insertDbObjects, insertDbColumnList).into(tableName);
+        return queryBuilder.insert(insertDbObjects, "*", { includeTriggerModifications: true }).into(tableName);
     };
 }

@@ -1,63 +1,40 @@
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
-import { ObjectHelper } from "@withonevision/omnihive-core/helpers/ObjectHelper";
 import { HiveWorker } from "@withonevision/omnihive-core/models/HiveWorker";
-import { ServerSettings } from "@withonevision/omnihive-core/models/ServerSettings";
 import { StoredProcSchema } from "@withonevision/omnihive-core/models/StoredProcSchema";
-import { CommonStore } from "@withonevision/omnihive-core/stores/CommonStore";
 import { assert } from "chai";
-import fs from "fs";
 import { serializeError } from "serialize-error";
 import MssqlDatabaseWorker from "..";
+import { TestConfigSettings } from "../../../tests/models/TestConfigSettings";
+import { TestService } from "../../../tests/services/TestService";
 import packageJson from "../package.json";
 
-const getConfig = function (): ServerSettings | undefined {
-    try {
-        if (!process.env.omnihive_test_worker_knex_mssql) {
-            return undefined;
-        }
-
-        const config: ServerSettings = ObjectHelper.create(
-            ServerSettings,
-            JSON.parse(fs.readFileSync(`${process.env.omnihive_test_worker_knex_mssql}`, { encoding: "utf8" }))
-        );
-
-        if (!config.workers.some((worker) => worker.package === packageJson.name)) {
-            return undefined;
-        }
-
-        return config;
-    } catch {
-        return undefined;
-    }
-};
-
-let settings: ServerSettings;
+let settings: TestConfigSettings;
+let worker: MssqlDatabaseWorker = new MssqlDatabaseWorker();
+const testService: TestService = new TestService();
 
 describe("mssql database worker tests", function () {
     before(function () {
-        const config: ServerSettings | undefined = getConfig();
+        const config: TestConfigSettings | undefined = testService.getTestConfig(packageJson.name);
 
         if (!config) {
             this.skip();
         }
 
-        CommonStore.getInstance().clearWorkers();
+        testService.clearWorkers();
         settings = config;
     });
 
-    let worker: MssqlDatabaseWorker = new MssqlDatabaseWorker();
-
-    const init = async function (testingConfigs: any): Promise<void> {
+    const init = async function (testingConfigs: HiveWorker[]): Promise<void> {
         try {
-            await AwaitHelper.execute(CommonStore.getInstance().initWorkers(testingConfigs));
-            const newWorker = CommonStore.getInstance().workers.find((x) => x[0].package === packageJson.name);
+            await AwaitHelper.execute(testService.initWorkers(testingConfigs));
+            const newWorker = testService.registeredWorkers.find((x) => x[0].package === packageJson.name);
 
             if (newWorker && newWorker[1]) {
                 worker = newWorker[1];
             }
         } catch (err) {
-            throw new Error(err.message);
+            throw new Error("init failure: " + serializeError(JSON.stringify(err)));
         }
     };
 
@@ -67,7 +44,7 @@ describe("mssql database worker tests", function () {
 
     describe("Init Functions", function () {
         beforeEach(async function () {
-            CommonStore.getInstance().clearWorkers();
+            testService.clearWorkers();
         });
 
         it("test valid init", async function () {

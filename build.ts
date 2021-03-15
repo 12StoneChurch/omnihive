@@ -1,39 +1,32 @@
 import chalk from "chalk";
 import childProcess from "child_process";
+import dayjs from "dayjs";
 import figlet from "figlet";
-import fs, { copyFileSync, readdirSync, statSync } from "fs";
-import { join } from "path";
+import fse from "fs-extra";
+import path from "path";
+import readPkgUp from "read-pkg-up";
 import replaceInFile, { ReplaceInFileConfig } from "replace-in-file";
-import semver from "semver";
-import yargs from "yargs";
-import version from "./version.json";
-import readPkg from "read-pkg";
 import writePkg from "write-pkg";
-import pkgJson from "package-json";
+import yargs from "yargs";
+
+const orangeHex: string = "#FFC022#";
 
 const build = async (): Promise<void> => {
+    const startTime: dayjs.Dayjs = dayjs();
+
+    // Handle args
     const args = yargs(process.argv.slice(2));
-    const currentBranch: string = execSpawn("git branch --show-current", "./");
 
     args
         .help(false)
         .version(false)
         .strict()
-        .option("channel", {
-            alias: "c",
+        .option("version", {
+            alias: "v",
             type: "string",
-            demandOption: true,
-            description: "Name of the channel you wish to build",
-            choices: ["dev", "beta", "main", "custom"],
-            default: "dev",
-        })
-        .option("type", {
-            alias: "t",
-            type: "string",
-            demandOption: false,
-            description: "Release type (major, minor, patch, prerelease, custom)",
-            choices: ["major", "minor", "patch", "prerelease", "custom"],
-            default: "prerelease",
+            demandCommand: true,
+            description: "Version number to build",
+            default: "99.99.99",
         })
         .option("publish", {
             alias: "p",
@@ -42,303 +35,275 @@ const build = async (): Promise<void> => {
             description: "Publish to NPM",
             default: false,
         })
-        .check((args) => {
-            if (
-                (args.channel === "custom" && args.type !== "custom") ||
-                (args.channel !== "custom" && args.type === "custom")
-            ) {
-                throw new Error("Custom channel can only be paired with custom type.");
-            }
-
-            if (args.channel !== "custom" && args.channel !== currentBranch) {
-                throw new Error(
-                    "Your selected channel and your current git branch do not match.  Please choose a different channel or switch branches in git."
-                );
-            }
-
-            if (args.channel === "main" && args.type === "prerelease") {
-                throw new Error(
-                    "You cannot specify the main channel and specify prerelease.  Prerelease is for dev and beta channels only."
-                );
-            }
-
-            if (
-                (args.channel === "dev" || args.channel === "beta") &&
-                (args.type === "major" || args.type === "minor" || args.type === "patch")
-            ) {
-                throw new Error(
-                    "You cannot specify a prerelease type and specify the main channel.  Prerelease is the only option for the dev or beta channel."
-                );
-            }
-            return true;
+        .option("publishAccess", {
+            alias: "a",
+            type: "string",
+            demandCommand: false,
+            description: "Access to use when publishing to NPM",
+            default: "public",
+            choices: ["public", "restricted"],
+        })
+        .option("publishTag", {
+            alias: "t",
+            type: "string",
+            demandCommand: false,
+            default: "latest",
+            description: "Tag to use when publishing",
         }).argv;
 
-    clear();
+    // Header
     console.log(chalk.yellow(figlet.textSync("OMNIHIVE")));
+    console.log(chalk.hex(orangeHex)("Building OmniHive monorepo..."));
+    console.log();
 
-    if (args.argv.channel !== "custom") {
-        console.log(chalk.hex("#FFC022")("Building OmniHive monorepo..."));
-        console.log();
-        console.log(chalk.yellow("Clearing existing dist directory..."));
+    // Clear out existing dist directory
+    console.log(chalk.yellow("Clearing existing dist directory..."));
+    fse.rmSync(path.join(`.`, `dist`), { recursive: true, force: true });
+    console.log(chalk.greenBright("Done clearing existing dist directory..."));
 
-        fs.rmSync("./dist", { recursive: true, force: true });
+    // Get all packages directories
+    const directories: string[] = fse
+        .readdirSync(path.join(`.`, `src`, `packages`))
+        .filter((f) => fse.statSync(path.join(`.`, `src`, `packages`, f)).isDirectory());
 
-        const directories: string[] = readdirSync("./src/packages").filter((f) =>
-            statSync(join("./src/packages", f)).isDirectory()
+    // Build core libraries
+    console.log();
+    console.log(chalk.blue("Building core libraries..."));
+
+    directories
+        .filter((value: string) => value === "omnihive-core")
+        .forEach((value: string) => {
+            console.log(chalk.yellow(`Building ${value}...`));
+            execSpawn("yarn run build", path.join(`.`, `src`, `packages`, `${value}`));
+            fse.copySync(
+                path.join(`.`, `src`, `packages`, `${value}`, `package.json`),
+                path.join(`.`, `dist`, `packages`, `${value}`, `package.json`)
+            );
+            console.log(chalk.greenBright(`Done building ${value}...`));
+        });
+
+    console.log(chalk.blue("Done building core libraries..."));
+    console.log();
+
+    // Build workers
+    console.log(chalk.blue("Building workers..."));
+
+    directories
+        .filter((value: string) => value.startsWith("omnihive-worker"))
+        .forEach((value: string) => {
+            console.log(chalk.yellow(`Building ${value}...`));
+            execSpawn("yarn run build", path.join(`.`, `src`, `packages`, `${value}`));
+            fse.copySync(
+                path.join(`.`, `src`, `packages`, `${value}`, `package.json`),
+                path.join(`.`, `dist`, `packages`, `${value}`, `package.json`)
+            );
+            console.log(chalk.greenBright(`Done building ${value}...`));
+        });
+
+    console.log(chalk.blue("Done building workers..."));
+    console.log();
+
+    // Build client and server
+    console.log(chalk.blue("Building client and server..."));
+
+    directories
+        .filter((value: string) => value === "omnihive-client")
+        .forEach((value: string) => {
+            console.log(chalk.yellow(`Building ${value}...`));
+            execSpawn("yarn run build", path.join(`.`, `src`, `packages`, `${value}`));
+            fse.copySync(
+                path.join(`.`, `src`, `packages`, `${value}`, `package.json`),
+                path.join(`.`, `dist`, `packages`, `${value}`, `package.json`)
+            );
+            console.log(chalk.greenBright(`Done building ${value}...`));
+        });
+
+    directories
+        .filter((value: string) => value === "omnihive")
+        .forEach((value: string) => {
+            console.log(chalk.yellow(`Building main server package ${value}...`));
+            execSpawn("yarn run build", path.join(`.`, `src`, `packages`, `${value}`));
+            fse.copySync(
+                path.join(`.`, `src`, `packages`, `${value}`, `package.json`),
+                path.join(`.`, `dist`, `packages`, `${value}`, `package.json`)
+            );
+            console.log(chalk.greenBright(`Done building main server package ${value}...`));
+        });
+
+    //Copy over miscellaneous files (npmignore, pug, etc.)
+    console.log(chalk.yellow("Copying miscellaneous OmniHive files..."));
+
+    const miscFiles = [".npmignore", `postcss.config.js`, `tailwind.config.js`];
+
+    miscFiles.forEach((value: string) => {
+        fse.copyFileSync(
+            path.join(`.`, `src`, `packages`, `omnihive`, `${value}`),
+            path.join(`.`, `dist`, `packages`, `omnihive`, `${value}`)
         );
+    });
 
-        console.log();
-        console.log(chalk.blue("Building core libraries..."));
+    const miscFolders = [path.join(`app`, `public`), path.join(`app`, `views`), "templates"];
+
+    miscFolders.forEach((value: string) => {
+        fse.copySync(
+            path.join(`.`, `src`, `packages`, `omnihive`, `${value}`),
+            path.join(`.`, `dist`, `packages`, `omnihive`, `${value}`)
+        );
+    });
+
+    console.log(chalk.greenBright("Done copying miscellaneous OmniHive files..."));
+
+    //Remove non-core packages from package.json in server
+    console.log(chalk.yellow("Removing non-core packages from OmniHive package.json..."));
+
+    const packageJson: readPkgUp.NormalizedReadResult | undefined = await readPkgUp({
+        cwd: path.join(`.`, `dist`, `packages`, `omnihive`),
+    });
+
+    const corePackages: any = packageJson?.packageJson.omniHive.coreDependencies;
+    const loadedPackages: any = packageJson?.packageJson.dependencies;
+
+    for (const loadedPackage of Object.entries(loadedPackages)) {
+        let removeLoadedPackage: boolean = true;
+
+        for (const corePackage of Object.entries(corePackages)) {
+            if (corePackage[0] === loadedPackage[0] && corePackage[1] === loadedPackage[1]) {
+                removeLoadedPackage = false;
+                break;
+            }
+        }
+
+        if (removeLoadedPackage) {
+            if (packageJson && packageJson.packageJson && packageJson.packageJson.dependencies) {
+                delete packageJson.packageJson.dependencies[loadedPackage[0]];
+            }
+        }
+    }
+
+    if (packageJson && packageJson.packageJson) {
+        await writePkg(path.join(`.`, `dist`, `packages`, `omnihive`), packageJson.packageJson);
+    }
+
+    console.log(chalk.greenBright("Done removing non-core packages from OmniHive package.json..."));
+
+    console.log(chalk.blue("Done building client and server..."));
+    console.log();
+
+    // Handle version maintenance
+    console.log(chalk.blue("Version maintenance..."));
+
+    // Patch package.json with SemVer
+    console.log(chalk.yellow("Patching package.json files..."));
+
+    const replaceWorkspaceOptions: ReplaceInFileConfig = {
+        allowEmptyPaths: true,
+        files: [path.join(`dist`, `packages`, `**`, `package.json`)],
+        from: /workspace:\*/g,
+        to: `${args.argv.version}`,
+    };
+
+    await replaceInFile.replaceInFile(replaceWorkspaceOptions);
+
+    const replaceVersionOptions: ReplaceInFileConfig = {
+        allowEmptyPaths: true,
+        files: [path.join(`dist`, `packages`, `**`, `package.json`)],
+        from: /"version": "0.0.1"/g,
+        to: `"version": "${args.argv.version}"`,
+    };
+
+    await replaceInFile.replaceInFile(replaceVersionOptions);
+
+    console.log(chalk.greenBright("Done patching package.json files..."));
+
+    // Tag Github branch with version
+    if (!args.argv.publish as boolean) {
+        console.log(chalk.redBright("Publish not specified...skipping Git tagging"));
+    } else {
+        console.log(chalk.yellow("Tagging GitHub..."));
+
+        execSpawn(`git tag ${args.argv.version}`, ".");
+
+        console.log(chalk.greenBright("Done tagging GitHub..."));
+    }
+
+    // Finish version maintenance
+    console.log(chalk.blue("Done with version maintenance..."));
+    console.log();
+
+    // Check for publish flag and start publish if there
+    if (!args.argv.publish as boolean) {
+        console.log(chalk.redBright("Publish not specified...skipping npm publish"));
+    } else {
+        let publishString: string = "npm publish";
+
+        if (args.argv.publishAccess) {
+            publishString = `${publishString} --access ${args.argv.publishAccess as string}`;
+        } else {
+            publishString = `${publishString} --access public`;
+        }
+
+        if (args.argv.publishTag) {
+            publishString = `${publishString} --tag ${args.argv.publishTag as string}`;
+        }
+
+        // Publish core libraries
+        console.log(chalk.blue("Publishing core libraries..."));
 
         directories
             .filter((value: string) => value === "omnihive-core")
             .forEach((value: string) => {
-                console.log(chalk.yellow(`Building ${value}...`));
-                execSpawn("yarn run build", `./src/packages/${value}`);
-                console.log(chalk.greenBright(`Done building ${value}...`));
+                console.log(chalk.yellow(`Publishing ${value}...`));
+                execSpawn(publishString, path.join(`.`, `dist`, `packages`, `${value}`));
+                console.log(chalk.greenBright(`Done publishing ${value}...`));
             });
 
-        directories
-            .filter((value: string) => value === "omnihive-client") // || value === "omnihive")
-            .forEach((value: string) => {
-                console.log(chalk.yellow(`Building ${value}...`));
-                execSpawn("yarn run build", `./src/packages/${value}`);
-                console.log(chalk.greenBright(`Done building ${value}...`));
-            });
-
-        console.log(chalk.blue("Done building core libraries..."));
+        console.log(chalk.blue("Done publishing core libraries..."));
         console.log();
-        console.log(chalk.blue("Building workers..."));
+
+        // Publish workers
+        console.log(chalk.blue("Publishing workers..."));
 
         directories
             .filter((value: string) => value.startsWith("omnihive-worker"))
             .forEach((value: string) => {
-                console.log(chalk.yellow(`Building ${value}...`));
-                execSpawn("yarn run build", `./src/packages/${value}`);
-                console.log(chalk.greenBright(`Done building ${value}...`));
+                console.log(chalk.yellow(`Publishing ${value}...`));
+                execSpawn(publishString, path.join(`.`, `dist`, `packages`, `${value}`));
+                console.log(chalk.greenBright(`Done publishing ${value}...`));
             });
 
-        console.log(chalk.blue("Done building workers..."));
+        console.log(chalk.blue("Done publishing workers..."));
         console.log();
-        console.log(chalk.blue("Building server..."));
+
+        // Publish client and server
+        console.log(chalk.blue("Publishing client and server..."));
 
         directories
-            .filter((value: string) => value === "omnihive-server")
+            .filter((value: string) => value === "omnihive-client")
             .forEach((value: string) => {
-                console.log(chalk.yellow(`Building main server package ${value}...`));
-                execSpawn("yarn run build", `./src/packages/${value}`);
-                console.log(chalk.greenBright(`Done building main server package ${value}...`));
+                console.log(chalk.yellow(`Publishing ${value}...`));
+                execSpawn(publishString, path.join(`.`, `dist`, `packages`, `${value}`));
+                console.log(chalk.greenBright(`Done publishing ${value}...`));
             });
 
-        console.log(chalk.yellow("Copying NextJS OmniHive files..."));
+        directories
+            .filter((value: string) => value === "omnihive")
+            .forEach((value: string) => {
+                console.log(chalk.yellow(`Publishing ${value}...`));
+                execSpawn(publishString, path.join(`.`, `dist`, `packages`, `${value}`));
+                console.log(chalk.greenBright(`Done publishing ${value}...`));
+            });
 
-        const nextJsFiles = ["next-env.d.ts", "next.config.js", "postcss.config.js", "tailwind.config.js"];
-
-        nextJsFiles.forEach((value: string) => {
-            copyFileSync(`./src/packages/omnihive-server/${value}`, `./dist/packages/omnihive-server/${value}`);
-        });
-
-        console.log(chalk.greenBright("Done copying NextJS OmniHive files..."));
-
-        console.log(chalk.blue("Done building server..."));
-        console.log();
-        console.log(chalk.blue("Version maintenance..."));
-        console.log(chalk.yellow("Getting semver..."));
-
-        let currentVersion: string | null = null;
-
-        switch (args.argv.type) {
-            case "prerelease":
-                switch (args.argv.channel) {
-                    case "dev":
-                        currentVersion = semver.inc(version.dev, "prerelease", false, "dev") ?? "";
-
-                        if (!currentVersion || currentVersion === "") {
-                            console.log(chalk.red("SemVer is incorrect"));
-                            process.exit();
-                        }
-
-                        version.dev = currentVersion;
-                        break;
-                    case "beta":
-                        currentVersion = semver.inc(version.beta, "prerelease", false, "beta") ?? "";
-
-                        if (!currentVersion || currentVersion === "") {
-                            console.log(chalk.red("SemVer is incorrect"));
-                            process.exit();
-                        }
-
-                        version.beta = currentVersion;
-                        break;
-                    default:
-                        console.log(chalk.red("Must have dev or beta channel with prerelease"));
-                        process.exit();
-                }
-                break;
-            case "major":
-                currentVersion = semver.inc(version.main, "major") ?? "";
-
-                if (!currentVersion || currentVersion === "") {
-                    console.log(chalk.red("SemVer is incorrect"));
-                    process.exit();
-                }
-
-                version.main = currentVersion;
-                version.beta = semver.inc(currentVersion, "prerelease", false, "beta") ?? "";
-                version.dev = semver.inc(currentVersion, "prerelease", false, "dev") ?? "";
-                break;
-            case "minor":
-                currentVersion = semver.inc(version.main, "minor") ?? "";
-
-                if (!currentVersion || currentVersion === "") {
-                    console.log(chalk.red("SemVer is incorrect"));
-                    process.exit();
-                }
-
-                version.main = currentVersion;
-                version.beta = semver.inc(currentVersion, "prerelease", false, "beta") ?? "";
-                version.dev = semver.inc(currentVersion, "prerelease", false, "dev") ?? "";
-                break;
-            case "patch":
-                currentVersion = semver.inc(version.main, "patch") ?? "";
-
-                if (!currentVersion || currentVersion === "") {
-                    console.log(chalk.red("SemVer is incorrect"));
-                    process.exit();
-                }
-
-                version.main = currentVersion;
-                version.beta = semver.inc(currentVersion, "prerelease", false, "beta") ?? "";
-                version.dev = semver.inc(currentVersion, "prerelease", false, "dev") ?? "";
-                break;
-        }
-
-        console.log(chalk.greenBright(`Done getting semver ${currentVersion}...`));
-        console.log(chalk.yellow("Patching package.json files..."));
-
-        const replaceWorkspaceOptions: ReplaceInFileConfig = {
-            allowEmptyPaths: true,
-            files: ["dist/packages/**/package.json"],
-            from: /workspace:\*/g,
-            to: `${currentVersion}`,
-        };
-
-        await replaceInFile.replaceInFile(replaceWorkspaceOptions);
-
-        const replaceVersionOptions: ReplaceInFileConfig = {
-            allowEmptyPaths: true,
-            files: ["dist/packages/**/package.json"],
-            from: /"version": "0.0.1"/g,
-            to: `"version": "${currentVersion}"`,
-        };
-
-        await replaceInFile.replaceInFile(replaceVersionOptions);
-
-        console.log(chalk.greenBright("Done patching package.json files..."));
-        console.log(chalk.yellow("Updating version file..."));
-
-        fs.writeFileSync("./version.json", JSON.stringify(version));
-
-        console.log(chalk.greenBright("Done patching version file..."));
-        console.log(chalk.yellow("Bumping GitHub version..."));
-
-        execSpawn("git add version.json", "./");
-        execSpawn(`git commit -m "Bump ${args.argv.channel} to ${currentVersion}"`, "./");
-        execSpawn(`git tag ${currentVersion}`, "./");
-
-        console.log(chalk.greenBright("Done bumping GitHub version..."));
-        console.log(chalk.blue("Done with version maintenance..."));
-        console.log();
-
-        if (!args.argv.publish as boolean) {
-            console.log(chalk.redBright("Publish not specified...skipping"));
-        } else {
-            console.log(chalk.blue("Publishing core libraries..."));
-
-            directories
-                .filter((value: string) => value === "omnihive-core")
-                .forEach((value: string) => {
-                    console.log(chalk.yellow(`Publishing ${value}...`));
-                    execSpawn("npm publish --access public", `./dist/packages/${value}`);
-                    console.log(chalk.greenBright(`Done publishing ${value}...`));
-                });
-
-            directories
-                .filter((value: string) => value === "omnihive-client") // || value === "omnihive")
-                .forEach((value: string) => {
-                    console.log(chalk.yellow(`Publishing ${value}...`));
-                    execSpawn("npm publish --access public", `./dist/packages/${value}`);
-                    console.log(chalk.greenBright(`Done publishing ${value}...`));
-                });
-
-            console.log(chalk.blue("Done publishing core libraries..."));
-            console.log();
-            console.log(chalk.blue("Publishing workers..."));
-
-            directories
-                .filter((value: string) => value.startsWith("omnihive-worker"))
-                .forEach((value: string) => {
-                    console.log(chalk.yellow(`Publishing ${value}...`));
-                    execSpawn("npm publish --access public", `./dist/packages/${value}`);
-                    console.log(chalk.greenBright(`Done publishing ${value}...`));
-                });
-
-            console.log(chalk.blue("Done publishing workers..."));
-        }
-
-        console.log();
-        console.log(chalk.hex("#FFC022#")("Done building OmniHive monorepo..."));
-    } else {
-        console.log(chalk.hex("#FFC022")("Building custom repos..."));
-        console.log();
-
-        console.log(chalk.yellow("Clearing existing dist directory..."));
-
-        fs.rmSync("./dist", { recursive: true, force: true });
-
-        const directories: string[] = readdirSync("./src/custom").filter((f) =>
-            statSync(join("./src/custom", f)).isDirectory()
-        );
-
-        console.log();
-        console.log(chalk.blue("Building custom libraries..."));
-
-        directories.forEach((value: string) => {
-            console.log(chalk.yellow(`Building ${value}...`));
-            execSpawn("yarn run build", `./src/custom/${value}`);
-            console.log(chalk.greenBright(`Done building ${value}...`));
-        });
-
-        console.log(chalk.blue("Done building custom libraries..."));
-
-        console.log();
-        console.log(chalk.blue("Version maintenance..."));
-
-        for (const value of directories) {
-            const packageJson: readPkg.NormalizedPackageJson = readPkg.sync({ cwd: `./dist/custom/${value}` });
-
-            if (!packageJson || !packageJson.dependencies) {
-                console.log(chalk.red(`Package.json for ${value} has errors or does not exist`));
-                process.exit();
-            }
-
-            for (const key of Object.keys(packageJson.dependencies)) {
-                if (packageJson.dependencies[key] && packageJson.dependencies[key] === "workspace:*") {
-                    const registryInfo: pkgJson.AbbreviatedMetadata = await pkgJson(packageJson.dependencies[key]);
-                    packageJson.dependencies[key] = registryInfo["dist-tags"].latest;
-                }
-            }
-
-            writePkg.sync(`./dist/custom/${value}`, packageJson);
-        }
-
-        console.log(chalk.blue("Done with version maintenance..."));
+        console.log(chalk.blue("Done publishing client server..."));
     }
 
+    // Close out
     console.log();
-    console.log(chalk.hex("#FFC022")("Done building custom repos..."));
+    console.log(chalk.hex(orangeHex)("Done building OmniHive monorepo..."));
+    console.log();
 
-    console.log();
+    const endTime: dayjs.Dayjs = dayjs();
+
+    console.log(chalk.hex(orangeHex)(`Elapsed Time: ${endTime.diff(startTime, "seconds")} seconds`));
     process.exit();
 };
 
@@ -350,9 +315,8 @@ const execSpawn = (commandString: string, cwd: string): string => {
     });
 
     if (execSpawn.status !== 0) {
-        const execError: Error = new Error(execSpawn.stderr.toString().trim());
-        console.log(chalk.red(execError));
-        process.exit();
+        console.log(chalk.red(execSpawn.stdout.toString().trim()));
+        process.exit(1);
     }
 
     const execOut = execSpawn.stdout.toString().trim();
@@ -362,11 +326,6 @@ const execSpawn = (commandString: string, cwd: string): string => {
     } else {
         return "";
     }
-};
-
-const clear = () => {
-    process.stdout.write("\x1b[2J");
-    process.stdout.write("\x1b[0f");
 };
 
 build();

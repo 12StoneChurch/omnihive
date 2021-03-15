@@ -49,7 +49,6 @@ const build = async (): Promise<void> => {
             demandOption: false,
             description: "Name of the channel you wish to build",
             choices: ["dev", "beta", "main"],
-            default: "dev",
         })
         .option("type", {
             alias: "t",
@@ -57,7 +56,6 @@ const build = async (): Promise<void> => {
             demandOption: false,
             description: "Release type (major, minor, patch, prerelease)",
             choices: ["major", "minor", "patch", "prerelease"],
-            default: "prerelease",
         })
         .option("publish", {
             alias: "p",
@@ -71,14 +69,12 @@ const build = async (): Promise<void> => {
             type: "string",
             demandCommand: false,
             description: "Access to use when publishing to NPM",
-            default: "public",
             choices: ["public", "restricted"],
         })
         .option("publishTag", {
             alias: "pt",
             type: "string",
             demandCommand: false,
-            default: "latest",
             description: "Tag to use when publishing",
         })
         .check((args) => {

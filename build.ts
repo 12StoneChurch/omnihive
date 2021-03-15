@@ -24,8 +24,8 @@ const build = async (): Promise<void> => {
     const startTime: dayjs.Dayjs = dayjs();
 
     // Define elastic client if needed
-    let elasticClient: Client;
-    let version: Version;
+    let elasticClient: Client | undefined = undefined;
+    let version: Version = { main: "", beta: "", dev: "" };
 
     // Get the current git branch
     const currentBranch: string = execSpawn("git branch --show-current", "./");

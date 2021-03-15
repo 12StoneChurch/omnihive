@@ -11,32 +11,21 @@ import semver from "semver";
 import writePkg from "write-pkg";
 import yargs from "yargs";
 
+// Elastic version record
+type Version = {
+    main: string;
+    beta: string;
+    dev: string;
+};
+
 const orangeHex: string = "#FFC022#";
 
 const build = async (): Promise<void> => {
     const startTime: dayjs.Dayjs = dayjs();
 
-    // Check if Elastic settings are available and get versions
-    if (
-        !process.env.omnihive_build_elastic_cloudId ||
-        !process.env.omnihive_build_elastic_cloudPassword ||
-        !process.env.omnihive_build_elastic_cloudUser
-    ) {
-        throw new Error("There are no elastic settings so the build cannot continue.");
-    }
-
-    const elasticClient = new Client({
-        cloud: {
-            id: process.env.omnihive_build_elastic_cloudId,
-        },
-        auth: {
-            username: process.env.omnihive_build_elastic_cloudUser,
-            password: process.env.omnihive_build_elastic_cloudPassword,
-        },
-    });
-
-    const versionDoc = await elasticClient.get({ index: "master-version", id: "1" });
-    const version: Version = versionDoc.body._source as Version;
+    // Define elastic client if needed
+    let elasticClient: Client;
+    let version: Version;
 
     // Get the current git branch
     const currentBranch: string = execSpawn("git branch --show-current", "./");
@@ -51,9 +40,24 @@ const build = async (): Promise<void> => {
         .option("version", {
             alias: "v",
             type: "string",
-            demandCommand: true,
-            description: "Version number to build",
-            default: "99.99.99",
+            demandCommand: false,
+            description: "Build number to use.  Will use WOV Elastic provider if not provided",
+        })
+        .option("channel", {
+            alias: "c",
+            type: "string",
+            demandOption: true,
+            description: "Name of the channel you wish to build",
+            choices: ["dev", "beta", "main"],
+            default: "dev",
+        })
+        .option("type", {
+            alias: "t",
+            type: "string",
+            demandOption: false,
+            description: "Release type (major, minor, patch, prerelease)",
+            choices: ["major", "minor", "patch", "prerelease"],
+            default: "prerelease",
         })
         .option("publish", {
             alias: "p",
@@ -78,6 +82,10 @@ const build = async (): Promise<void> => {
             description: "Tag to use when publishing",
         })
         .check((args) => {
+            if (args.version && (args.channel || args.type)) {
+                throw new Error("You cannot specify a predetermined version and specify a channel and/or a type");
+            }
+
             if ((args.publishAccess || args.publishTag) && (args.publish === undefined || args.publish === false)) {
                 throw new Error("You must add a publish flag to use tagging or access levels");
             }
@@ -104,6 +112,36 @@ const build = async (): Promise<void> => {
             }
             return true;
         }).argv;
+
+    if (!args.argv.version) {
+        // Check if Elastic settings are available and get versions
+        if (
+            !process.env.omnihive_build_elastic_cloudId ||
+            !process.env.omnihive_build_elastic_cloudPassword ||
+            !process.env.omnihive_build_elastic_cloudUser
+        ) {
+            throw new Error("There are no elastic settings so the build cannot continue.");
+        }
+
+        elasticClient = new Client({
+            cloud: {
+                id: process.env.omnihive_build_elastic_cloudId,
+            },
+            auth: {
+                username: process.env.omnihive_build_elastic_cloudUser,
+                password: process.env.omnihive_build_elastic_cloudPassword,
+            },
+        });
+
+        const versionDoc = await elasticClient.get({ index: "master-version", id: "1" });
+        version = versionDoc.body._source as Version;
+    } else {
+        version = {
+            main: args.argv.version as string,
+            beta: args.argv.version as string,
+            dev: args.argv.version as string,
+        };
+    }
 
     // Header
     console.log(chalk.yellow(figlet.textSync("OMNIHIVE")));
@@ -246,6 +284,83 @@ const build = async (): Promise<void> => {
     // Handle version maintenance
     console.log(chalk.blue("Version maintenance..."));
 
+    // SemVer Updates
+    console.log(chalk.yellow("Getting semver..."));
+
+    let currentVersion: string = "";
+
+    if (args.argv.version) {
+        currentVersion = version.main;
+    } else {
+        switch (args.argv.type) {
+            case "prerelease":
+                switch (args.argv.channel) {
+                    case "dev":
+                        currentVersion = semver.inc(version.dev, "prerelease", false, "dev") ?? "";
+
+                        if (!currentVersion || currentVersion === "") {
+                            console.log(chalk.red("SemVer is incorrect"));
+                            process.exit();
+                        }
+
+                        version.dev = currentVersion;
+                        break;
+                    case "beta":
+                        currentVersion = semver.inc(version.beta, "prerelease", false, "beta") ?? "";
+
+                        if (!currentVersion || currentVersion === "") {
+                            console.log(chalk.red("SemVer is incorrect"));
+                            process.exit();
+                        }
+
+                        version.beta = currentVersion;
+                        break;
+                    default:
+                        console.log(chalk.red("Must have dev or beta channel with prerelease"));
+                        process.exit();
+                }
+                break;
+            case "major":
+                currentVersion = semver.inc(version.main, "major") ?? "";
+
+                if (!currentVersion || currentVersion === "") {
+                    console.log(chalk.red("SemVer is incorrect"));
+                    process.exit();
+                }
+
+                version.main = currentVersion;
+                version.beta = semver.inc(currentVersion, "prerelease", false, "beta") ?? "";
+                version.dev = semver.inc(currentVersion, "prerelease", false, "dev") ?? "";
+                break;
+            case "minor":
+                currentVersion = semver.inc(version.main, "minor") ?? "";
+
+                if (!currentVersion || currentVersion === "") {
+                    console.log(chalk.red("SemVer is incorrect"));
+                    process.exit();
+                }
+
+                version.main = currentVersion;
+                version.beta = semver.inc(currentVersion, "prerelease", false, "beta") ?? "";
+                version.dev = semver.inc(currentVersion, "prerelease", false, "dev") ?? "";
+                break;
+            case "patch":
+                currentVersion = semver.inc(version.main, "patch") ?? "";
+
+                if (!currentVersion || currentVersion === "") {
+                    console.log(chalk.red("SemVer is incorrect"));
+                    process.exit();
+                }
+
+                version.main = currentVersion;
+                version.beta = semver.inc(currentVersion, "prerelease", false, "beta") ?? "";
+                version.dev = semver.inc(currentVersion, "prerelease", false, "dev") ?? "";
+                break;
+        }
+    }
+
+    console.log(chalk.greenBright(`Done getting semver ${currentVersion}...`));
+
     // Patch package.json with SemVer
     console.log(chalk.yellow("Patching package.json files..."));
 
@@ -253,7 +368,7 @@ const build = async (): Promise<void> => {
         allowEmptyPaths: true,
         files: [path.join(`dist`, `packages`, `**`, `package.json`)],
         from: /workspace:\*/g,
-        to: `${args.argv.version}`,
+        to: `${currentVersion}`,
     };
 
     await replaceInFile.replaceInFile(replaceWorkspaceOptions);
@@ -262,7 +377,7 @@ const build = async (): Promise<void> => {
         allowEmptyPaths: true,
         files: [path.join(`dist`, `packages`, `**`, `package.json`)],
         from: /"version": "0.0.1"/g,
-        to: `"version": "${args.argv.version}"`,
+        to: `"version": "${currentVersion}"`,
     };
 
     await replaceInFile.replaceInFile(replaceVersionOptions);
@@ -271,7 +386,9 @@ const build = async (): Promise<void> => {
 
     // Upate Elastic with new version
     console.log(chalk.yellow("Updating version metadata..."));
-    await elasticClient.update({ index: "master-version", id: "1", body: { doc: version } });
+    if (!args.argv.version) {
+        await elasticClient.update({ index: "master-version", id: "1", body: { doc: version } });
+    }
     console.log(chalk.greenBright("Done updating version metadata..."));
 
     // Finish version maintenance

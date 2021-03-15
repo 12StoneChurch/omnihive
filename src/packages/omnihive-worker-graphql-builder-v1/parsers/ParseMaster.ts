@@ -59,18 +59,20 @@ export class ParseMaster {
         }
         tableSchema = tableSchema.filter((tableSchema: TableSchema) => tableSchema.tableName === tableName);
 
-        const convertedResults: any = {};
-        Object.keys(results[0]).forEach((x) => {
-            const column = tableSchema.find((y) => y.columnNameDatabase === x);
+        for (let i = 0; i < results.length; i++) {
+            const convertedResults: any = {};
+            Object.keys(results[i]).forEach((x) => {
+                const column = tableSchema.find((y) => y.columnNameDatabase === x);
 
-            if (column) {
-                convertedResults[column.columnNameEntity] = results[0][x];
-            } else {
-                convertedResults[x] = results[0][x];
-            }
-        });
+                if (column) {
+                    convertedResults[column.columnNameEntity] = results[i][x];
+                } else {
+                    convertedResults[x] = results[i][x];
+                }
+            });
 
-        results[0] = convertedResults;
+            results[i] = convertedResults;
+        }
 
         return results;
     };

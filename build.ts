@@ -386,7 +386,7 @@ const build = async (): Promise<void> => {
 
     // Upate Elastic with new version
     console.log(chalk.yellow("Updating version metadata..."));
-    if (!args.argv.version) {
+    if (!args.argv.version && elasticClient) {
         await elasticClient.update({ index: "master-version", id: "1", body: { doc: version } });
     }
     console.log(chalk.greenBright("Done updating version metadata..."));

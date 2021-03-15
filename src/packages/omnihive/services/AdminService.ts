@@ -7,7 +7,7 @@ import { LogService } from "./LogService";
 import { ServerService } from "./ServerService";
 import nodeCleanup from "node-cleanup";
 import { ServerStatus } from "@withonevision/omnihive-core/enums/ServerStatus";
-import { ServerSettings } from "src/packages/omnihive-core/models/ServerSettings";
+import { ServerSettings } from "@withonevision/omnihive-core/models/ServerSettings";
 import Conf from "conf";
 import fse from "fs-extra";
 

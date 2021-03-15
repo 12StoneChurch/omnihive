@@ -86,7 +86,7 @@ const build = async (): Promise<void> => {
                 throw new Error("You must add a publish flag to use tagging or access levels");
             }
 
-            if (args.channel !== currentBranch) {
+            if (args.channel && args.channel !== currentBranch) {
                 throw new Error(
                     "Your selected channel and your current git branch do not match.  Please choose a different channel or switch branches in git."
                 );

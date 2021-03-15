@@ -750,15 +750,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tailwindcss/forms@npm:0.2.1":
-  version: 0.2.1
-  resolution: "@tailwindcss/forms@npm:0.2.1"
-  dependencies:
-    mini-svg-data-uri: ^1.2.3
-  checksum: 968520113161a4720f79af53e3efd1354ec7ab560ad457891246fb044cc1b23d31e909f9ac04b515a71acf5cf9642434c86a277475474cae5fe9b7efa2938804
-  languageName: node
-  linkType: hard
-
 "@tootallnate/once@npm:1":
   version: 1.1.2
   resolution: "@tootallnate/once@npm:1.1.2"
@@ -7822,13 +7813,6 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"mini-svg-data-uri@npm:^1.2.3":
-  version: 1.2.3
-  resolution: "mini-svg-data-uri@npm:1.2.3"
-  checksum: a354646418956856a3906dbe3418684d83084296a4d47a9d8945c256a7f9f9e06600e3d3760a0555229f09d8bf37a4817facd7ac5000cca334d3a6d7ec42a02f
-  languageName: node
-  linkType: hard
-
 "minimatch@npm:3.0.4, minimatch@npm:^3.0.4":
   version: 3.0.4
   resolution: "minimatch@npm:3.0.4"
@@ -8452,7 +8436,6 @@ fsevents@~2.3.1:
   version: 0.0.0-use.local
   resolution: "omnihive@workspace:src/packages/omnihive"
   dependencies:
-    "@tailwindcss/forms": 0.2.1
     "@types/body-parser": 1.19.0
     "@types/cors": 2.8.10
     "@types/express": 4.17.11

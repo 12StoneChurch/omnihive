@@ -2,8 +2,6 @@ import { ConnectionSchema } from "@withonevision/omnihive-core/models/Connection
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { TableSchema } from "@withonevision/omnihive-core/models/TableSchema";
 import { GraphQLResolveInfo } from "graphql";
-import { ConnectionSchema } from "@withonevision/omnihive-core/models/ConnectionSchema";
-import { TableSchema } from "@withonevision/omnihive-core/models/TableSchema";
 import { ParseAstQuery } from "./ParseAstQuery";
 import { ParseCustomSql } from "./ParseCustomSql";
 import { ParseDelete } from "./ParseDelete";

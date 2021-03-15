@@ -46,7 +46,7 @@ const build = async (): Promise<void> => {
         .option("channel", {
             alias: "c",
             type: "string",
-            demandOption: true,
+            demandOption: false,
             description: "Name of the channel you wish to build",
             choices: ["dev", "beta", "main"],
             default: "dev",

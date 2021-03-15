@@ -287,7 +287,7 @@ const build = async (): Promise<void> => {
     // SemVer Updates
     console.log(chalk.yellow("Getting semver..."));
 
-    let currentVersion: string;
+    let currentVersion: string = "";
 
     if (args.argv.version) {
         currentVersion = version.main;

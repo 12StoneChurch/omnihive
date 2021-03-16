@@ -17,9 +17,9 @@ export default class UpdateContactInfo extends HiveWorkerBase implements IGraphE
             GraphService.getSingleton().graphRootUrl = this.config.metadata.mpGraphUrl;
 
             const res: any = {
-                contact: false,
-                user: false,
-                address: false,
+                contact: undefined,
+                user: undefined,
+                address: undefined,
             };
 
             if (data.contact && data.contact.contactId && data.contact.contactData) {
@@ -54,7 +54,7 @@ export default class UpdateContactInfo extends HiveWorkerBase implements IGraphE
 
             return res;
         } catch (err) {
-            err.message = err.message.replaceAll("Error: ", "");
+            err.message = err.message.replace(/Error: /g, "");
             throw new Error(err);
         }
     };

@@ -24,8 +24,8 @@ const build = async (): Promise<void> => {
     const startTime: dayjs.Dayjs = dayjs();
 
     // Define elastic client if needed
-    let elasticClient: Client;
-    let version: Version;
+    let elasticClient: Client | undefined = undefined;
+    let version: Version = { main: "", beta: "", dev: "" };
 
     // Get the current git branch
     const currentBranch: string = execSpawn("git branch --show-current", "./");
@@ -46,10 +46,9 @@ const build = async (): Promise<void> => {
         .option("channel", {
             alias: "c",
             type: "string",
-            demandOption: true,
+            demandOption: false,
             description: "Name of the channel you wish to build",
             choices: ["dev", "beta", "main"],
-            default: "dev",
         })
         .option("type", {
             alias: "t",
@@ -57,7 +56,6 @@ const build = async (): Promise<void> => {
             demandOption: false,
             description: "Release type (major, minor, patch, prerelease)",
             choices: ["major", "minor", "patch", "prerelease"],
-            default: "prerelease",
         })
         .option("publish", {
             alias: "p",
@@ -71,14 +69,12 @@ const build = async (): Promise<void> => {
             type: "string",
             demandCommand: false,
             description: "Access to use when publishing to NPM",
-            default: "public",
             choices: ["public", "restricted"],
         })
         .option("publishTag", {
             alias: "pt",
             type: "string",
             demandCommand: false,
-            default: "latest",
             description: "Tag to use when publishing",
         })
         .check((args) => {
@@ -90,7 +86,7 @@ const build = async (): Promise<void> => {
                 throw new Error("You must add a publish flag to use tagging or access levels");
             }
 
-            if (args.channel !== currentBranch) {
+            if (args.channel && args.channel !== currentBranch) {
                 throw new Error(
                     "Your selected channel and your current git branch do not match.  Please choose a different channel or switch branches in git."
                 );
@@ -386,7 +382,7 @@ const build = async (): Promise<void> => {
 
     // Upate Elastic with new version
     console.log(chalk.yellow("Updating version metadata..."));
-    if (!args.argv.version) {
+    if (!args.argv.version && elasticClient) {
         await elasticClient.update({ index: "master-version", id: "1", body: { doc: version } });
     }
     console.log(chalk.greenBright("Done updating version metadata..."));

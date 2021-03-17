@@ -1,7 +1,7 @@
 import { getMutationPropsString } from "../../lib/helpers/GenericFunctions";
 import { GraphService } from "../../lib/services/GraphService";
-import { UpdateAddressArgs, UpdateHouseholdArgs } from "../lib/models/Update-Models";
-import { updateHousehold } from "./Update-Functions";
+import { UpdateAddressArgs, UpdateHouseholdArgs } from "../lib/models/UpdateModels";
+import { updateHousehold } from "./UpdateFunctions";
 import { validateAddress } from "./ValidationFunctions";
 
 export async function insertAddress(householdId: number, data: UpdateAddressArgs) {

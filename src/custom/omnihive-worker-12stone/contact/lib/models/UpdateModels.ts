@@ -1,6 +1,7 @@
 export type UpdateContactInfoArgs = {
     contact?: { contactId?: number; contactData?: UpdateContactArgs };
     user?: { userId?: number; userData?: UpdateUserArgs };
+    household?: { householdId: number; householdData: UpdateHouseholdArgs };
     address?: { addressId?: number; householdId: number; addressData?: UpdateAddressArgs };
 };
 

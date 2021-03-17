@@ -47,6 +47,10 @@ export async function updateHousehold(householdId: number, data: UpdateHousehold
 
 export async function updateUser(userId: number, data: UpdateUserArgs) {
     try {
+        if (data.userEmail) {
+            data.userEmail = data.userEmail.toLowerCase();
+        }
+
         await validateUserData(userId, data);
 
         const mutation = `

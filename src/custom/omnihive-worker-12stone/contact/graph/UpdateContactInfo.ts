@@ -2,7 +2,7 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { GraphService } from "../../lib/services/GraphService";
 import { insertAddress } from "../common/InsertFunctions";
-import { updateContact, updateUser, updateAddress } from "../common/Update-Functions";
+import { updateContact, updateUser, updateAddress } from "../common/UpdateFunctions";
 import { UpdateContactInfoArgs } from "../lib/models/UpdateModels";
 
 export default class UpdateContactInfo extends HiveWorkerBase implements IGraphEndpointWorker {

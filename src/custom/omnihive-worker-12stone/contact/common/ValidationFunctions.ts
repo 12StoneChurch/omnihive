@@ -55,7 +55,7 @@ export async function validateUserData(userId: number, data: UpdateUserArgs) {
         const emailInUse: boolean = await emailExists(userId, data.userEmail);
 
         if (emailInUse) {
-            throw new Error("The requested new email is already in use.");
+            throw new Error("The requested email is already in use.");
         }
     }
 }

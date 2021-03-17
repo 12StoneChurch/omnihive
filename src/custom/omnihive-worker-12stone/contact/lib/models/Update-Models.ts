@@ -1,3 +1,9 @@
+export type UpdateContactInfoArgs = {
+    contact?: { contactId?: number; contactData?: UpdateContactArgs };
+    user?: { userId?: number; userData?: UpdateUserArgs };
+    address?: { addressId?: number; householdId: number; addressData?: UpdateAddressArgs };
+};
+
 export type UpdateContactArgs = {
     firstName?: string;
     lastName?: string;

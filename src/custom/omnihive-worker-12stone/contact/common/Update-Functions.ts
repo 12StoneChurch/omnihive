@@ -1,6 +1,6 @@
 import { getMutationPropsString } from "../../lib/helpers/GenericFunctions";
 import { GraphService } from "../../lib/services/GraphService";
-import { UpdateContactArgs, UpdateHouseholdArgs, UpdateUserArgs, UpdateAddressArgs } from "../lib/models/updateModels";
+import { UpdateContactArgs, UpdateHouseholdArgs, UpdateUserArgs, UpdateAddressArgs } from "../lib/models/Update-Models";
 import { validateAddress, validateContactData, validateUserData } from "./ValidationFunctions";
 
 export async function updateContact(contactId: number, data: UpdateContactArgs) {

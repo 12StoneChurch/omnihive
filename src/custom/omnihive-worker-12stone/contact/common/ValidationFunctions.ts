@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { GraphService } from "../../lib/services/GraphService";
-import { UpdateAddressArgs, UpdateContactArgs, UpdateUserArgs } from "../lib/models/updateModels";
+import { UpdateAddressArgs, UpdateContactArgs, UpdateUserArgs } from "../lib/models/Update-Models";
 
 export function validateAddress(data: UpdateAddressArgs) {
     if ("addressLine1" in data && !data.addressLine1) {

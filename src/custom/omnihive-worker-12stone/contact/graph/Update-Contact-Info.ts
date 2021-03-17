@@ -2,14 +2,8 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { GraphService } from "../../lib/services/GraphService";
 import { insertAddress } from "../common/InsertFunctions";
-import { updateContact, updateUser, updateAddress } from "../common/UpdateFunctions";
-import { UpdateContactArgs, UpdateUserArgs, UpdateAddressArgs } from "../lib/models/updateModels";
-
-export type UpdateContactInfoArgs = {
-    contact: { contactId?: number; contactData?: UpdateContactArgs };
-    user: { userId?: number; userData?: UpdateUserArgs };
-    address: { addressId?: number; householdId: number; addressData?: UpdateAddressArgs };
-};
+import { updateContact, updateUser, updateAddress } from "../common/Update-Functions";
+import { UpdateContactInfoArgs } from "../lib/models/Update-Models";
 
 export default class UpdateContactInfo extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (data: UpdateContactInfoArgs) => {
@@ -32,21 +26,16 @@ export default class UpdateContactInfo extends HiveWorkerBase implements IGraphE
                 res.user = userRes > 0;
             }
 
-            if (
-                "address" in data &&
-                "addressData" in data.address &&
-                !data.address.addressId &&
-                !data.address.householdId
-            ) {
+            if (data.address?.addressData && !data.address.addressId && !data.address.householdId) {
                 throw new Error("Either addressId or householdId is needed to update address data");
             }
 
-            if (data.address.addressId && data.address.addressData) {
+            if (data.address?.addressId && data.address?.addressData) {
                 const addressRes = await updateAddress(data.address.addressId, data.address.addressData);
                 res.address = addressRes > 0;
             }
 
-            if (data.address.householdId && !data.address.addressId && data.address.addressData) {
+            if (data.address?.householdId && !data.address?.addressId && data.address?.addressData) {
                 const addressRes = await insertAddress(data.address.householdId, data.address.addressData);
 
                 res.address = addressRes > 0;

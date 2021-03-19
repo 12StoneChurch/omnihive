@@ -29,7 +29,7 @@ export async function updateContact(contactId: number, data: UpdateContactArgs) 
 }
 
 export async function updateHousehold(householdId: number, data: UpdateHouseholdArgs) {
-    if (data.doNotMoveCongregation === undefined) {
+    if (!("doNotMoveCongregation" in data)) {
         data.doNotMoveCongregation = true;
     }
 

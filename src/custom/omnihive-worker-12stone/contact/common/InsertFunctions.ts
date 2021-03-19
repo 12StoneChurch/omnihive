@@ -15,7 +15,8 @@ export async function insertAddress(householdId: number, data: UpdateAddressArgs
         mutation {
           data: insert_Addresses(
             addresses: [{
-              ${mutationProps}
+              ${mutationProps},
+              domainId: 1
             }]
           ) {
             addressId

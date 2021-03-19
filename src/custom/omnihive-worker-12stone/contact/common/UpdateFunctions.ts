@@ -33,11 +33,13 @@ export async function updateHousehold(householdId: number, data: UpdateHousehold
         data.doNotMoveCongregation = true;
     }
 
+    const mutationProps = getMutationPropsString(data);
+
     const mutation = `
       mutation {
         data: update_Household(
           whereObject: { householdId: "= ${householdId}" }
-          updateObject: { congregationId: ${data.congregationId} }
+          updateObject: { ${mutationProps} }
         )
       }
       `;

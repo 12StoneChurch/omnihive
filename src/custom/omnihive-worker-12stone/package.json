@@ -28,8 +28,8 @@
         "@istanbuljs/nyc-config-typescript": "1.0.1",
         "@typescript-eslint/eslint-plugin": "4.17.0",
         "@typescript-eslint/parser": "4.17.0",
-        "@withonevision/omnihive-client": "workspace:*",
-        "@withonevision/omnihive-core": "workspace:*",
+        "@withonevision/omnihive-client": "5.0.2",
+        "@withonevision/omnihive-core": "5.0.2",
         "axios": "0.21.1",
         "dayjs": "1.10.4",
         "serialize-error": "8.0.1"

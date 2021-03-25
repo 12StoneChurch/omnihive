@@ -1,3 +1,5 @@
+/// <reference path="../../../types/globals.omnihive.d.ts" />
+
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { OmniHiveLogLevel } from "@withonevision/omnihive-core/enums/OmniHiveLogLevel";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
@@ -6,12 +8,13 @@ import { ICacheWorker } from "@withonevision/omnihive-core/interfaces/ICacheWork
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { IDateWorker } from "@withonevision/omnihive-core/interfaces/IDateWorker";
 import { IEncryptionWorker } from "@withonevision/omnihive-core/interfaces/IEncryptionWorker";
-import { IFileSystemWorker } from "@withonevision/omnihive-core/interfaces/IFileSystemWorker";
+import { IFeatureWorker } from "@withonevision/omnihive-core/interfaces/IFeatureWorker";
 import { ILogWorker } from "@withonevision/omnihive-core/interfaces/ILogWorker";
+import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
+import { ConnectionSchema } from "@withonevision/omnihive-core/models/ConnectionSchema";
 import { ConverterSqlInfo } from "@withonevision/omnihive-core/models/ConverterSqlInfo";
-import { OmniHiveConstants } from "@withonevision/omnihive-core/models/OmniHiveConstants";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { TableSchema } from "@withonevision/omnihive-core/models/TableSchema";
-import { CommonStore } from "@withonevision/omnihive-core/stores/CommonStore";
 import {
     FieldNode,
     GraphQLArgument,
@@ -22,65 +25,54 @@ import {
     GraphQLResolveInfo,
     SelectionNode,
 } from "graphql";
-import knex from "knex";
+import { Knex } from "knex";
 import _ from "lodash";
+import { WhereMode } from "../enum/WhereModes";
 import { GraphHelper } from "../helpers/GraphHelper";
 import { ConverterDatabaseTable } from "../models/ConverterDatabaseTable";
 import { ConverterOrderBy } from "../models/ConverterOrderBy";
 
 export class ParseAstQuery {
-    private logWorker!: ILogWorker;
     private databaseWorker!: IDatabaseWorker;
     private encryptionWorker!: IEncryptionWorker;
-    private fileSystemWorker!: IFileSystemWorker;
     private cacheWorker!: ICacheWorker | undefined;
     private dateWorker!: IDateWorker | undefined;
     private parentPath!: GraphQLField<any, any>;
-    private query!: knex.QueryBuilder;
+    private knex!: Knex;
+    private query!: Knex.QueryBuilder;
     private currentTableIndex: number = 0;
     private currentFieldIndex: number = 0;
     private tables: ConverterDatabaseTable[] = [];
     private orderByList: ConverterOrderBy[] = [];
     private objPagination: { key: string; tableName: string; limit: number; page: number }[] = [];
     private whereHitCounter: number = 0;
+    private whereMode: WhereMode = WhereMode.All;
 
     public parse = async (
         workerName: string,
         resolveInfo: GraphQLResolveInfo,
-        cacheSetting: string,
-        cacheTime: string
+        omniHiveContext: GraphContext
     ): Promise<any> => {
-        const fileSystemWorker: IFileSystemWorker | undefined = await AwaitHelper.execute<
-            IFileSystemWorker | undefined
-        >(CommonStore.getInstance().getHiveWorker<IFileSystemWorker | undefined>(HiveWorkerType.FileSystem));
-
-        if (!fileSystemWorker) {
-            throw new Error(
-                "FileSystem Worker Not Defined.  This graph converter will not work without a FileSystem worker."
-            );
-        }
-
-        const logWorker: ILogWorker | undefined = await AwaitHelper.execute<ILogWorker | undefined>(
-            CommonStore.getInstance().getHiveWorker<ILogWorker | undefined>(HiveWorkerType.Log)
-        );
+        const logWorker: ILogWorker | undefined = global.omnihive.getWorker<ILogWorker | undefined>(HiveWorkerType.Log);
 
         if (!logWorker) {
             throw new Error("Log Worker Not Defined.  This graph converter will not work without a Log worker.");
         }
 
-        const databaseWorker: IDatabaseWorker | undefined = await AwaitHelper.execute<IDatabaseWorker | undefined>(
-            CommonStore.getInstance().getHiveWorker<IDatabaseWorker | undefined>(HiveWorkerType.Database, workerName)
+        const databaseWorker: IDatabaseWorker | undefined = global.omnihive.getWorker<IDatabaseWorker | undefined>(
+            HiveWorkerType.Database,
+            workerName
         );
 
         if (!databaseWorker) {
             throw new Error(
-                "FileSystem Worker Not Defined.  This graph converter will not work without a FileSystem worker."
+                "Database Worker Not Defined.  This graph converter will not work without a Database worker."
             );
         }
 
-        const encryptionWorker: IEncryptionWorker | undefined = await AwaitHelper.execute<
+        const encryptionWorker: IEncryptionWorker | undefined = global.omnihive.getWorker<
             IEncryptionWorker | undefined
-        >(CommonStore.getInstance().getHiveWorker<IEncryptionWorker | undefined>(HiveWorkerType.Encryption));
+        >(HiveWorkerType.Encryption);
 
         if (!encryptionWorker) {
             throw new Error(
@@ -88,18 +80,45 @@ export class ParseAstQuery {
             );
         }
 
-        this.cacheWorker = await AwaitHelper.execute<ICacheWorker | undefined>(
-            CommonStore.getInstance().getHiveWorker<ICacheWorker | undefined>(HiveWorkerType.Cache)
+        const featureWorker: IFeatureWorker | undefined = global.omnihive.getWorker<IFeatureWorker | undefined>(
+            HiveWorkerType.Feature
         );
 
-        this.dateWorker = await AwaitHelper.execute<IDateWorker | undefined>(
-            CommonStore.getInstance().getHiveWorker<IDateWorker | undefined>(HiveWorkerType.Date)
+        const disableSecurity: boolean = (await featureWorker?.get<boolean>("disableSecurity", false)) ?? false;
+
+        const tokenWorker: ITokenWorker | undefined = global.omnihive.getWorker<ITokenWorker | undefined>(
+            HiveWorkerType.Token
         );
 
-        this.logWorker = logWorker;
+        if (!disableSecurity && !tokenWorker) {
+            throw new Error("[ohAccessError] No token worker defined.");
+        }
+
+        if (
+            !disableSecurity &&
+            tokenWorker &&
+            (!omniHiveContext || !omniHiveContext.access || StringHelper.isNullOrWhiteSpace(omniHiveContext.access))
+        ) {
+            throw new Error("[ohAccessError] Access token is invalid or expired.");
+        }
+
+        if (
+            !disableSecurity &&
+            tokenWorker &&
+            omniHiveContext &&
+            omniHiveContext.access &&
+            !StringHelper.isNullOrWhiteSpace(omniHiveContext.access)
+        ) {
+            const verifyToken: boolean = await AwaitHelper.execute<boolean>(tokenWorker.verify(omniHiveContext.access));
+            if (verifyToken === false) {
+                throw new Error("[ohAccessError] Access token is invalid or expired.");
+            }
+        }
+
+        this.cacheWorker = global.omnihive.getWorker<ICacheWorker | undefined>(HiveWorkerType.Cache);
+        this.dateWorker = global.omnihive.getWorker<IDateWorker | undefined>(HiveWorkerType.Date);
         this.databaseWorker = databaseWorker;
         this.encryptionWorker = encryptionWorker;
-        this.fileSystemWorker = fileSystemWorker;
 
         const converterInfo: ConverterSqlInfo = await this.getSqlFromGraph(resolveInfo);
 
@@ -107,23 +126,33 @@ export class ParseAstQuery {
         let cacheSeconds = -1;
 
         if (this.cacheWorker) {
-            if (cacheTime) {
+            if (omniHiveContext && omniHiveContext.cacheSeconds) {
                 try {
-                    cacheSeconds = +cacheTime;
+                    cacheSeconds = +omniHiveContext.cacheSeconds;
                 } catch {
                     cacheSeconds = -1;
                 }
             }
 
-            if (!StringHelper.isNullOrWhiteSpace(cacheSetting) && cacheSetting !== "none") {
+            if (
+                omniHiveContext &&
+                omniHiveContext.cache &&
+                !StringHelper.isNullOrWhiteSpace(omniHiveContext.cache) &&
+                omniHiveContext.cache !== "none"
+            ) {
                 cacheKey = this.encryptionWorker.base64Encode(workerName + "||||" + converterInfo.sql);
             }
 
-            if (!StringHelper.isNullOrWhiteSpace(cacheSetting) && cacheSetting === "cache") {
+            if (
+                omniHiveContext &&
+                omniHiveContext.cache &&
+                !StringHelper.isNullOrWhiteSpace(omniHiveContext.cache) &&
+                omniHiveContext.cache === "cache"
+            ) {
                 const keyExists: boolean = await this.cacheWorker.exists(cacheKey);
 
                 if (keyExists) {
-                    this.logWorker.write(
+                    logWorker.write(
                         OmniHiveLogLevel.Info,
                         `(Retrieved from Cache) => ${workerName} => ${converterInfo.sql}`
                     );
@@ -134,23 +163,23 @@ export class ParseAstQuery {
                             return JSON.parse(cacheResults);
                         }
                     } catch {
-                        cacheSetting = "cacheRefresh";
+                        omniHiveContext.cache = "cacheRefresh";
                     }
                 }
             }
         }
 
-        const dataResults: any[][] = await AwaitHelper.execute<any[][]>(
-            this.databaseWorker.executeQuery(converterInfo.sql)
-        );
+        const dataResults: any[][] = await AwaitHelper.execute<any[][]>(databaseWorker.executeQuery(converterInfo.sql));
         const treeResults: any = this.getGraphFromData(dataResults[0], converterInfo.hydrationDefinition);
 
         if (this.cacheWorker) {
-            if (!StringHelper.isNullOrWhiteSpace(cacheSetting) && cacheSetting !== "none") {
-                this.logWorker.write(
-                    OmniHiveLogLevel.Info,
-                    `(Written to Cache) => ${workerName} => ${converterInfo.sql}`
-                );
+            if (
+                omniHiveContext &&
+                omniHiveContext.cache &&
+                !StringHelper.isNullOrWhiteSpace(omniHiveContext.cache) &&
+                omniHiveContext.cache !== "none"
+            ) {
+                logWorker.write(OmniHiveLogLevel.Info, `(Written to Cache) => ${workerName} => ${converterInfo.sql}`);
                 this.cacheWorker.set(cacheKey, JSON.stringify(treeResults), cacheSeconds);
             }
         }
@@ -192,7 +221,8 @@ export class ParseAstQuery {
         const graphReturnType: GraphQLObjectType = (resolveInfo.returnType as GraphQLList<GraphQLObjectType>).ofType;
         const graphParentType: GraphQLObjectType = (this.parentPath.type as GraphQLList<GraphQLObjectType>).ofType;
 
-        this.query = (this.databaseWorker.connection as knex).queryBuilder();
+        this.knex = this.databaseWorker.connection as Knex;
+        this.query = this.knex.queryBuilder();
 
         // Build the root table
         const currentTable: ConverterDatabaseTable = {
@@ -221,6 +251,7 @@ export class ParseAstQuery {
             if (
                 graphKey !== "dbPage" &&
                 graphKey !== "dbLimit" &&
+                graphKey !== "whereMode" &&
                 graphKey !== "objPage" &&
                 graphKey !== "objLimit" &&
                 !graphReturnType.extensions?.aggregateType
@@ -305,6 +336,10 @@ export class ParseAstQuery {
         // Handle first pass
         if (!parentTable) {
             let pageNumber = 1;
+
+            if (args.whereMode) {
+                this.whereMode = args.whereMode;
+            }
 
             _.forOwn(args, (value: any, key: any) => {
                 if (key === "dbLimit") {
@@ -477,55 +512,75 @@ export class ParseAstQuery {
 
             this.tables.push(subTable);
 
+            const currentTableIndex = this.currentTableIndex;
+            const knexObj = this.knex;
+            const dbNames = (selection as FieldNode).arguments?.map((arg: any) => ({
+                name: arg.name.value,
+                dbName: this.getDbColumnName(graphField, arg),
+            }));
+            const whereMode = this.whereMode;
+
             // Build the join based off of the field properties
             if (graphField.name.toString().startsWith("from_")) {
-                this.query.leftJoin(
-                    `${graphField.extensions?.dbTableName} as t${this.currentTableIndex}`,
-                    `${parentTable?.tableAlias}.${graphField.extensions?.dbJoinForeignColumn}`,
-                    `t${this.currentTableIndex}.${graphField.extensions?.dbJoinPrimaryColumn}`
-                );
+                this.query.leftJoin(`${graphField.extensions?.dbTableName} as t${this.currentTableIndex}`, function () {
+                    this.on(
+                        `${parentTable?.tableAlias}.${graphField.extensions?.dbJoinForeignColumn}`,
+                        "=",
+                        `t${currentTableIndex}.${graphField.extensions?.dbJoinPrimaryColumn}`
+                    );
+
+                    if (whereMode === WhereMode.Specific) {
+                        (selection as FieldNode).arguments?.forEach((args: any) => {
+                            const dbName = dbNames?.find(
+                                (x: { name: string; dbName: string }) => x.name === args.name.value
+                            )?.dbName;
+
+                            if (dbName) {
+                                const conditions = args.value.value.split("||");
+
+                                this.andOn(function () {
+                                    conditions.forEach((cond: string) =>
+                                        this.orOn(knexObj.raw(`t${currentTableIndex}.${dbName} ${cond}`))
+                                    );
+                                });
+                            }
+                        });
+                    }
+                });
             }
 
             if (graphField.name.toString().startsWith("to_")) {
-                this.query.leftJoin(
-                    `${graphField.extensions?.dbTableName} as t${this.currentTableIndex}`,
-                    `${parentTable?.tableAlias}.${graphField.extensions?.dbJoinPrimaryColumn}`,
-                    `t${this.currentTableIndex}.${graphField.extensions?.dbJoinForeignColumn}`
-                );
+                this.query.leftJoin(`${graphField.extensions?.dbTableName} as t${this.currentTableIndex}`, function () {
+                    this.on(
+                        `${parentTable?.tableAlias}.${graphField.extensions?.dbJoinPrimaryColumn}`,
+                        "=",
+                        `t${currentTableIndex}.${graphField.extensions?.dbJoinForeignColumn}`
+                    );
+
+                    if (whereMode === WhereMode.Specific) {
+                        (selection as FieldNode).arguments?.forEach((args: any) => {
+                            const dbName = dbNames?.find(
+                                (x: { name: string; dbName: string }) => x.name === args.name.value
+                            )?.dbName;
+
+                            if (dbName) {
+                                const conditions = args.value.value.split("||");
+
+                                this.andOn(function () {
+                                    conditions.forEach((cond: string) =>
+                                        this.orOn(knexObj.raw(`t${currentTableIndex}.${dbName} ${cond}`))
+                                    );
+                                });
+                            }
+                        });
+                    }
+                });
             }
 
             // Since we're in a "subtable", there could be arguments (where, orderby, etc), so build those
             const subArgs: any = {};
 
             _.forEach((selection as FieldNode).arguments, (arg: any) => {
-                let dbColumnName: string = "";
-                if (graphField.extensions?.aggregateType) {
-                    dbColumnName = graphField.args.filter((field: GraphQLArgument) => field.name === arg.name.value)[0]
-                        .extensions?.dbColumnName;
-                } else {
-                    if (
-                        graphField.name.toString().startsWith("from_") &&
-                        arg.name.value !== "objPage" &&
-                        arg.name.value !== "objLimit"
-                    ) {
-                        dbColumnName = _.filter(
-                            (graphField.type as GraphQLList<GraphQLObjectType>).ofType.getFields(),
-                            (field: GraphQLField<any, any>) => field.name === arg.name.value
-                        )[0].extensions?.dbColumnName;
-                    }
-
-                    if (
-                        graphField.name.toString().startsWith("to_") &&
-                        arg.name.value !== "objPage" &&
-                        arg.name.value !== "objLimit"
-                    ) {
-                        dbColumnName = _.filter(
-                            (graphField.type as GraphQLObjectType).getFields(),
-                            (field: GraphQLField<any, any>) => field.name === arg.name.value
-                        )[0].extensions?.dbColumnName;
-                    }
-                }
-
                 if (arg.name.value === "objPage" || arg.name.value === "objLimit") {
                     if (this.objPagination.some((x) => x.key === graphField.name)) {
                         const foundPageObject = this.objPagination.find((x) => x.key === graphField.name);
@@ -553,12 +608,14 @@ export class ParseAstQuery {
                     }
                 }
 
+                const dbColumnName = this.getDbColumnName(graphField, arg);
+
                 if (arg.name.value !== "objLimit" && arg.name.value !== "objPage") {
                     subArgs[dbColumnName] = arg.value.value;
                 }
             });
 
-            if (!_.isEmpty(subArgs)) {
+            if (!_.isEmpty(subArgs) && this.whereMode === WhereMode.All) {
                 this.whereOrderByHandler(graphField.extensions?.dbTableName, `t${this.currentTableIndex}`, subArgs);
             }
 
@@ -596,12 +653,16 @@ export class ParseAstQuery {
             return;
         }
 
-        const schemaFilePath: string = `${this.fileSystemWorker.getCurrentExecutionDirectory()}/${
-            OmniHiveConstants.SERVER_OUTPUT_DIRECTORY
-        }/connections/${this.databaseWorker.config.name}.json`;
-        const jsonSchema: any = JSON.parse(this.fileSystemWorker.readFile(schemaFilePath));
+        const schema: ConnectionSchema | undefined = global.omnihive.registeredSchemas.find(
+            (value: ConnectionSchema) => value.workerName === this.databaseWorker.config.name
+        );
 
-        let tableSchema: TableSchema[] = jsonSchema["tables"];
+        let tableSchema: TableSchema[] = [];
+
+        if (schema) {
+            tableSchema = schema.tables;
+        }
+
         tableSchema = tableSchema.filter((tableSchema: TableSchema) => tableSchema.tableName === tableName);
 
         const validArgs: any = {};
@@ -692,5 +753,37 @@ export class ParseAstQuery {
 
             this.whereHitCounter++;
         });
+    };
+
+    private getDbColumnName = (graphField: any, arg: any): string => {
+        let dbColumnName: string = "";
+        if (graphField.extensions?.aggregateType) {
+            dbColumnName = graphField.args.filter((field: GraphQLArgument) => field.name === arg.name.value)[0]
+                .extensions?.dbColumnName;
+        } else {
+            if (
+                graphField.name.toString().startsWith("from_") &&
+                arg.name.value !== "objPage" &&
+                arg.name.value !== "objLimit"
+            ) {
+                dbColumnName = _.filter(
+                    (graphField.type as GraphQLList<GraphQLObjectType>).ofType.getFields(),
+                    (field: GraphQLField<any, any>) => field.name === arg.name.value
+                )[0].extensions?.dbColumnName;
+            }
+
+            if (
+                graphField.name.toString().startsWith("to_") &&
+                arg.name.value !== "objPage" &&
+                arg.name.value !== "objLimit"
+            ) {
+                dbColumnName = _.filter(
+                    (graphField.type as GraphQLObjectType).getFields(),
+                    (field: GraphQLField<any, any>) => field.name === arg.name.value
+                )[0].extensions?.dbColumnName;
+            }
+        }
+
+        return dbColumnName;
     };
 }

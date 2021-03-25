@@ -27,7 +27,7 @@ self-coverage/
 needs-transpile.js
 
 # misc
-.DS_Store
+**/.DS_Store
 **/*.env
 
 npm-debug.log*
@@ -37,3 +37,9 @@ yarn-error.log*
 #exclusions
 !.eslintrc.js
 !.prettierrc.js
+
+#settings
+/settings
+
+#custom types
+!**/globals.omnihive.d.ts

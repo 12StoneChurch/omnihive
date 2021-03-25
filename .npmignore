@@ -19,3 +19,9 @@
 **/*.env
 yarn-debug.log*
 yarn-error.log*
+
+#build
+**/tsconfig.tsbuildinfo
+
+#pack
+**/*.tgz

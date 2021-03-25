@@ -1,16 +1,13 @@
-import { IRestEndpointWorker } from "@withonevision/omnihive-core/interfaces/IRestEndpointWorker";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
+import { IRestEndpointWorker } from "@withonevision/omnihive-core/interfaces/IRestEndpointWorker";
 import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
-import { CommonStore } from "@withonevision/omnihive-core/stores/CommonStore";
-import swaggerUi from "swagger-ui-express";
+import { RestEndpointExecuteResponse } from "@withonevision/omnihive-core/models/RestEndpointExecuteResponse";
 import { serializeError } from "serialize-error";
-
-class SystemAccessTokenRequest {
-    clientId!: string;
-    clientSecret!: string;
-}
+import swaggerUi from "swagger-ui-express";
+import isEqual from "lodash.isequal";
+import objectHash from "object-hash";
 
 export default class SystemAccessTokenWorker extends HiveWorkerBase implements IRestEndpointWorker {
     private tokenWorker!: ITokenWorker;
@@ -19,11 +16,8 @@ export default class SystemAccessTokenWorker extends HiveWorkerBase implements I
         super();
     }
 
-    public execute = async (_headers: any, _url: string, body: any): Promise<[{} | undefined, number]> => {
-        const tokenWorker: ITokenWorker | undefined = await AwaitHelper.execute<ITokenWorker | undefined>(
-            CommonStore.getInstance().getHiveWorker<ITokenWorker>(HiveWorkerType.Token)
-        );
-
+    public execute = async (_headers: any, _url: string, body: any): Promise<RestEndpointExecuteResponse> => {
+        const tokenWorker: ITokenWorker | undefined = this.getWorker<ITokenWorker>(HiveWorkerType.Token);
         if (!tokenWorker) {
             throw new Error("Token Worker cannot be found");
         }
@@ -33,29 +27,26 @@ export default class SystemAccessTokenWorker extends HiveWorkerBase implements I
         try {
             this.checkRequest(body);
             const token = await AwaitHelper.execute<string>(this.tokenWorker.get());
-            return [{ token: token }, 200];
+            return { response: { token: token }, status: 200 };
         } catch (e) {
-            return [{ error: serializeError(e) }, 400];
+            return { response: { error: serializeError(e) }, status: 400 };
         }
     };
 
     public getSwaggerDefinition = (): swaggerUi.JsonObject | undefined => {
         return {
             definitions: {
-                GetAccessTokenParameters: {
-                    required: ["clientId", "clientSecret"],
+                SystemAccessTokenParameters: {
+                    required: ["generator"],
                     properties: {
-                        clientId: {
-                            type: "string",
-                        },
-                        clientSecret: {
+                        generator: {
                             type: "string",
                         },
                     },
                 },
             },
             paths: {
-                "/accessToken": {
+                "/token": {
                     post: {
                         description: "Retrieve an OmniHive access token",
                         tags: [
@@ -68,7 +59,7 @@ export default class SystemAccessTokenWorker extends HiveWorkerBase implements I
                             content: {
                                 "application/json": {
                                     schema: {
-                                        $ref: "#/definitions/GetAccessTokenParameters",
+                                        $ref: "#/definitions/SystemAccessTokenParameters",
                                     },
                                 },
                             },
@@ -92,30 +83,20 @@ export default class SystemAccessTokenWorker extends HiveWorkerBase implements I
     };
 
     private checkRequest = (body: any | undefined) => {
-        if (!body) {
+        if (!body || !body.generator) {
             throw new Error("Request must have parameters");
         }
 
-        const paramsStructured: SystemAccessTokenRequest = this.checkObjectStructure<SystemAccessTokenRequest>(
-            SystemAccessTokenRequest,
-            body
-        );
-
-        if (!paramsStructured.clientId || paramsStructured.clientId === "") {
-            throw new Error(`A client ID must be provided`);
-        }
-
-        if (!paramsStructured.clientSecret || paramsStructured.clientSecret === "") {
-            throw new Error(`A client secret must be provided`);
-        }
-
-        if (
-            !this.tokenWorker ||
-            !this.tokenWorker.config.metadata ||
-            !this.tokenWorker.config.metadata.clientId ||
-            !this.tokenWorker.config.metadata.clientSecret
-        ) {
+        if (!this.tokenWorker || !this.tokenWorker.config.metadata) {
             throw new Error("A token worker cannot be found");
+        }
+
+        const hashedConfigMetadata = objectHash(this.tokenWorker.config.metadata, {
+            algorithm: this.tokenWorker.config.metadata.hashAlgorithm,
+        });
+
+        if (!isEqual(hashedConfigMetadata, body.generator)) {
+            throw new Error("Token cannot be generated");
         }
     };
 }

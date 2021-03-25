@@ -1,7 +1,7 @@
+import { HiveWorker } from "./HiveWorker";
+
 export class ClientSettings {
-    public accountName: string = "";
-    public clientId: string = "";
-    public clientSecret: string = "";
-    public hiveRootUrl: string = "";
-    public dataRootUrl: string = "";
+    public rootUrl: string = "";
+    public workers?: HiveWorker[] | undefined = undefined;
+    public tokenMetadata?: any | undefined = undefined;
 }

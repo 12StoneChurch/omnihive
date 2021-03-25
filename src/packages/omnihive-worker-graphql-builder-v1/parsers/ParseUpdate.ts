@@ -1,11 +1,15 @@
+/// <reference path="../../../types/globals.omnihive.d.ts" />
+
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
+import { StringHelper } from "@withonevision/omnihive-core/helpers/StringHelper";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
-import { IFileSystemWorker } from "@withonevision/omnihive-core/interfaces/IFileSystemWorker";
-import { OmniHiveConstants } from "@withonevision/omnihive-core/models/OmniHiveConstants";
+import { IFeatureWorker } from "@withonevision/omnihive-core/interfaces/IFeatureWorker";
+import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
+import { ConnectionSchema } from "@withonevision/omnihive-core/models/ConnectionSchema";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { TableSchema } from "@withonevision/omnihive-core/models/TableSchema";
-import { CommonStore } from "@withonevision/omnihive-core/stores/CommonStore";
-import knex, { QueryBuilder } from "knex";
+import { Knex } from "knex";
 
 export class ParseUpdate {
     public parse = async (
@@ -13,7 +17,8 @@ export class ParseUpdate {
         tableName: string,
         updateObject: any,
         whereObject: any,
-        _customDmlArgs: any
+        _customDmlArgs: any,
+        omniHiveContext: GraphContext
     ): Promise<number> => {
         if (!whereObject || Object.keys(whereObject).length === 0) {
             throw new Error("Update cannot have no where objects/clause.  That is too destructive.");
@@ -23,8 +28,9 @@ export class ParseUpdate {
             throw new Error("Update cannot have no columns to update.");
         }
 
-        const databaseWorker: IDatabaseWorker | undefined = await AwaitHelper.execute<IDatabaseWorker | undefined>(
-            CommonStore.getInstance().getHiveWorker<IDatabaseWorker | undefined>(HiveWorkerType.Database, workerName)
+        const databaseWorker: IDatabaseWorker | undefined = global.omnihive.getWorker<IDatabaseWorker | undefined>(
+            HiveWorkerType.Database,
+            workerName
         );
 
         if (!databaseWorker) {
@@ -33,25 +39,53 @@ export class ParseUpdate {
             );
         }
 
-        const fileSystemWorker: IFileSystemWorker | undefined = await AwaitHelper.execute<
-            IFileSystemWorker | undefined
-        >(CommonStore.getInstance().getHiveWorker<IFileSystemWorker | undefined>(HiveWorkerType.FileSystem));
+        const featureWorker: IFeatureWorker | undefined = global.omnihive.getWorker<IFeatureWorker | undefined>(
+            HiveWorkerType.Feature
+        );
 
-        if (!fileSystemWorker) {
-            throw new Error(
-                "FileSystem Worker Not Defined.  This graph converter will not work without a FileSystem worker."
-            );
+        const disableSecurity: boolean = (await featureWorker?.get<boolean>("disableSecurity", false)) ?? false;
+
+        const tokenWorker: ITokenWorker | undefined = global.omnihive.getWorker<ITokenWorker | undefined>(
+            HiveWorkerType.Token
+        );
+
+        if (!disableSecurity && !tokenWorker) {
+            throw new Error("[ohAccessError] No token worker defined.");
         }
 
-        const schemaFilePath: string = `${fileSystemWorker.getCurrentExecutionDirectory()}/${
-            OmniHiveConstants.SERVER_OUTPUT_DIRECTORY
-        }/connections/${workerName}.json`;
-        const jsonSchema: any = JSON.parse(fileSystemWorker.readFile(schemaFilePath));
+        if (
+            !disableSecurity &&
+            tokenWorker &&
+            (!omniHiveContext || !omniHiveContext.access || StringHelper.isNullOrWhiteSpace(omniHiveContext.access))
+        ) {
+            throw new Error("[ohAccessError] Access token is invalid or expired.");
+        }
 
-        let tableSchema: TableSchema[] = jsonSchema["tables"];
+        if (
+            !disableSecurity &&
+            tokenWorker &&
+            omniHiveContext &&
+            omniHiveContext.access &&
+            !StringHelper.isNullOrWhiteSpace(omniHiveContext.access)
+        ) {
+            const verifyToken: boolean = await AwaitHelper.execute<boolean>(tokenWorker.verify(omniHiveContext.access));
+            if (verifyToken === false) {
+                throw new Error("[ohAccessError] Access token is invalid or expired.");
+            }
+        }
+
+        const schema: ConnectionSchema | undefined = global.omnihive.registeredSchemas.find(
+            (value: ConnectionSchema) => value.workerName === workerName
+        );
+        let tableSchema: TableSchema[] = [];
+
+        if (schema) {
+            tableSchema = schema.tables;
+        }
+
         tableSchema = tableSchema.filter((tableSchema: TableSchema) => tableSchema.tableName === tableName);
 
-        const queryBuilder: QueryBuilder = (databaseWorker.connection as knex).queryBuilder();
+        const queryBuilder: Knex.QueryBuilder = (databaseWorker.connection as Knex).queryBuilder();
         queryBuilder.from(tableName);
 
         const updateDbObject: any = {};

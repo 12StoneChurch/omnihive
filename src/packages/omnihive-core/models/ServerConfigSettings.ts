@@ -1,9 +1,6 @@
 export class ServerConfigSettings {
+    public adminPortNumber: number = 7205;
     public adminPassword: string = "";
-    public serverGroupName: string = "";
-    public developerMode: boolean = false;
-    public enableGraphPlayground: boolean = true;
-    public enableSwagger: boolean = true;
-    public portNumber: number = 3001;
-    public rootUrl: string = "";
+    public nodePortNumber: number = 3001;
+    public webRootUrl: string = "";
 }

@@ -1,61 +1,34 @@
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
-import { ObjectHelper } from "@withonevision/omnihive-core/helpers/ObjectHelper";
-import { ServerSettings } from "@withonevision/omnihive-core/models/ServerSettings";
-import { CommonStore } from "@withonevision/omnihive-core/stores/CommonStore";
 import { assert } from "chai";
-import fs from "fs";
 import { serializeError } from "serialize-error";
 import AuthZeroTokenWorker from "..";
+import { TestConfigSettings } from "../../../tests/models/TestConfigSettings";
+import { TestService } from "../../../tests/services/TestService";
 import packageJson from "../package.json";
 
-const getConfig = function (): ServerSettings | undefined {
-    try {
-        if (!process.env.omnihive_test_worker_token_auth0) {
-            return undefined;
-        }
-
-        const config: ServerSettings = ObjectHelper.create(
-            ServerSettings,
-            JSON.parse(fs.readFileSync(`${process.env.omnihive_test_worker_token_auth0}`, { encoding: "utf8" }))
-        );
-
-        if (!config.workers.some((worker) => worker.package === packageJson.name)) {
-            return undefined;
-        }
-
-        return config;
-    } catch {
-        return undefined;
-    }
-};
-
-let settings: ServerSettings;
+let settings: TestConfigSettings;
 let worker: AuthZeroTokenWorker = new AuthZeroTokenWorker();
+const testService: TestService = new TestService();
+let token: string = "";
 
 describe("token worker tests", function () {
-    let token: string = "";
-
     before(function () {
-        const config: ServerSettings | undefined = getConfig();
+        const config: TestConfigSettings | undefined = testService.getTestConfig(packageJson.name);
 
         if (!config) {
             this.skip();
         }
 
-        CommonStore.getInstance().clearWorkers();
+        testService.clearWorkers();
         settings = config;
     });
 
     const init = async function (): Promise<void> {
-        try {
-            await AwaitHelper.execute(CommonStore.getInstance().initWorkers(settings.workers));
-            const newWorker = CommonStore.getInstance().workers.find((x) => x[0].package === packageJson.name);
+        await AwaitHelper.execute(testService.initWorkers(settings.workers));
+        const newWorker: any = testService.registeredWorkers.find((x: any) => x.package === packageJson.name);
 
-            if (newWorker && newWorker[1]) {
-                worker = newWorker[1];
-            }
-        } catch (err) {
-            throw new Error("init error: " + JSON.stringify(serializeError(err)));
+        if (newWorker && newWorker.instance) {
+            worker = newWorker.instance;
         }
     };
 
@@ -134,7 +107,7 @@ describe("token worker tests", function () {
 
                 assert.isFalse(expired);
             } catch (err) {
-                assert.equal(err.message, "Access token is either the wrong client or expired");
+                assert.equal(err.message, "[ohAccessError] Access token is either the wrong client or expired");
             }
         });
 
@@ -147,7 +120,7 @@ describe("token worker tests", function () {
 
                 assert.isFalse(expired);
             } catch (err) {
-                assert.equal(err.message, "Access token is either the wrong client or expired");
+                assert.equal(err.message, "[ohAccessError] Access token is either the wrong client or expired");
             }
         });
 

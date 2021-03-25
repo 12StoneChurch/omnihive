@@ -27,7 +27,9 @@ export default class MessageSearch extends HiveWorkerBase implements IGraphEndpo
                 return AwaitHelper.execute<PaginationModel<WatchContent>>(pastMessageFunction.execute(args));
             }
 
-            const elasticWorker: ElasticWorker = this.getWorker(HiveWorkerType.Unknown, "ohElastic") as ElasticWorker;
+            const elasticWorker: ElasticWorker | undefined = this.getWorker(HiveWorkerType.Unknown, "ohElastic") as
+                | ElasticWorker
+                | undefined;
 
             if (elasticWorker) {
                 const searchFields: ElasticSearchFieldModel[] = this.buildSearchFields();

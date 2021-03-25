@@ -15,7 +15,7 @@ export default class getPastMessages extends HiveWorkerBase implements IGraphEnd
         const query = `
           query {
               proc: storedProcedures { 
-                  document: api_12Stone_Custom_Cms_GetDynamicDocumentsByTypeId(DocumentTypeId: 2, SiteId: 7, Page: ${
+                  document: api_12Stone_Custom_Cms_GetDynamicDocumentsByTypeId(DocumentTypeId: 2, SiteId: 1, Page: ${
                       page - 1
                   }, Limit: ${limit})
               }

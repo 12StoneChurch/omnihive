@@ -12,11 +12,16 @@ import { WorkerSetterBase } from "@withonevision/omnihive-core/models/WorkerSett
 import express from "express";
 import { Server } from "http";
 import path from "path";
-import * as socketio from "socket.io";
+import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
+import { OmniHiveLogLevel } from "@withonevision/omnihive-core/enums/OmniHiveLogLevel";
+import { ILogWorker } from "@withonevision/omnihive-core/interfaces/ILogWorker";
+import WebSocket from "ws";
 
 export class GlobalObject extends WorkerSetterBase {
-    public adminServer: socketio.Server = new socketio.Server();
+    public adminServer!: WebSocket.Server;
+    public adminServerTimer!: NodeJS.Timer;
     public appServer: express.Express | undefined = undefined;
+    public instanceName: string = "default";
     public ohDirName: string = "";
     public registeredSchemas: ConnectionSchema[] = [];
     public registeredUrls: RegisteredUrl[] = [];
@@ -24,7 +29,9 @@ export class GlobalObject extends WorkerSetterBase {
     public serverStatus: ServerStatus = ServerStatus.Unknown;
     public webServer: Server | undefined = undefined;
 
-    public async pushWorker(hiveWorker: HiveWorker): Promise<void> {
+    public async pushWorker(hiveWorker: HiveWorker, isBoot: boolean = false, isCore: boolean = false): Promise<void> {
+        const logWorker: ILogWorker | undefined = this.getWorker(HiveWorkerType.Log);
+
         if (!hiveWorker.enabled) {
             return;
         }
@@ -49,11 +56,44 @@ export class GlobalObject extends WorkerSetterBase {
             }
         }
 
-        const newWorker: any = await AwaitHelper.execute<any>(import(hiveWorker.importPath));
-        const newWorkerInstance: any = new newWorker.default();
-        await AwaitHelper.execute<void>((newWorkerInstance as IHiveWorker).init(hiveWorker));
+        let registerWorker: boolean = true;
 
-        const registeredWorker: RegisteredHiveWorker = { ...hiveWorker, instance: newWorkerInstance };
-        this.registeredWorkers.push(registeredWorker);
+        Object.keys(hiveWorker.metadata).forEach((metaKey: string) => {
+            if (typeof hiveWorker.metadata[metaKey] === "string") {
+                if (
+                    (hiveWorker.metadata[metaKey] as string).startsWith("${") &&
+                    (hiveWorker.metadata[metaKey] as string).endsWith("}")
+                ) {
+                    let metaValue: string = hiveWorker.metadata[metaKey] as string;
+
+                    metaValue = metaValue.substr(2, metaValue.length - 3);
+                    const envValue: unknown | undefined = global.omnihive.serverSettings.constants[metaValue];
+
+                    if (envValue) {
+                        hiveWorker.metadata[metaKey] = envValue;
+                    } else {
+                        registerWorker = false;
+                        logWorker?.write(
+                            OmniHiveLogLevel.Warn,
+                            `Cannot register ${hiveWorker.name}...missing ${metaKey} in constants`
+                        );
+                    }
+                }
+            }
+        });
+
+        if (registerWorker) {
+            const newWorker: any = await AwaitHelper.execute<any>(import(hiveWorker.importPath));
+            const newWorkerInstance: any = new newWorker.default();
+            await AwaitHelper.execute<void>((newWorkerInstance as IHiveWorker).init(hiveWorker));
+
+            const registeredWorker: RegisteredHiveWorker = {
+                ...hiveWorker,
+                instance: newWorkerInstance,
+                isCore,
+                isBoot,
+            };
+            this.registeredWorkers.push(registeredWorker);
+        }
     }
 }

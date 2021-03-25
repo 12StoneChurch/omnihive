@@ -6,10 +6,8 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import { RestEndpointExecuteResponse } from "@withonevision/omnihive-core/models/RestEndpointExecuteResponse";
 import { serializeError } from "serialize-error";
 import swaggerUi from "swagger-ui-express";
-class SystemAccessTokenRequest {
-    clientId!: string;
-    clientSecret!: string;
-}
+import isEqual from "lodash.isequal";
+import objectHash from "object-hash";
 
 export default class SystemAccessTokenWorker extends HiveWorkerBase implements IRestEndpointWorker {
     private tokenWorker!: ITokenWorker;
@@ -38,13 +36,10 @@ export default class SystemAccessTokenWorker extends HiveWorkerBase implements I
     public getSwaggerDefinition = (): swaggerUi.JsonObject | undefined => {
         return {
             definitions: {
-                GetAccessTokenParameters: {
-                    required: ["clientId", "clientSecret"],
+                SystemAccessTokenParameters: {
+                    required: ["generator"],
                     properties: {
-                        clientId: {
-                            type: "string",
-                        },
-                        clientSecret: {
+                        generator: {
                             type: "string",
                         },
                     },
@@ -64,7 +59,7 @@ export default class SystemAccessTokenWorker extends HiveWorkerBase implements I
                             content: {
                                 "application/json": {
                                     schema: {
-                                        $ref: "#/definitions/GetAccessTokenParameters",
+                                        $ref: "#/definitions/SystemAccessTokenParameters",
                                     },
                                 },
                             },
@@ -88,30 +83,20 @@ export default class SystemAccessTokenWorker extends HiveWorkerBase implements I
     };
 
     private checkRequest = (body: any | undefined) => {
-        if (!body) {
+        if (!body || !body.generator) {
             throw new Error("Request must have parameters");
         }
 
-        const paramsStructured: SystemAccessTokenRequest = this.checkObjectStructure<SystemAccessTokenRequest>(
-            SystemAccessTokenRequest,
-            body
-        );
-
-        if (!paramsStructured.clientId || paramsStructured.clientId === "") {
-            throw new Error(`A client ID must be provided`);
-        }
-
-        if (!paramsStructured.clientSecret || paramsStructured.clientSecret === "") {
-            throw new Error(`A client secret must be provided`);
-        }
-
-        if (
-            !this.tokenWorker ||
-            !this.tokenWorker.config.metadata ||
-            !this.tokenWorker.config.metadata.clientId ||
-            !this.tokenWorker.config.metadata.clientSecret
-        ) {
+        if (!this.tokenWorker || !this.tokenWorker.config.metadata) {
             throw new Error("A token worker cannot be found");
+        }
+
+        const hashedConfigMetadata = objectHash(this.tokenWorker.config.metadata, {
+            algorithm: this.tokenWorker.config.metadata.hashAlgorithm,
+        });
+
+        if (!isEqual(hashedConfigMetadata, body.generator)) {
+            throw new Error("Token cannot be generated");
         }
     };
 }

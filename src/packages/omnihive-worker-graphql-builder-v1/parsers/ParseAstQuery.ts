@@ -8,6 +8,7 @@ import { ICacheWorker } from "@withonevision/omnihive-core/interfaces/ICacheWork
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { IDateWorker } from "@withonevision/omnihive-core/interfaces/IDateWorker";
 import { IEncryptionWorker } from "@withonevision/omnihive-core/interfaces/IEncryptionWorker";
+import { IFeatureWorker } from "@withonevision/omnihive-core/interfaces/IFeatureWorker";
 import { ILogWorker } from "@withonevision/omnihive-core/interfaces/ILogWorker";
 import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
 import { ConnectionSchema } from "@withonevision/omnihive-core/models/ConnectionSchema";
@@ -24,7 +25,7 @@ import {
     GraphQLResolveInfo,
     SelectionNode,
 } from "graphql";
-import knex from "knex";
+import { Knex } from "knex";
 import _ from "lodash";
 import { WhereMode } from "../enum/WhereModes";
 import { GraphHelper } from "../helpers/GraphHelper";
@@ -37,8 +38,8 @@ export class ParseAstQuery {
     private cacheWorker!: ICacheWorker | undefined;
     private dateWorker!: IDateWorker | undefined;
     private parentPath!: GraphQLField<any, any>;
-    private knex!: knex;
-    private query!: knex.QueryBuilder;
+    private knex!: Knex;
+    private query!: Knex.QueryBuilder;
     private currentTableIndex: number = 0;
     private currentFieldIndex: number = 0;
     private tables: ConverterDatabaseTable[] = [];
@@ -79,11 +80,30 @@ export class ParseAstQuery {
             );
         }
 
+        const featureWorker: IFeatureWorker | undefined = global.omnihive.getWorker<IFeatureWorker | undefined>(
+            HiveWorkerType.Feature
+        );
+
+        const disableSecurity: boolean = (await featureWorker?.get<boolean>("disableSecurity", false)) ?? false;
+
         const tokenWorker: ITokenWorker | undefined = global.omnihive.getWorker<ITokenWorker | undefined>(
             HiveWorkerType.Token
         );
 
+        if (!disableSecurity && !tokenWorker) {
+            throw new Error("[ohAccessError] No token worker defined.");
+        }
+
         if (
+            !disableSecurity &&
+            tokenWorker &&
+            (!omniHiveContext || !omniHiveContext.access || StringHelper.isNullOrWhiteSpace(omniHiveContext.access))
+        ) {
+            throw new Error("[ohAccessError] Access token is invalid or expired.");
+        }
+
+        if (
+            !disableSecurity &&
             tokenWorker &&
             omniHiveContext &&
             omniHiveContext.access &&
@@ -91,7 +111,7 @@ export class ParseAstQuery {
         ) {
             const verifyToken: boolean = await AwaitHelper.execute<boolean>(tokenWorker.verify(omniHiveContext.access));
             if (verifyToken === false) {
-                throw new Error("Access token is invalid or expired.");
+                throw new Error("[ohAccessError] Access token is invalid or expired.");
             }
         }
 
@@ -201,7 +221,7 @@ export class ParseAstQuery {
         const graphReturnType: GraphQLObjectType = (resolveInfo.returnType as GraphQLList<GraphQLObjectType>).ofType;
         const graphParentType: GraphQLObjectType = (this.parentPath.type as GraphQLList<GraphQLObjectType>).ofType;
 
-        this.knex = this.databaseWorker.connection as knex;
+        this.knex = this.databaseWorker.connection as Knex;
         this.query = this.knex.queryBuilder();
 
         // Build the root table

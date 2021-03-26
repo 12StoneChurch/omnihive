@@ -5,6 +5,18 @@ __metadata:
   version: 4
   cacheKey: 7
 
+"@12stonechurch/omnihive-worker-cloudinary@workspace:*, @12stonechurch/omnihive-worker-cloudinary@workspace:src/custom/omnihive-worker-cloudinary":
+  version: 0.0.0-use.local
+  resolution: "@12stonechurch/omnihive-worker-cloudinary@workspace:src/custom/omnihive-worker-cloudinary"
+  dependencies:
+    "@withonevision/omnihive-core": "workspace:*"
+    chai: 4.3.3
+    cloudinary: 1.25.1
+    serialize-error: 8.0.1
+    typescript: 4.2.3
+  languageName: unknown
+  linkType: soft
+
 "@12stonechurch/omnihive-worker-elastic@workspace:*, @12stonechurch/omnihive-worker-elastic@workspace:src/custom/omnihive-worker-elastic":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-elastic@workspace:src/custom/omnihive-worker-elastic"
@@ -21,6 +33,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-workers@workspace:src/custom/omnihive-worker-12stone"
   dependencies:
+    "@12stonechurch/omnihive-worker-cloudinary": "workspace:*"
     "@12stonechurch/omnihive-worker-elastic": "workspace:*"
     "@istanbuljs/nyc-config-typescript": 1.0.1
     "@types/chai": 4.2.15
@@ -3382,6 +3395,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cloudinary-core@npm:^2.10.2":
+  version: 2.11.3
+  resolution: "cloudinary-core@npm:2.11.3"
+  peerDependencies:
+    lodash: ">=4.0"
+  checksum: 4574514da172d1cf364a3b67f2adf02c06ce7bef87d712abab94e1ae6366a137ca2669f26776908f29e3e1fb85e1d2b6b0046230bddaef9421c5d3a75e022cc3
+  languageName: node
+  linkType: hard
+
+"cloudinary@npm:1.25.1":
+  version: 1.25.1
+  resolution: "cloudinary@npm:1.25.1"
+  dependencies:
+    cloudinary-core: ^2.10.2
+    core-js: 3.6.5
+    lodash: ^4.17.11
+    q: ^1.5.1
+  checksum: 1e8d320cff8b6702ce720be2be82dee0e3011eb95f39519193883d608b845cc2cbaaeb68d23d17e78a83d5a68a09a57f4e23fea2c27212888848786dd570239c
+  languageName: node
+  linkType: hard
+
 "cluster-key-slot@npm:^1.1.0":
   version: 1.1.0
   resolution: "cluster-key-slot@npm:1.1.0"
@@ -3680,6 +3714,13 @@ __metadata:
   version: 2.1.2
   resolution: "cookiejar@npm:2.1.2"
   checksum: 4c733c15c190798bc1fb724f3044959cabc1565dee7dfc00f99219c7a4189b21cc243ccab52e0708994923f684189a4afa6b01b6b157f8c99273f1001602ac6f
+  languageName: node
+  linkType: hard
+
+"core-js@npm:3.6.5":
+  version: 3.6.5
+  resolution: "core-js@npm:3.6.5"
+  checksum: 9283348dd5be2f1d07feaf90e2336b3f00a2316e3d3c6d4f789c9a67bdd4d7b08ce1c88dca4e591340130056c6b412b0b74fae039f8e259206f1073f542e4e85
   languageName: node
   linkType: hard
 
@@ -6869,7 +6910,7 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.17.21, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.19, lodash@npm:^4.17.20, lodash@npm:^4.17.21":
+"lodash@npm:4.17.21, lodash@npm:^4.17.11, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.19, lodash@npm:^4.17.20, lodash@npm:^4.17.21":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: 4983720b9abca930a4a46f18db163d7dad8dd00dbed6db0cc7b499b33b717cce69f80928b27bbb1ff2cbd3b19d251ee90669a8b5ea466072ca81c2ebe91e7468
@@ -8632,6 +8673,13 @@ fsevents@~2.3.1:
     tweetnacl: ^1.0.0
     tweetnacl-util: ^0.15.0
   checksum: 8c88d4c3a9aec330ea0ffdb538d8ceb3bad1da5845ae20b79698e8876052cb69b5295876c4243fd276d404c5b75d22c5b5f4f2738fc7c312365786efcbba824e
+  languageName: node
+  linkType: hard
+
+"q@npm:^1.5.1":
+  version: 1.5.1
+  resolution: "q@npm:1.5.1"
+  checksum: f610c1295a4f1b334affbe5333bc8c6160b907d011a62f1c6d05d4ca985535ea271fd8684e1e655b4659cc5b71f5be9ac4ccc84482d869b5a0576955598a7dca
   languageName: node
   linkType: hard
 

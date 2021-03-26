@@ -24,6 +24,7 @@
         "build": "tsc"
     },
     "dependencies": {
+        "@12stonechurch/omnihive-worker-cloudinary": "workspace:*",
         "@12stonechurch/omnihive-worker-elastic": "workspace:*",
         "@istanbuljs/nyc-config-typescript": "1.0.1",
         "@typescript-eslint/eslint-plugin": "4.17.0",

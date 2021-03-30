@@ -9,7 +9,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-cloudinary@workspace:src/custom/omnihive-worker-cloudinary"
   dependencies:
-    "@withonevision/omnihive-core": "workspace:*"
+    "@withonevision/omnihive-core": 5.0.2
     chai: 4.3.3
     cloudinary: 1.25.1
     serialize-error: 8.0.1

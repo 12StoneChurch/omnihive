@@ -35,7 +35,7 @@ export default class MessageSearch extends HiveWorkerBase implements IGraphEndpo
                 const searchFields: ElasticSearchFieldModel[] = this.buildSearchFields();
 
                 const results = await AwaitHelper.execute(
-                    elasticWorker.search("cms-2", query, searchFields, page - 1, limit)
+                    elasticWorker.search("cms-1", query, searchFields, page - 1, limit)
                 );
 
                 const totalCount: number = results.hits.total.value;

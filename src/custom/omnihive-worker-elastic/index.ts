@@ -139,14 +139,14 @@ export default class ElasticWorker extends HiveWorkerBase {
 
     public async bulkUpdate(index: string, idKey: string, data: any[]) {
         try {
-            const indexExists = await this.validateIndex(index, true);
+            const indexExists = await this.validateIndex(index);
 
             if (this.client && indexExists) {
-                this.client.helpers.bulk({
+                await this.client.helpers.bulk({
                     datasource: data,
                     refresh: true,
                     onDocument(doc) {
-                        return [{ update: { _index: index, _id: doc[idKey] } }, { doc_as_upsert: true }];
+                        return [{ update: { _index: index, _id: doc[idKey].toString() } }, { doc_as_upsert: true }];
                     },
                 });
             } else {
@@ -191,14 +191,11 @@ export default class ElasticWorker extends HiveWorkerBase {
                 ).body.rows;
 
                 if (unusedKeys && unusedKeys.length > 0) {
-                    await this.client?.deleteByQuery({
-                        index: index,
-                        body: {
-                            query: {
-                                ids: {
-                                    values: unusedKeys,
-                                },
-                            },
+                    await this.client?.helpers.bulk({
+                        datasource: unusedKeys,
+                        refresh: true,
+                        onDocument(doc: number) {
+                            return { delete: { _index: index, _id: doc.toString() } };
                         },
                     });
                 }

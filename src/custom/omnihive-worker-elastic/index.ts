@@ -61,25 +61,25 @@ export default class ElasticWorker extends HiveWorkerBase {
             const indexExists = await this.validateIndex(index, true);
 
             if (this.client && indexExists) {
-                return (
-                    await this.client?.search({
-                        index: index,
-                        body: {
-                            from: page * limit,
-                            size: limit,
-                            query: {
-                                multi_match: {
-                                    query: query,
-                                    fuzziness: "auto",
-                                    type: "most_fields",
-                                    fields: fields?.map(
-                                        (field: ElasticSearchFieldModel) => `${field.name}^${field.weight}`
-                                    ),
-                                },
+                const results = await this.client?.search({
+                    index: index,
+                    body: {
+                        from: page * limit,
+                        size: limit,
+                        query: {
+                            multi_match: {
+                                query: query,
+                                fuzziness: "auto",
+                                type: "most_fields",
+                                fields: fields?.map(
+                                    (field: ElasticSearchFieldModel) => `${field.name}^${field.weight}`
+                                ),
                             },
                         },
-                    })
-                ).body;
+                    },
+                });
+
+                return results.body;
             } else if (!indexExists) {
                 throw new Error("Index does not exist");
             } else {
@@ -137,7 +137,7 @@ export default class ElasticWorker extends HiveWorkerBase {
         }
     }
 
-    public async bulkUpdate(index: string, data: { id: string; data: any }[]) {
+    public async bulkUpdate(index: string, idKey: string, data: any[]) {
         try {
             const indexExists = await this.validateIndex(index, true);
 
@@ -146,7 +146,7 @@ export default class ElasticWorker extends HiveWorkerBase {
                     datasource: data,
                     refresh: true,
                     onDocument(doc) {
-                        return [{ update: { _index: index, _id: doc.id } }, { doc_as_upsert: true }];
+                        return [{ update: { _index: index, _id: doc[idKey] } }, { doc_as_upsert: true }];
                     },
                 });
             } else {
@@ -177,7 +177,7 @@ export default class ElasticWorker extends HiveWorkerBase {
         }
     }
 
-    public async removeUnused(index: string, usedKeys: string[]) {
+    public async removeUnused(index: string, usedKeys: string[], idKey: string) {
         try {
             const indexExists = await this.validateIndex(index, true);
 
@@ -185,7 +185,7 @@ export default class ElasticWorker extends HiveWorkerBase {
                 const unusedKeys = (
                     await this.client.sql.query({
                         body: {
-                            query: `Select id From \"${index}\" where id not in (${usedKeys})`,
+                            query: `Select ${idKey} From \"${index}\" where ${idKey} not in (${usedKeys})`,
                         },
                     })
                 ).body.rows;
@@ -212,25 +212,10 @@ export default class ElasticWorker extends HiveWorkerBase {
         }
     }
 
-    public async upsert(index: string, idName: string, idList: string[], data: any[]) {
+    public async upsert(index: string, idName: string, data: any[]) {
         try {
             if (this.client) {
-                const bulkObject = idList.map((id) => ({
-                    id: id,
-                    data: data.find((x) => x[idName].toString() === id),
-                }));
-                await AwaitHelper.execute(this.bulkUpdate(index, bulkObject));
-                // const chunk = 50;
-                // for (let i = 0; i < idList.length - 1; i += chunk) {
-                //     const batch = idList.slice(i, i + chunk);
-                //     await Promise.all(
-                //         batch.map((id) => {
-                //             const idData: any = data.find((x: any) => x[idName].toString() === id);
-
-                //             return AwaitHelper.execute(this.update(index, id, idData, true));
-                //         })
-                //     );
-                // }
+                await AwaitHelper.execute(this.bulkUpdate(index, idName, data));
                 return;
             } else {
                 throw new Error("Elastic Client not initialized");

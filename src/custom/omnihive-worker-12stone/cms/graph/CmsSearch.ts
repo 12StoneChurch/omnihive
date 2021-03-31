@@ -4,6 +4,7 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import { serializeError } from "serialize-error";
 import ElasticWorker, { ElasticSearchFieldModel } from "@12stonechurch/omnihive-worker-elastic";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
+import { Search } from "../common/Search";
 
 /**
  * Args:
@@ -17,7 +18,7 @@ import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
  *  page: number
  *  limit: number
  */
-export default class GetCdnUrl extends HiveWorkerBase implements IGraphEndpointWorker {
+export default class CmsSearch extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: any): Promise<any> => {
         try {
             const query: string = customArgs.query;
@@ -43,25 +44,11 @@ export default class GetCdnUrl extends HiveWorkerBase implements IGraphEndpointW
                 throw new Error("Elastic Worker is not defined.");
             }
 
-            const searchResults: any = [];
-
-            const results = await AwaitHelper.execute(
-                elasticWorker.search(`cms-${siteId}`, query, searchFields, page - 1, limit)
+            const searchResults: any = await AwaitHelper.execute(
+                Search(elasticWorker, query, searchFields, siteId, typeIds, page, limit)
             );
 
-            const formattedResults: any[] = [];
-            results.hits.hits.forEach((hit: any) => {
-                if (typeIds.some((x) => x === hit._source.DocumentTypeId)) {
-                    formattedResults.push({
-                        ...hit._source,
-                        score: hit._score,
-                    });
-                }
-            });
-
-            searchResults.push([...formattedResults]);
-
-            return { results: searchResults.flat(1) };
+            return searchResults;
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
             return err;

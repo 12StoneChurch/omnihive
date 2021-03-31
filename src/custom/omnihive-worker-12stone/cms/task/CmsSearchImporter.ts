@@ -30,7 +30,6 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
 
                 for (const siteId of documentDataIds.siteIds) {
                     const elasticIndex = `cms-${siteId}`;
-                    await this.elasticWorker.deleteIndex(elasticIndex);
                     await this.elasticWorker.validateIndex(elasticIndex);
                     await Promise.all(
                         documentDataIds.typeIds.map(async (typeId) => {
@@ -48,7 +47,7 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
                         );
 
                         await AwaitHelper.execute(
-                            this.elasticWorker.removeUnused(`cms-${siteId}`, this.idList[siteId])
+                            this.elasticWorker.removeUnused(`cms-${siteId}`, this.idList[siteId], "DocumentId")
                         );
 
                         console.log(
@@ -135,9 +134,7 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
                 });
 
                 if (this.elasticWorker) {
-                    await AwaitHelper.execute(
-                        this.elasticWorker.upsert(`cms-${siteId}`, "DocumentId", elasticIdList, docChunk)
-                    );
+                    await AwaitHelper.execute(this.elasticWorker.upsert(`cms-${siteId}`, "DocumentId", docChunk));
                 }
 
                 elasticIdList.forEach((id: string) => this.processedIds.push(id));

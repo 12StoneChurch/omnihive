@@ -8,7 +8,7 @@ import { Search } from "../common/Search";
 import swaggerUi from "swagger-ui-express";
 import queryString from "query-string";
 
-export default class WwwSearch extends HiveWorkerBase implements IRestEndpointWorker {
+export default class GroupSearch extends HiveWorkerBase implements IRestEndpointWorker {
     public getSwaggerDefinition = (): swaggerUi.JsonObject | undefined => {
         return {
             definitions: {
@@ -33,12 +33,12 @@ export default class WwwSearch extends HiveWorkerBase implements IRestEndpointWo
                 },
             },
             paths: {
-                "/WWW/Search": {
+                "/Groups/Search": {
                     get: {
-                        description: "Search the support site data",
+                        description: "Search the Group data",
                         tags: [
                             {
-                                name: "CMS",
+                                name: "Groups",
                             },
                         ],
                         parameters: [
@@ -92,9 +92,7 @@ export default class WwwSearch extends HiveWorkerBase implements IRestEndpointWo
         try {
             const args = queryString.parse(url.split("?")[1]);
             const query: string = args.query && !Array.isArray(args.query) ? args.query : "";
-            const typeIds: number[] = [];
             const searchFields: ElasticSearchFieldModel[] = this.buildSearchFields();
-            const siteId: number = 1;
             const page: number =
                 Array.isArray(args.page) || !args.page
                     ? 1
@@ -125,7 +123,7 @@ export default class WwwSearch extends HiveWorkerBase implements IRestEndpointWo
             }
 
             const searchResults: any = await AwaitHelper.execute(
-                Search(elasticWorker, query, searchFields, siteId, typeIds, page, limit)
+                Search(elasticWorker, query, searchFields, page, limit)
             );
 
             return { response: searchResults, status: 200 };
@@ -137,20 +135,48 @@ export default class WwwSearch extends HiveWorkerBase implements IRestEndpointWo
     private buildSearchFields = (): ElasticSearchFieldModel[] => {
         return [
             {
-                name: "Title",
+                name: "GroupName",
                 weight: 0.5,
             },
             {
-                name: "Except",
+                name: "Description",
                 weight: 0.2,
             },
             {
-                name: "Content",
+                name: "GroupMakeup",
                 weight: 0.05,
             },
             {
-                name: "Categories",
+                name: "CampusName",
                 weight: 0.25,
+            },
+            {
+                name: "GroupFocus",
+                weight: 0.05,
+            },
+            {
+                name: "GroupType",
+                weight: 0.05,
+            },
+            {
+                name: "City",
+                weight: 0.1,
+            },
+            {
+                name: "ZipCode",
+                weight: 0.1,
+            },
+            {
+                name: "Leader1",
+                weight: 0.1,
+            },
+            {
+                name: "Leader2",
+                weight: 0.1,
+            },
+            {
+                name: "Semester",
+                weight: 0.05,
             },
         ];
     };

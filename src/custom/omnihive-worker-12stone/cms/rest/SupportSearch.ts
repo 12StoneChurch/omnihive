@@ -33,7 +33,7 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
                 },
             },
             paths: {
-                "/support/search": {
+                "/Support/Search": {
                     get: {
                         description: "Search the support site data",
                         tags: [

@@ -29,6 +29,7 @@
         "cli:debug": "nodemon --no-stdin --config ./nodemon.cli.json",
         "cli:taskRunner:debug": "nodemon --no-stdin --config ./nodemon.taskRunner.json",
         "server:debug": "concurrently \"yarn run watch:react\" \"yarn run watch:node\"",
+        "server": "concurrently \"yarn run watch:react\" \"cross-env omnihive_settings=\"../../../settings/omnihive_dev_config.json\" yarn node -r ts-node/register ./omnihive.ts server\"",
         "watch:react": "webpack --watch --mode development",
         "watch:node": "nodemon --no-stdin --config ./nodemon.server.json"
     },

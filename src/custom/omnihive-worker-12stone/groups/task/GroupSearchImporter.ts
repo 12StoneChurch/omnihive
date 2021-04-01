@@ -6,6 +6,7 @@ import chalk from "chalk";
 import { serializeError } from "serialize-error";
 import ElasticWorker from "@12stonechurch/omnihive-worker-elastic";
 import { OmniHiveClient } from "@withonevision/omnihive-client";
+import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
 
 export default class GroupSearchImporter extends HiveWorkerBase implements ITaskEndpointWorker {
     private graphUrl = "";
@@ -14,8 +15,12 @@ export default class GroupSearchImporter extends HiveWorkerBase implements ITask
     public execute = async (): Promise<any> => {
         try {
             this.elasticWorker = this.getWorker(HiveWorkerType.Unknown, "ohElastic") as ElasticWorker | undefined;
+            const tokenWorker = this.getWorker(HiveWorkerType.Token) as ITokenWorker | undefined;
 
-            if (this.elasticWorker) {
+            if (this.elasticWorker && tokenWorker) {
+                const accessToken = await tokenWorker.get();
+                OmniHiveClient.getSingleton().setAccessToken(accessToken);
+
                 await AwaitHelper.execute(this.elasticWorker.init(this.elasticWorker.config));
 
                 this.graphUrl = this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";

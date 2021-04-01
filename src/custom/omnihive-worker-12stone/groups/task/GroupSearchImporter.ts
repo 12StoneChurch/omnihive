@@ -7,6 +7,7 @@ import { serializeError } from "serialize-error";
 import ElasticWorker from "@12stonechurch/omnihive-worker-elastic";
 import { OmniHiveClient } from "@withonevision/omnihive-client";
 import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
+import dayjs from "dayjs";
 
 export default class GroupSearchImporter extends HiveWorkerBase implements ITaskEndpointWorker {
     private graphUrl = "";
@@ -40,8 +41,15 @@ export default class GroupSearchImporter extends HiveWorkerBase implements ITask
                 const idKey = "GroupId";
                 const ids = results.map((x: any) => x[idKey].toString());
 
+                console.log(chalk.yellow(`(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Group upsert started`));
                 await AwaitHelper.execute(this.elasticWorker.upsert(`groups`, idKey, results));
+                console.log(chalk.greenBright(`(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Group upsert complete`));
+
+                console.log(chalk.yellow(`(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Removing unused keys`));
                 await AwaitHelper.execute(this.elasticWorker.removeUnused("groups", ids, idKey));
+                console.log(chalk.greenBright(`(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Unused keys removed`));
+
+                console.log(chalk.greenBright(`(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Group import complete`));
             } else {
                 throw new Error("Failed to find an elastic worker");
             }

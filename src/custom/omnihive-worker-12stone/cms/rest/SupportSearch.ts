@@ -141,7 +141,7 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
                 weight: 0.5,
             },
             {
-                name: "Except",
+                name: "Excerpt",
                 weight: 0.2,
             },
             {

@@ -141,7 +141,7 @@ export default class WwwSearch extends HiveWorkerBase implements IRestEndpointWo
                 weight: 0.5,
             },
             {
-                name: "Except",
+                name: "Excerpt",
                 weight: 0.2,
             },
             {

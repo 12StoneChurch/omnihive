@@ -57,7 +57,7 @@ export default class WwwSearch extends HiveWorkerBase implements IGraphEndpointW
                 weight: 0.5,
             },
             {
-                name: "Except",
+                name: "Excerpt",
                 weight: 0.2,
             },
             {

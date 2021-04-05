@@ -57,7 +57,7 @@ export default class SupportSearch extends HiveWorkerBase implements IGraphEndpo
                 weight: 0.5,
             },
             {
-                name: "Except",
+                name: "Excerpt",
                 weight: 0.2,
             },
             {

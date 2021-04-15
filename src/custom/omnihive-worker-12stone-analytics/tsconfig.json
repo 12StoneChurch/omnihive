@@ -1,0 +1,12 @@
+{
+    "extends": "../../../tsconfig.json",
+    "compilerOptions": {
+        "outDir": "../../../dist/custom/omnihive-worker-12stone-analytics",
+        "rootDir": "."
+    },
+    "paths": {
+        "@withonevision/*": ["../../packages/*"]
+    },
+    "include": ["./**/*.ts", "./**/*.tsx"],
+    "exclude": ["./tests/**/*"]
+}

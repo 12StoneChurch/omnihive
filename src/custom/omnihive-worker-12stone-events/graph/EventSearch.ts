@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 import { GetEventsByIdList } from "../common/GetEventsByIdList";
 import { Event } from "../lib/models/Event";
-import { PaginationModel } from "src/custom/omnihive-worker-12stone-common/models/PaginationModel";
+import { PaginationModel } from "@12stonechurch/omnihive-worker-common/models/PaginationModel";
 
 /**
  * Args:

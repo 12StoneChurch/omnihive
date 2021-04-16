@@ -1,5 +1,5 @@
 export type Event = {
-    eventId: string;
+    eventId: number;
     title: string;
     description: string;
     startDateTime: Date;
@@ -44,4 +44,5 @@ export type Event = {
         id: number;
         status: string;
     };
+    score?: number;
 };

@@ -11,7 +11,7 @@ export type ElasticSearchFieldModel = {
 };
 
 export class ElasticWorkerMetadata {
-    public cloudId: string = "";
+    public url: string = "";
     public username: string = "";
     public password: string = "";
 }
@@ -32,14 +32,13 @@ export default class ElasticWorker extends HiveWorkerBase {
             const metadata = this.checkObjectStructure<ElasticWorkerMetadata>(ElasticWorkerMetadata, config.metadata);
 
             this.client = new Client({
-                cloud: {
-                    id: metadata.cloudId,
-                },
+                node: metadata.url,
                 auth: {
                     username: metadata.username,
                     password: metadata.password,
                 },
                 maxRetries: 5,
+                requestTimeout: 60000,
                 agent: {
                     keepAlive: true,
                     keepAliveMsecs: 60000,

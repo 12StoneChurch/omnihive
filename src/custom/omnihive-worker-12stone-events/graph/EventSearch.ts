@@ -7,8 +7,9 @@ import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { Search } from "../common/Search";
 import dayjs from "dayjs";
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
-import { GetEventById } from "../common/GetEventById";
+import { GetEventsByIdList } from "../common/GetEventsByIdList";
 import { Event } from "../lib/models/Event";
+import { PaginationModel } from "src/custom/omnihive-worker-12stone-common/models/PaginationModel";
 
 /**
  * Args:
@@ -25,7 +26,7 @@ import { Event } from "../lib/models/Event";
  */
 
 export default class EventSearch extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: any): Promise<Event[]> => {
+    public execute = async (customArgs: any): Promise<PaginationModel<Event>> => {
         try {
             if (!customArgs) {
                 customArgs = {};
@@ -43,15 +44,37 @@ export default class EventSearch extends HiveWorkerBase implements IGraphEndpoin
             const participantId = customArgs.participantId ?? 0;
             const childcareAvailable = customArgs.childcareAvailable;
 
-            GraphService.getSingleton().graphRootUrl =
-                this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
-
             let events: Event[] = [];
-            let searchResults: any;
+            let searchResults: any = [];
 
             if (searchFields.length <= 0) {
                 throw new Error("No search fields to search given.");
             }
+
+            GraphService.getSingleton().graphRootUrl =
+                this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+
+            // Get all events on filter conditions
+            const storedProc = `
+                query {
+                    storedProcedures {
+                      data: api_12Stone_Custom_Events_ListEvents (
+                          DomainId: "1"
+                          , Cancelled: false
+                          , EventStatusId: 3
+                          , VisibilityLevelId: 4
+                          ${dateStart ? `, DateRangeStart: "${dateStart.format("YYYY-MM-DD HH:mm:ss")}"` : ""}
+                          ${dateEnd ? `, DateRangeEnd: "${dateEnd.format("YYYY-MM-DD HH:mm:ss")}"` : ""}
+                          ${campusIds.length > 0 ? `, CongregationIds: "${campusIds.join("|")}"` : ""}
+                          ${ageRangeIds.length > 0 ? `, AgeRangeIds: "${ageRangeIds.join("|")}"` : ""}
+                          ${tagIds.length > 0 ? `, TagIds: "${tagIds.join("|")}"` : ""}
+                        )
+                    }
+                }
+            `;
+
+            let eventList = (await AwaitHelper.execute(GraphService.getSingleton().runQuery(storedProc)))
+                .storedProcedures[0].data[0];
 
             if (query) {
                 const elasticWorker: ElasticWorker | undefined = this.getWorker(HiveWorkerType.Unknown, "ohElastic") as
@@ -62,56 +85,45 @@ export default class EventSearch extends HiveWorkerBase implements IGraphEndpoin
                     throw new Error("Elastic Worker is not defined.");
                 }
 
-                searchResults = await AwaitHelper.execute(Search(elasticWorker, query, searchFields, page, limit));
+                const databaseRowLimit = (await this.getWorker(HiveWorkerType.Database, "dbMinistryPlatform"))?.config
+                    .metadata.rowLimit;
 
-                const idsFound: number[] = searchResults.data.map((item: any) => item.EventId);
-                events = await GetEventById(idsFound, participantId);
+                searchResults = await AwaitHelper.execute(
+                    Search(elasticWorker, query, searchFields, 1, databaseRowLimit)
+                );
 
-                if (campusIds.length > 0) {
-                    events = events.filter((e: Event) =>
-                        campusIds.some((campus: number) => campus === e.congregation.id)
-                    );
-                }
-
-                if (ageRangeIds.length > 0) {
-                    events = events.filter((e: Event) => ageRangeIds.some((age: number) => age === e.ageRange.id));
-                }
-
-                if (tagIds.length > 0) {
-                    events = events.filter((e: Event) =>
-                        tagIds.some((tag: number) => e.eventTags.some((et: any) => et.id === tag))
-                    );
-                }
-            } else {
-                const storedProc = `
-                    query {
-                        storedProcedures {
-                          data: api_12Stone_Custom_Events_ListEvents (
-                              DomainId: "1"
-                              , Cancelled: false
-                              , EventStatusId: 3
-                              , VisibilityLevelId: 4
-                              ${dateStart ? `, DateRangeStart: "${dateStart.format("YYYY-MM-DD HH:mm:ss")}"` : ""}
-                              ${dateEnd ? `, DateRangeEnd: "${dateEnd.format("YYYY-MM-DD HH:mm:ss")}"` : ""}
-                              ${campusIds.length > 0 ? `, CongregationIds: "${campusIds.join("|")}"` : ""}
-                              ${ageRangeIds.length > 0 ? `, AgeRangeIds: "${ageRangeIds.join("|")}"` : ""}
-                              ${tagIds.length > 0 ? `, TagIds: "${tagIds.join("|")}"` : ""}
-                            )
-                        }
-                    }
-                `;
-
-                searchResults = (await AwaitHelper.execute(GraphService.getSingleton().runQuery(storedProc)))
-                    .storedProcedures[0].data[0];
-                const idsFound: number[] = searchResults.map((item: any) => item.eventId);
-                events = await GetEventById(idsFound, participantId);
+                eventList = eventList.filter((x: Event) =>
+                    searchResults.data.some((y: any) => x.eventId === y.EventId)
+                );
             }
+
+            events = await GetEventsByIdList(
+                eventList.map((e: Event) => e.eventId),
+                participantId
+            );
 
             if (childcareAvailable !== undefined) {
                 events = events.filter((e: Event) => e.childcareAvailable === childcareAvailable);
             }
 
-            return events;
+            if (searchResults?.data?.length > 0) {
+                events.forEach(
+                    (e: Event) => (e.score = searchResults.data.find((d: any) => d.EventId === e.eventId)?.score)
+                );
+
+                events.sort((a: Event, b: Event) => (b.score ?? 0) - (a.score ?? 0));
+            }
+
+            const offset = (page - 1) * limit;
+
+            const results: PaginationModel<Event> = {
+                previousPageNumber: page > 1 ? page - 1 : undefined,
+                nextPageNumber: page * limit < events.length ? page + 1 : undefined,
+                totalCount: events.length,
+                data: events.slice(offset, offset + limit),
+            };
+
+            return results;
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
             return err;

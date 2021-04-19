@@ -97,6 +97,15 @@ export default class EventSearch extends HiveWorkerBase implements IGraphEndpoin
                 );
             }
 
+            if (eventList.length <= 0) {
+                return {
+                    nextPageNumber: undefined,
+                    previousPageNumber: undefined,
+                    totalCount: 0,
+                    data: [],
+                };
+            }
+
             events = await GetEventsByIdList(
                 eventList.map((e: Event) => e.eventId),
                 participantId

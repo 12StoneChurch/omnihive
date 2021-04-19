@@ -211,7 +211,12 @@ export default class ElasticWorker extends HiveWorkerBase {
     public async upsert(index: string, idName: string, data: any[]) {
         try {
             if (this.client) {
-                await AwaitHelper.execute(this.bulkUpdate(index, idName, data));
+                const chunk = 1000;
+                for (let i = 0; i < data.length; i += chunk) {
+                    const chunkedData = data.slice(i, i + chunk);
+
+                    await AwaitHelper.execute(this.bulkUpdate(index, idName, chunkedData));
+                }
                 return;
             } else {
                 throw new Error("Elastic Client not initialized");

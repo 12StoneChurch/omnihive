@@ -45,4 +45,20 @@ export class GraphService {
             throw new Error(JSON.stringify(serializeError(err)));
         }
     };
+
+    public runCustomSql = async (query: string): Promise<any> => {
+        try {
+            if (!query) {
+                throw new Error("A query is required.");
+            }
+
+            const results = await AwaitHelper.execute(
+                OmniHiveClient.getSingleton().runCustomSql(this.graphRootUrl, query)
+            );
+
+            return results;
+        } catch (err) {
+            throw new Error(JSON.stringify(serializeError(err)));
+        }
+    };
 }

@@ -10,6 +10,7 @@ export const transformDataToWatchContent = (data: any): WatchContent | undefined
         poster: data["Featured Image Url"],
         title: data.Title,
         url: data["Video Attributes - Video Url"],
+        slug: data["Slug"],
     };
 
     if (content.id && content.date && content.poster && content.title && content.url) {

@@ -8,4 +8,5 @@ export interface WatchContent {
     poster: string;
     title: string;
     url: string;
+    slug: string;
 }

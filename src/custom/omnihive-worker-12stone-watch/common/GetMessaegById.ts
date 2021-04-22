@@ -15,7 +15,7 @@ export const getMessageById = async (siteDocumentId: number = 0): Promise<WatchC
 
         const results: any = await AwaitHelper.execute(GraphService.getSingleton().runQuery(messageQuery));
 
-        const documentData: any = results.proc[0].document[0][0];
+        const documentData: any = results.proc[0]?.document[0][0];
 
         return transformDataToWatchContent(documentData);
     } else {

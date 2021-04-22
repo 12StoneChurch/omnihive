@@ -34,12 +34,7 @@ export default class MessageSearch extends HiveWorkerBase implements IGraphEndpo
             if (elasticWorker) {
                 const searchFields: ElasticSearchFieldModel[] = this.buildSearchFields();
 
-                const results = await AwaitHelper.execute(
-                    elasticWorker.search("cms-1", query, searchFields, page - 1, limit)
-                );
-
-                const totalCount: number = results.hits.total.value;
-                const endingIndex: number = page * limit;
+                const results = await AwaitHelper.execute(elasticWorker.search("cms-1", query, searchFields, 0, 10000));
 
                 const parsedData: { doc: WatchContent; score: number }[] = await Promise.all(
                     results.hits.hits.map(async (x: any) => await this.buildFinalData(x))
@@ -50,11 +45,15 @@ export default class MessageSearch extends HiveWorkerBase implements IGraphEndpo
                     .sort((a, b) => a.score - b.score)
                     .map((x) => x.doc);
 
+                const totalCount: number = finalData.length;
+                const startingIndex: number = (page - 1) * limit;
+                const endingIndex: number = page * limit;
+
                 const final: PaginationModel<WatchContent> = {
                     nextPageNumber: totalCount > endingIndex ? page + 1 : undefined,
                     previousPageNumber: page > 1 ? page - 1 : undefined,
                     totalCount: totalCount,
-                    data: finalData,
+                    data: finalData.slice(startingIndex, endingIndex),
                 };
 
                 return final;

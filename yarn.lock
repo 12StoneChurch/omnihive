@@ -205,18 +205,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-fusionauth@workspace:src/custom/omnihive-worker-fusionauth":
-  version: 0.0.0-use.local
-  resolution: "@12stonechurch/omnihive-worker-fusionauth@workspace:src/custom/omnihive-worker-fusionauth"
-  dependencies:
-    "@fusionauth/typescript-client": 1.25.0
-    "@withonevision/omnihive-core": 5.0.2
-    chai: 4.3.4
-    serialize-error: 8.0.1
-    typescript: 4.2.3
-  languageName: unknown
-  linkType: soft
-
 "@12stonechurch/omnihive-worker-groups@workspace:src/custom/omnihive-worker-12stone-groups":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-groups@workspace:src/custom/omnihive-worker-12stone-groups"
@@ -329,18 +317,6 @@ __metadata:
     query-string: 7.0.0
     serialize-error: 8.0.1
     ts-node: 9.1.1
-    typescript: 4.2.3
-  languageName: unknown
-  linkType: soft
-
-"@12stonechurch/omnihive-worker-youtube-analytics@workspace:src/custom/omnihive-worker-youtube-analytics":
-  version: 0.0.0-use.local
-  resolution: "@12stonechurch/omnihive-worker-youtube-analytics@workspace:src/custom/omnihive-worker-youtube-analytics"
-  dependencies:
-    "@elastic/elasticsearch": 7.11.0
-    "@withonevision/omnihive-core": 5.0.2
-    chai: 4.3.4
-    serialize-error: 8.0.1
     typescript: 4.2.3
   languageName: unknown
   linkType: soft
@@ -778,15 +754,6 @@ __metadata:
     minimatch: ^3.0.4
     strip-json-comments: ^3.1.1
   checksum: d3f51b741997cbf36662d8b5a52985bfa5d2873e48cadccd95c67fcce1706327ec98ebb6f0be79c6ecbc31bdeca32c2b1c4f66fd1cf3934c434d1ac269cbceac
-  languageName: node
-  linkType: hard
-
-"@fusionauth/typescript-client@npm:1.25.0":
-  version: 1.25.0
-  resolution: "@fusionauth/typescript-client@npm:1.25.0"
-  dependencies:
-    node-fetch: ^2.6.1
-  checksum: e572e9e31bc5885a1fbbea1e861d65ebb1a03d5a57f8513478eea76fae7e7ddc2d548b1c3af77a65ad49a625fff168246a9cf3ec1bdae0fb042e9dc09ce4be14
   languageName: node
   linkType: hard
 
@@ -2232,7 +2199,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"acorn@npm:^8.1.0":
+"acorn@npm:^8.0.5":
   version: 8.1.1
   resolution: "acorn@npm:8.1.1"
   bin:
@@ -6384,12 +6351,12 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"jsdom@npm:^16.5.1":
-  version: 16.5.3
-  resolution: "jsdom@npm:16.5.3"
+"jsdom@npm:16.5.1":
+  version: 16.5.1
+  resolution: "jsdom@npm:16.5.1"
   dependencies:
     abab: ^2.0.5
-    acorn: ^8.1.0
+    acorn: ^8.0.5
     acorn-globals: ^6.0.0
     cssom: ^0.4.4
     cssstyle: ^2.3.0
@@ -6411,7 +6378,7 @@ fsevents@~2.3.1:
     webidl-conversions: ^6.1.0
     whatwg-encoding: ^1.0.5
     whatwg-mimetype: ^2.3.0
-    whatwg-url: ^8.5.0
+    whatwg-url: ^8.0.0
     ws: ^7.4.4
     xml-name-validator: ^3.0.0
   peerDependencies:
@@ -6419,7 +6386,7 @@ fsevents@~2.3.1:
   peerDependenciesMeta:
     canvas:
       optional: true
-  checksum: 02f6e3b5bb6c75f70b256f9fb522ce67cdf035c8e073a61f152876570d29453f164a4f1ea38a62e419511f81f6f75ced793e6332b66a647dc8012daacff27b8e
+  checksum: 383d9aafff2a481b9668fcdd64ee6bb59977cce21844a588e2de07befaf897552d4141db6c2bed739dbbb714b2bcc2dd1a2fdb5196bff0676c2d43f18d1b0139
   languageName: node
   linkType: hard
 
@@ -10577,7 +10544,7 @@ typescript@4.2.3:
   languageName: node
   linkType: hard
 
-"whatwg-url@npm:^8.0.0, whatwg-url@npm:^8.5.0":
+"whatwg-url@npm:^8.0.0":
   version: 8.5.0
   resolution: "whatwg-url@npm:8.5.0"
   dependencies:

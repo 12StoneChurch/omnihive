@@ -42,7 +42,7 @@ export default class MessageSearch extends HiveWorkerBase implements IGraphEndpo
 
                 const finalData: WatchContent[] = parsedData
                     .filter((x) => x)
-                    .sort((a, b) => a.score - b.score)
+                    .sort((a, b) => b.score - a.score)
                     .map((x) => x.doc);
 
                 const totalCount: number = finalData.length;

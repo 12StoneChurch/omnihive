@@ -1,4 +1,4 @@
-export default class DanyService {
+export class DanyService {
     private static singleton: DanyService;
 
     public static getSingleton = (): DanyService => {

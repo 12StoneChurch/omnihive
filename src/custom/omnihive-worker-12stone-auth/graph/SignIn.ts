@@ -3,7 +3,7 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { serializeError } from "serialize-error";
 import { danyPost } from "@12stonechurch/omnihive-worker-common/helpers/DanyHelper";
-import DanyService from "@12stonechurch/omnihive-worker-common/services/DanyService";
+import { DanyService } from "@12stonechurch/omnihive-worker-common/services/DanyService";
 
 class SignInArgs {
     UserName: string = "";
@@ -34,7 +34,11 @@ export default class SignIn extends HiveWorkerBase implements IGraphEndpointWork
 
             const result = await AwaitHelper.execute(danyPost("/Security/Login", customArgs));
 
-            return result.data;
+            if (result) {
+                return result.data;
+            }
+
+            throw new Error("Invalid username or password");
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
             return err;

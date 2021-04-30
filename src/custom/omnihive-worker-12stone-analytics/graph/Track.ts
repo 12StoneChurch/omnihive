@@ -3,7 +3,7 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { serializeError } from "serialize-error";
 import { danyPost } from "@12stonechurch/omnihive-worker-common/helpers/DanyHelper";
-import DanyService from "@12stonechurch/omnihive-worker-common/services/DanyService";
+import { DanyService } from "@12stonechurch/omnihive-worker-common/services/DanyService";
 import { TrackEvent } from "../models/TrackEvent";
 
 class Args {

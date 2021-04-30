@@ -1,6 +1,6 @@
 import axios from "axios";
 import { serializeError } from "serialize-error";
-import DanyService from "../services/DanyService";
+import { DanyService } from "../services/DanyService";
 
 export const danyPost = async (path: string, body: any, authToken: string = ""): Promise<any> => {
     try {

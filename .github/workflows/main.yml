@@ -16,10 +16,10 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
               run: |
-                  year=date +"%Y"
-                  versionMinor=date +"%m.%d%H%M"
-                  versionMajor=$year-2020
-                  version=$versionMajor.$versionMinor
+                  year=$(date +%Y)
+                  versionMinor=$(date +%m.%d%H%M)
+                  versionMajor=$($year-2020)
+                  version=$($versionMajor.$versionMinor)
 
                   yarn build:custom:publish -v $version
 

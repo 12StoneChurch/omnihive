@@ -19,10 +19,9 @@ jobs:
                   year=$(date +%Y)
                   versionMinor=$(date +%m.%d%H%M)
                   let versionMajor=$year-2020
-                  version=$($versionMajor.$versionMinor)
+                  version=$versionMajor.$versionMinor
 
                   yarn build:custom:publish -v $version
-
             - name: Log into GitHub CLI
               run: |
                   echo ${{secrets.GH_CLI_AUTH_TOKEN}} > gh.txt

@@ -27,7 +27,7 @@ jobs:
             - name: Run Build and Publish Script
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-                  Version: $((${{ steps.year.outputs.time }}-2020)).${{ steps.time.outputs.time }}
+                  Version: ${{ steps.year.outputs.time - 2020}}.${{ steps.time.outputs.time }}
               run: yarn build:custom:publish -v $VERSION
 
             - name: Log into GitHub CLI

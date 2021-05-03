@@ -29,8 +29,8 @@ jobs:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   YEAR: ${{ steps.year.outputs.time }}
               run: |
-              echo ::set-env name=VERSION::$(($YEAR-2020)).${{ steps.time.outputs.time }}
-              yarn build:custom:publish -v $VERSION
+                echo ::set-env name=VERSION::$(($YEAR-2020)).${{ steps.time.outputs.time }}
+                yarn build:custom:publish -v $VERSION
 
             - name: Log into GitHub CLI
               run: |

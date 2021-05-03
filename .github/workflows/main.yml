@@ -24,9 +24,3 @@ jobs:
                   echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" >> ~/.npmrc
 
                   yarn build:custom:publish -v $version
-            - name: Log into GitHub CLI
-              run: |
-                  echo ${{secrets.GH_CLI_AUTH_TOKEN}} > gh.txt
-                  gh auth login --with-token < gh.txt
-            - name: Create GitHub Release
-              run: gh release create ${{ steps.time.outputs.time }} ./dist

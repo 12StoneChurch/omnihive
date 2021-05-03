@@ -21,7 +21,7 @@ jobs:
                   let versionMajor=$year-2020
                   version=$versionMajor.$versionMinor
 
-                  echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" >> ~/.npmrc
+                  echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" >> ./.npmrc
 
                   yarn build:custom:publish -v $version
             - name: Log into GitHub CLI

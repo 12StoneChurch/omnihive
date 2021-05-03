@@ -12,23 +12,16 @@ jobs:
             - uses: actions/checkout@v2
             - name: Yarn Install
               run: yarn
-            - name: Get Year
-              id: year
-              uses: nanzm/get-time-action@v1.1
-              with:
-                  timeZone: 8
-                  format: "YYYY"
-            - name: Get Time
-              id: time
-              uses: nanzm/get-time-action@v1.1
-              with:
-                  timeZone: 8
-                  format: "M.DDHHmm"
             - name: Run Build and Publish Script
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-                  Version: ${{ steps.year.outputs.time - 2020}}.${{ steps.time.outputs.time }}
-              run: yarn build:custom:publish -v $VERSION
+              run: |
+                  year=date +"%Y"
+                  versionMinor=date +"%m.%d%H%M"
+                  versionMajor=$year-2020
+                  version=$versionMajor.$versionMinor
+
+                  yarn build:custom:publish -v $version
 
             - name: Log into GitHub CLI
               run: |

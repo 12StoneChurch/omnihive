@@ -148,7 +148,11 @@ const execSpawn = (commandString: string, cwd: string): string => {
     });
 
     if (execSpawn.status !== 0) {
-        console.log(chalk.red(execSpawn.stdout.toString().trim()));
+        if (execSpawn.stdout.length > 0) {
+            console.log(chalk.red(execSpawn.stdout.toString().trim()));
+        } else {
+            console.log(chalk.red(execSpawn.stderr.toString().trim()));
+        }
         process.exit(1);
     }
 

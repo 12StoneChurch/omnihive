@@ -6,6 +6,7 @@ import { ServerStatus } from "@withonevision/omnihive-core/enums/ServerStatus";
 import { ObjectHelper } from "@withonevision/omnihive-core/helpers/ObjectHelper";
 import { StringHelper } from "@withonevision/omnihive-core/helpers/StringHelper";
 import { ILogWorker } from "@withonevision/omnihive-core/interfaces/ILogWorker";
+import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
 import { AdminEvent } from "@withonevision/omnihive-core/models/AdminEvent";
 import { AdminEventResponse } from "@withonevision/omnihive-core/models/AdminEventResponse";
 import { RegisteredUrl } from "@withonevision/omnihive-core/models/RegisteredUrl";
@@ -42,8 +43,22 @@ export class AdminService {
         global.omnihive.adminServer.on("connection", (ws: WebSocket) => {
             (ws as ExtendedWebSocket).isAlive = true;
 
-            ws.on("pong", (ws: WebSocket) => {
-                this.heartbeat(ws);
+            ws.on("message", (message: string) => {
+                if (!this.checkWsMessage("heartbeat-request", message)) {
+                    return;
+                }
+
+                (ws as ExtendedWebSocket).isAlive = true;
+
+                this.sendToSingleClient<{ alive: boolean }>(ws, "heartbeat-reponse", { alive: true });
+            });
+
+            ws.on("message", (message: string) => {
+                if (!this.checkWsMessage("heartbeat-response", message)) {
+                    return;
+                }
+
+                (ws as ExtendedWebSocket).isAlive = true;
             });
 
             ws.on("message", (message: string) => {
@@ -59,7 +74,7 @@ export class AdminService {
                     StringHelper.isNullOrWhiteSpace(request.adminPassword) ||
                     request.adminPassword !== global.omnihive.serverSettings.config.adminPassword
                 ) {
-                    this.sendErrorToSingleClient(ws, "config-request-response", new Error("Invalid Password"));
+                    this.sendErrorToSingleClient(ws, "config-request-response", "Invalid Password");
                     return;
                 }
 
@@ -82,6 +97,49 @@ export class AdminService {
             });
 
             ws.on("message", (message: string) => {
+                if (!this.checkWsMessage("access-token-request", message)) {
+                    return;
+                }
+
+                const request: AdminEvent<{ serverLabel: string }> = JSON.parse(message);
+
+                if (!request.data) {
+                    this.sendErrorToSingleClient(ws, "access-token-response", "No Server Label Given");
+                    return;
+                }
+
+                const tokenWorker: ITokenWorker | undefined = global.omnihive.getWorker<ITokenWorker | undefined>(
+                    HiveWorkerType.Token
+                );
+
+                if (!tokenWorker) {
+                    this.sendToSingleClient<{ hasWorker: boolean; token: string }>(ws, "access-token-response", {
+                        hasWorker: false,
+                        token: "",
+                    });
+
+                    return;
+                }
+
+                tokenWorker.get().then((token: string) => {
+                    if (!request.data) {
+                        this.sendErrorToSingleClient(ws, "access-token-response", "No Server Label Given");
+                        return;
+                    }
+
+                    this.sendToSingleClient<{ serverLabel: string; hasWorker: boolean; token: string }>(
+                        ws,
+                        "access-token-response",
+                        {
+                            hasWorker: true,
+                            token,
+                            serverLabel: request.data.serverLabel,
+                        }
+                    );
+                });
+            });
+
+            ws.on("message", (message: string) => {
                 if (!this.checkWsMessage("config-save-request", message)) {
                     return;
                 }
@@ -95,7 +153,7 @@ export class AdminService {
                     request.adminPassword !== global.omnihive.serverSettings.config.adminPassword ||
                     !request.data?.config
                 ) {
-                    this.sendErrorToSingleClient(ws, "config-save-response", new Error("Invalid Password"));
+                    this.sendErrorToSingleClient(ws, "config-save-response", "Invalid Password");
                     return;
                 }
 
@@ -106,7 +164,7 @@ export class AdminService {
                         `latest-settings-${global.omnihive.instanceName}`
                     ) as string;
 
-                    fse.writeFileSync(latestConf, JSON.stringify(settings));
+                    fse.writeFileSync(latestConf, JSON.stringify(settings, null, `\t`));
                     this.sendToSingleClient<{ verified: boolean }>(ws, "config-save-response", { verified: true });
                 } catch (e) {
                     this.sendErrorToSingleClient(ws, "config-save-response", e);
@@ -128,7 +186,7 @@ export class AdminService {
                     request.adminPassword !== global.omnihive.serverSettings.config.adminPassword ||
                     !request.data?.refresh
                 ) {
-                    this.sendErrorToSingleClient(ws, "refresh-response", new Error("Invalid Password"));
+                    this.sendErrorToSingleClient(ws, "refresh-response", "Invalid Password");
                     return;
                 }
 
@@ -156,7 +214,7 @@ export class AdminService {
                         `Admin client register error using password ${request.adminPassword}...`
                     );
 
-                    this.sendErrorToSingleClient(ws, "register-response", new Error("Invalid Password"));
+                    this.sendErrorToSingleClient(ws, "register-response", "Invalid Password");
                     return;
                 }
 
@@ -176,7 +234,7 @@ export class AdminService {
                     StringHelper.isNullOrWhiteSpace(request.adminPassword) ||
                     request.adminPassword !== global.omnihive.serverSettings.config.adminPassword
                 ) {
-                    this.sendErrorToSingleClient(ws, "status-response", new Error("Invalid Password"));
+                    this.sendErrorToSingleClient(ws, "status-response", "Invalid Password");
                     return;
                 }
 
@@ -203,7 +261,7 @@ export class AdminService {
                     StringHelper.isNullOrWhiteSpace(request.adminPassword) ||
                     request.adminPassword !== global.omnihive.serverSettings.config.adminPassword
                 ) {
-                    this.sendErrorToSingleClient(ws, "urls-response", new Error("Invalid Password"));
+                    this.sendErrorToSingleClient(ws, "urls-response", "Invalid Password");
                     return;
                 }
 
@@ -220,7 +278,7 @@ export class AdminService {
                 }
 
                 (ws as ExtendedWebSocket).isAlive = false;
-                ws.ping(this.noop);
+                this.sendToSingleClient(ws, "heartbeat-request");
             });
         }, 20000);
 
@@ -261,13 +319,7 @@ export class AdminService {
         }
     };
 
-    private heartbeat = (ws: WebSocket) => {
-        (ws as ExtendedWebSocket).isAlive = true;
-    };
-
-    private noop = (): void => {};
-
-    private sendErrorToSingleClient = (ws: WebSocket, event: string, error: Error) => {
+    private sendErrorToSingleClient = (ws: WebSocket, event: string, error: string) => {
         ws.send(
             JSON.stringify({
                 event,

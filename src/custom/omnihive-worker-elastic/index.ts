@@ -11,7 +11,7 @@ export type ElasticSearchFieldModel = {
 };
 
 export class ElasticWorkerMetadata {
-    public cloudId: string = "";
+    public url: string = "";
     public username: string = "";
     public password: string = "";
 }
@@ -19,6 +19,7 @@ export class ElasticWorkerMetadata {
 export default class ElasticWorker extends HiveWorkerBase {
     public worker?: IHiveWorker;
     public client?: Client;
+    private validIndexes?: string[];
 
     constructor() {
         super();
@@ -31,12 +32,16 @@ export default class ElasticWorker extends HiveWorkerBase {
             const metadata = this.checkObjectStructure<ElasticWorkerMetadata>(ElasticWorkerMetadata, config.metadata);
 
             this.client = new Client({
-                cloud: {
-                    id: metadata.cloudId,
-                },
+                node: metadata.url,
                 auth: {
                     username: metadata.username,
                     password: metadata.password,
+                },
+                maxRetries: 5,
+                requestTimeout: 60000,
+                agent: {
+                    keepAlive: true,
+                    keepAliveMsecs: 60000,
                 },
             });
         } catch (err) {
@@ -55,25 +60,25 @@ export default class ElasticWorker extends HiveWorkerBase {
             const indexExists = await this.validateIndex(index, true);
 
             if (this.client && indexExists) {
-                return (
-                    await this.client?.search({
-                        index: index,
-                        body: {
-                            from: page * limit,
-                            size: limit,
-                            query: {
-                                multi_match: {
-                                    query: query,
-                                    fuzziness: "auto",
-                                    type: "most_fields",
-                                    fields: fields?.map(
-                                        (field: ElasticSearchFieldModel) => `${field.name}^${field.weight}`
-                                    ),
-                                },
+                const results = await this.client?.search({
+                    index: index,
+                    body: {
+                        from: page * limit,
+                        size: limit,
+                        query: {
+                            multi_match: {
+                                query: query,
+                                fuzziness: "auto",
+                                type: "most_fields",
+                                fields: fields?.map(
+                                    (field: ElasticSearchFieldModel) => `${field.name}^${field.weight}`
+                                ),
                             },
                         },
-                    })
-                ).body;
+                    },
+                });
+
+                return results.body;
             } else if (!indexExists) {
                 throw new Error("Index does not exist");
             } else {
@@ -115,6 +120,8 @@ export default class ElasticWorker extends HiveWorkerBase {
                     await this.client?.update({
                         index: index,
                         id: id,
+                        refresh: true,
+                        retry_on_conflict: 5,
                         body: {
                             doc: data,
                             doc_as_upsert: upsert,
@@ -129,32 +136,18 @@ export default class ElasticWorker extends HiveWorkerBase {
         }
     }
 
-    public async bulkUpdate(index: string, idObject: { name: string; values: string[] }, data: any) {
+    public async bulkUpdate(index: string, idKey: string, data: any[]) {
         try {
-            const indexExists = await this.validateIndex(index, true);
+            const indexExists = await this.validateIndex(index);
 
             if (this.client && indexExists) {
-                const updateQuery: { [key: string]: string[] } = {};
-                updateQuery[idObject.name] = idObject.values;
-
-                this.client?.updateByQuery({
-                    index: index,
+                await this.client.helpers.bulk({
+                    datasource: data,
                     refresh: true,
-                    body: {
-                        doc: data,
-                        query: {
-                            bool: {
-                                must: [
-                                    {
-                                        terms: { updateQuery },
-                                    },
-                                ],
-                            },
-                        },
+                    onDocument(doc) {
+                        return [{ update: { _index: index, _id: doc[idKey].toString() } }, { doc_as_upsert: true }];
                     },
                 });
-            } else if (!indexExists) {
-                return;
             } else {
                 throw new Error("Elastic Client not initialized");
             }
@@ -183,28 +176,28 @@ export default class ElasticWorker extends HiveWorkerBase {
         }
     }
 
-    public async removeUnused(index: string, fieldName: string, usedKeys: string[]) {
+    public async removeUnused(index: string, usedKeys: string[], idKey: string) {
         try {
             const indexExists = await this.validateIndex(index, true);
 
             if (this.client && indexExists) {
-                const deleteObject: any = {};
-                deleteObject[fieldName] = usedKeys;
-
-                await this.client?.deleteByQuery({
-                    index: index,
-                    body: {
-                        query: {
-                            bool: {
-                                must_not: [
-                                    {
-                                        terms: deleteObject,
-                                    },
-                                ],
-                            },
+                const unusedKeys = (
+                    await this.client.sql.query({
+                        body: {
+                            query: `Select ${idKey} From \"${index}\" where ${idKey} not in (${usedKeys})`,
                         },
-                    },
-                });
+                    })
+                ).body.rows;
+
+                if (unusedKeys && unusedKeys.length > 0) {
+                    await this.client?.helpers.bulk({
+                        datasource: unusedKeys,
+                        refresh: true,
+                        onDocument(doc: number) {
+                            return { delete: { _index: index, _id: doc.toString() } };
+                        },
+                    });
+                }
             } else if (!indexExists) {
                 return;
             } else {
@@ -215,15 +208,14 @@ export default class ElasticWorker extends HiveWorkerBase {
         }
     }
 
-    public async upsert(index: string, idName: string, idList: string[], data: any[]) {
+    public async upsert(index: string, idName: string, data: any[]) {
         try {
             if (this.client) {
-                await this.validateIndex(index);
+                const chunk = 1000;
+                for (let i = 0; i < data.length; i += chunk) {
+                    const chunkedData = data.slice(i, i + chunk);
 
-                for (const id of idList) {
-                    const idData: any = data.find((x: any) => x[idName].toString() === id);
-
-                    await AwaitHelper.execute(this.update(index, id, idData, true));
+                    await AwaitHelper.execute(this.bulkUpdate(index, idName, chunkedData));
                 }
                 return;
             } else {
@@ -236,12 +228,21 @@ export default class ElasticWorker extends HiveWorkerBase {
 
     public async validateIndex(index: string, noCreate: boolean = false) {
         try {
+            if (this.validIndexes?.find((x) => x === index)) {
+                return true;
+            }
+
             if (this.client) {
                 const indexExists: boolean = (await this.client.indices.exists({ index: index })).body;
 
                 if (!indexExists && !noCreate) {
                     await this.client?.indices.create({ index: index });
+                    this.validIndexes?.push(index);
                     return true;
+                }
+
+                if (indexExists) {
+                    this.validIndexes?.push(index);
                 }
 
                 return indexExists;
@@ -258,7 +259,7 @@ export default class ElasticWorker extends HiveWorkerBase {
             const indexExists = await this.validateIndex(index, true);
 
             if (this.client && indexExists) {
-                this.client.indices.delete({ index: index });
+                await this.client.indices.delete({ index: index });
             } else if (!indexExists) {
                 return;
             } else {
@@ -306,4 +307,11 @@ export default class ElasticWorker extends HiveWorkerBase {
             throw new Error(JSON.stringify(serializeError(err)));
         }
     }
+
+    // private async reconnectClient() {
+    //     if (this.client) {
+    //         await this.client.close();
+    //         await this.init(this.config);
+    //     }
+    // }
 }

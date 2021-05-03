@@ -63,6 +63,13 @@ const init = async () => {
                     demandOption: false,
                     description: "Web Root URL (with port number if necessary)",
                 })
+                .option("restart", {
+                    alias: "r",
+                    type: "boolean",
+                    demandOption: false,
+                    default: false,
+                    description: "Restart from last known good configuration on error",
+                })
                 .check((args) => {
                     if (args.settings) {
                         try {
@@ -141,6 +148,17 @@ const init = async () => {
     global.omnihive.ohDirName = __dirname;
     global.omnihive.instanceName = args.argv.instanceName as string;
 
+    if (args.argv._[0] !== "init" && args.argv._[0] !== "taskRunner") {
+        global.omnihive.commandLineArgs = {
+            instanceName: args.argv.instanceName as string,
+            settings: (args.argv.settings as string) ?? "",
+            adminPort: (args.argv.adminPort as number) ?? 7205,
+            nodePort: (args.argv.nodePort as number) ?? 3001,
+            webRootUrl: (args.argv.webRootUrl as string) ?? "",
+            restart: (args.argv.restart as boolean) ?? false,
+        };
+    }
+
     const pkgJson: readPkgUp.NormalizedReadResult | undefined = await readPkgUp();
 
     // Load Boot Workers
@@ -150,6 +168,7 @@ const init = async () => {
         for (const bootWorker of bootWorkers) {
             if (!global.omnihive.registeredWorkers.some((rw: RegisteredHiveWorker) => rw.name === bootWorker.name)) {
                 await global.omnihive.pushWorker(bootWorker, true, false);
+                global.omnihive.bootWorkerNames.push(bootWorker.name);
                 global.omnihive.serverSettings.workers.push(bootWorker);
             }
         }

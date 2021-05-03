@@ -1,88 +1,54 @@
-import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { assert } from "chai";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import DayJsDateWorker from "..";
 import { TestConfigSettings } from "../../../tests/models/TestConfigSettings";
 import { TestService } from "../../../tests/services/TestService";
 import packageJson from "../package.json";
 
-let settings: TestConfigSettings;
-let worker: DayJsDateWorker = new DayJsDateWorker();
-const testService: TestService = new TestService();
+const testService = new TestService();
+const {
+    workers: [config],
+} = <TestConfigSettings>testService.getTestConfig(packageJson.name);
+const worker = new DayJsDateWorker();
 
-describe("date worker tests", function () {
-    before(function () {
-        const config: TestConfigSettings | undefined = testService.getTestConfig(packageJson.name);
+const mockDate = dayjs("2020-01-01T00:00:00").toDate();
 
-        if (!config) {
-            this.skip();
-        }
-
-        testService.clearWorkers();
-        settings = config;
-    });
-
-    const init = async function (): Promise<void> {
-        await AwaitHelper.execute(testService.initWorkers(settings.workers));
-        const newWorker: any = testService.registeredWorkers.find((x: any) => x.package === packageJson.name);
-
-        if (newWorker && newWorker.instance) {
-            worker = newWorker.instance;
-        }
-    };
-
-    describe("Init functions", function () {
-        it("test init", async function () {
-            const result = await init();
-            assert.isUndefined(result);
+describe("date worker tests", () => {
+    describe("init functions", () => {
+        it("test init", async () => {
+            await worker.init(config);
+            assert.isObject(worker.config);
         });
     });
-
-    describe("Worker Functions", function () {
-        before(async function () {
-            await init();
+    describe("worker functions", () => {
+        it("convert between timezones", () => {
+            const result = worker.convertDateBetweenTimezones(mockDate, "Asia/Tokyo", "America/New_York");
+            const diff = dayjs(result).diff(mockDate, "hour");
+            assert.equal(diff, 14);
         });
-
-        it("convert between timezones", function () {
-            const convertDate: Dayjs = dayjs("2020-01-01T00:00:00");
-            const result: string = worker.convertDateBetweenTimezones(
-                convertDate.toDate(),
-                "Asia/Tokyo",
-                "America/New_York"
+        it("convert between timezones - invalid from", () => {
+            assert.throws(
+                () => worker.convertDateBetweenTimezones(mockDate, "Bad timezone", "America/New_York"),
+                /Could not convert timezones/
             );
-            const hourDiff: number = dayjs(result).diff(convertDate, "hour");
-            assert.equal(hourDiff, 14);
         });
-
-        it("convert between timezones - invalid", function () {
-            try {
-                const convertDate: Dayjs = dayjs("2020-01-01T00:00:00");
-                worker.convertDateBetweenTimezones(convertDate.toDate(), "Bad Timezone", "America/New_York");
-                assert.fail("Expected to fail");
-            } catch (err) {
-                assert.equal(
-                    err.message,
-                    "Could not convert timezones.  Check to make sure timezones are IANA-specific"
-                );
-            }
+        it("convert between timezones - invalid to", () => {
+            assert.throws(
+                () => worker.convertDateBetweenTimezones(mockDate, "Asia/Tokyo", "Bad timezone"),
+                /Could not convert timezones/
+            );
         });
-
-        it("convert between timezones - no from timezone", function () {
-            const convertDate: Dayjs = dayjs("2020-01-01T00:00:00Z");
-            const result: string = worker.convertDateBetweenTimezones(convertDate.toDate(), "Asia/Tokyo");
-            const hourDiff: number = dayjs(result).diff(convertDate, "hour");
-            assert.equal(hourDiff, 14);
+        it("convert between timezones - no from timezone", () => {
+            const result = worker.convertDateBetweenTimezones(mockDate, "Asia/Tokyo");
+            const diff = dayjs(result).diff(mockDate, "hour");
+            assert.equal(diff, 14);
         });
-
-        it("Format Date", function () {
-            const dateToConvert: Date = dayjs("2020-01-01T00:00:00").toDate();
-            const dateString = worker.getFormattedDateString(dateToConvert, "MM/DD/YYYY hh:mma");
+        it("format date", () => {
+            const dateString = worker.getFormattedDateString(mockDate, "MM/DD/YYYY hh:mma");
             assert.equal(dateString, "01/01/2020 12:00am");
         });
-
-        it("Format Date - no format specified", function () {
-            const dateToConvert: Date = dayjs("2020-01-01T00:00:00").toDate();
-            const dateString = worker.getFormattedDateString(dateToConvert);
+        it("format date - no format specified", () => {
+            const dateString = worker.getFormattedDateString(mockDate);
             assert.equal(dateString, "2020-01-01T00:00:00");
         });
     });

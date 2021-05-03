@@ -16,11 +16,15 @@ import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerTyp
 import { OmniHiveLogLevel } from "@withonevision/omnihive-core/enums/OmniHiveLogLevel";
 import { ILogWorker } from "@withonevision/omnihive-core/interfaces/ILogWorker";
 import WebSocket from "ws";
+import { CommandLineArguments } from "./CommandLineArguments";
+import importFresh from "import-fresh";
 
 export class GlobalObject extends WorkerSetterBase {
     public adminServer!: WebSocket.Server;
     public adminServerTimer!: NodeJS.Timer;
     public appServer: express.Express | undefined = undefined;
+    public bootWorkerNames: string[] = [];
+    public commandLineArgs: CommandLineArguments = new CommandLineArguments();
     public instanceName: string = "default";
     public ohDirName: string = "";
     public registeredSchemas: ConnectionSchema[] = [];
@@ -83,7 +87,7 @@ export class GlobalObject extends WorkerSetterBase {
         });
 
         if (registerWorker) {
-            const newWorker: any = await AwaitHelper.execute<any>(import(hiveWorker.importPath));
+            const newWorker: any = importFresh(hiveWorker.importPath);
             const newWorkerInstance: any = new newWorker.default();
             await AwaitHelper.execute<void>((newWorkerInstance as IHiveWorker).init(hiveWorker));
 

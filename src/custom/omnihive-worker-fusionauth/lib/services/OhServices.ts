@@ -1,8 +1,19 @@
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
-import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 import { User } from "@fusionauth/typescript-client";
 import dayjs from "dayjs";
 import { CreateAuthUser } from "@12stonechurch/omnihive-worker-common/models/CreateAuthUser";
+import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
+import { DanyService } from "@12stonechurch/omnihive-worker-common/services/DanyService";
+
+let rootUrl: string = "";
+
+export const SetDanyMetadata = (metadata: any) => {
+    DanyService.getSingleton().setMetaData(metadata);
+};
+
+export const SetRootUrl = (url: string) => {
+    rootUrl = url;
+};
 
 export const MpLogin = async (username: string, password: string) => {
     const query = `query {
@@ -13,7 +24,7 @@ export const MpLogin = async (username: string, password: string) => {
         })
     }`;
 
-    // Must set GraphService.graphRootUrl before this call.
+    GraphService.getSingleton().graphRootUrl = rootUrl + "server1/custom/graphql";
     return (await AwaitHelper.execute(GraphService.getSingleton().runQuery(query))).SignIn;
 };
 
@@ -41,7 +52,7 @@ export const MpCreateUser = async (userData: CreateAuthUser) => {
         }
     `;
 
-    // Must set GraphService.graphRootUrl before this call.
+    GraphService.getSingleton().graphRootUrl = rootUrl + "server1/custom/graphql";
     return (await AwaitHelper.execute(GraphService.getSingleton().runQuery(query))).data;
 };
 
@@ -59,7 +70,7 @@ export const buildAuthUser = async (mpAuthModel: any, authTenantId: string): Pro
         }
     }`;
 
-    // Must set GraphService.graphRootUrl before this call.
+    GraphService.getSingleton().graphRootUrl = rootUrl + "server1/build1/ministryplatform";
     const mpContact = (await AwaitHelper.execute(GraphService.getSingleton().runQuery(query))).contacts[0];
 
     const roles: any = {};
@@ -80,6 +91,7 @@ export const buildAuthUser = async (mpAuthModel: any, authTenantId: string): Pro
         mpUserId: mpContact.userId,
         roles: roles,
         cmsRoles: cmsRoles,
+        migrated: true,
     };
 
     return {

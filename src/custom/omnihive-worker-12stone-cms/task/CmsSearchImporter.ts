@@ -38,7 +38,7 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
             const tasks = new Listr<{ siteId: number; typeIds: number[] }>(
                 [
                     ...taskArgs.map((args) => ({
-                        title: `Importings SiteId ${args.siteId}`,
+                        title: `Import SiteId ${args.siteId}`,
                         task: (_ctx: any, task: any): Listr =>
                             task.newListr(
                                 args.typeIds.map((typeId: number) => ({

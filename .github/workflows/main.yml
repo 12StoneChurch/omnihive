@@ -1,0 +1,26 @@
+name: Build and Publish
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Yarn Install
+              run: yarn
+            - name: Run Build and Publish Script
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+              run: |
+                  year=$(date +%Y)
+                  versionMinor=$(date +%m.%d%H%M)
+                  let versionMajor=$year-2020
+                  version=$versionMajor.$versionMinor
+
+                  echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" >> ~/.npmrc
+
+                  yarn build:custom:publish -v $version

@@ -10,6 +10,8 @@
         "url": "https://github.com/WithOneVisionTechnologies/omnihive.git"
     },
     "scripts": {
+        "build:custom:debug": "yarn node --inspect=127.0.0.1:9228 --trace-warnings -r ts-node/register ./buildCustom.ts -v 0.99.9",
+        "build:custom:publish": "yarn node -r ts-node/register ./buildCustom.ts -p --pa \"public\"",
         "build:debug": "yarn node --inspect=127.0.0.1:9228 --trace-warnings -r ts-node/register ./build.ts -v 0.99.9",
         "build": "yarn node -r ts-node/register ./build.ts",
         "cli:debug": "cd src/packages/omnihive && yarn run cli:debug",

@@ -7,9 +7,6 @@ import { GetMpUser } from "../common/GetMpUser";
 class SignInArgs {
     loginId: string = "";
     password: string = "";
-    applicationId: string = "";
-    noJWT: boolean = false;
-    ipAddress: string = "";
 }
 
 export default class FusionSignIn extends HiveWorkerBase implements IRestEndpointWorker {
@@ -20,6 +17,72 @@ export default class FusionSignIn extends HiveWorkerBase implements IRestEndpoin
                     properties: {
                         user: {
                             type: "object",
+                            properties: {
+                                active: {
+                                    type: "boolean",
+                                },
+                                data: {
+                                    type: "object",
+                                    properties: {
+                                        mpUserId: {
+                                            type: "number",
+                                        },
+                                        mpContactId: {
+                                            type: "number",
+                                        },
+                                    },
+                                },
+                                registrations: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            applicationId: {
+                                                type: "string",
+                                            },
+                                            roles: {
+                                                type: "array",
+                                                items: {
+                                                    type: "string",
+                                                },
+                                            },
+                                            username: {
+                                                type: "string",
+                                            },
+                                            verified: {
+                                                type: "boolean",
+                                            },
+                                            insertInstant: {
+                                                type: "Date",
+                                            },
+                                        },
+                                    },
+                                },
+                                email: {
+                                    type: "string",
+                                },
+                                firstName: {
+                                    type: "string",
+                                },
+                                fullName: {
+                                    type: "string",
+                                },
+                                lastName: {
+                                    type: "string",
+                                },
+                                passwordChangeRequired: {
+                                    type: "boolean",
+                                },
+                                twoFactorEnabled: {
+                                    type: "boolean",
+                                },
+                                usernameStatus: {
+                                    type: "string",
+                                },
+                                username: {
+                                    type: "string",
+                                },
+                            },
                         },
                     },
                 },
@@ -33,49 +96,38 @@ export default class FusionSignIn extends HiveWorkerBase implements IRestEndpoin
                                 name: "FusionAuth",
                             },
                         ],
-                        parameters: [
-                            {
-                                in: "body",
-                                name: "loginId",
-                                require: true,
-                                schema: {
-                                    type: "string",
+                        requestBody: {
+                            name: "credentials",
+                            require: true,
+                            description: "Login Credentials",
+                            content: {
+                                "application/json": {
+                                    schema: {
+                                        type: "object",
+                                        properties: {
+                                            loginId: {
+                                                type: "string",
+                                            },
+                                            password: {
+                                                type: "string",
+                                            },
+                                            applicationId: {
+                                                type: "string",
+                                                default: "",
+                                            },
+                                            noJWT: {
+                                                type: "boolean",
+                                                default: false,
+                                            },
+                                            ipAddress: {
+                                                type: "string",
+                                                default: "",
+                                            },
+                                        },
+                                    },
                                 },
-                                description: "UserId/Email",
                             },
-                            {
-                                in: "body",
-                                name: "password",
-                                schema: {
-                                    type: "string",
-                                },
-                                description: "User password",
-                            },
-                            {
-                                in: "body",
-                                name: "applicationId",
-                                schema: {
-                                    type: "string",
-                                },
-                                description: "FusionAuth ApplicationId user is authenticating to",
-                            },
-                            {
-                                in: "body",
-                                name: "noJWT",
-                                schema: {
-                                    type: "boolean",
-                                },
-                                description: "Return a JWT token",
-                            },
-                            {
-                                in: "body",
-                                name: "ipAddress",
-                                schema: {
-                                    type: "string",
-                                },
-                                description: "IP Address the user is authenticating from",
-                            },
-                        ],
+                        },
                         responses: {
                             "200": {
                                 description: "FusionAuth User",
@@ -98,15 +150,15 @@ export default class FusionSignIn extends HiveWorkerBase implements IRestEndpoin
         const args: SignInArgs = this.validateArgs(body);
 
         try {
-            return await GetMpUser(args, this.config.metadata.data, this.serverSettings.config.webRootUrl);
+            const user = await GetMpUser(args, this.config.metadata.data, this.serverSettings.config.webRootUrl);
+
+            return { response: user, status: 200 };
         } catch (err) {
             return serializeError(err);
         }
     };
 
-    private validateArgs = (customArgs: any) => {
-        const args: SignInArgs = this.checkObjectStructure<SignInArgs>(SignInArgs, customArgs);
-
+    private validateArgs = (args: any) => {
         if (!args.loginId && !args.password) {
             throw new Error("Username and password is required");
         }

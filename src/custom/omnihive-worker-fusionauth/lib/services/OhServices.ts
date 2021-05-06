@@ -24,7 +24,7 @@ export const MpLogin = async (username: string, password: string) => {
         })
     }`;
 
-    GraphService.getSingleton().graphRootUrl = rootUrl + "server1/custom/graphql";
+    GraphService.getSingleton().graphRootUrl = rootUrl + "/server1/custom/graphql";
     return (await AwaitHelper.execute(GraphService.getSingleton().runQuery(query))).SignIn;
 };
 

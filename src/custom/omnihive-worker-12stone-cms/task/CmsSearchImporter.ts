@@ -12,7 +12,6 @@ import { Listr } from "listr2";
 
 export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEndpointWorker {
     private graphUrl = "";
-    private processedIds: string[] = [];
     private elasticWorker: ElasticWorker | undefined;
     private idList: { [siteId: number]: string[] } = {};
 
@@ -115,7 +114,6 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
 
     private uploadTypeDocuments = async (typeId: number, siteId: number) => {
         let docList = await AwaitHelper.execute<any>(this.getFullDocuments(siteId, typeId));
-        docList = docList?.filter((x: any) => !this.processedIds.some((y: string) => y === x.DocumentId.toString()));
 
         if (docList && docList.length > 0) {
             docList.forEach((x: any) => {
@@ -173,8 +171,6 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
                 if (this.elasticWorker) {
                     await AwaitHelper.execute(this.elasticWorker.upsert(`cms-${siteId}`, "DocumentId", docChunk));
                 }
-
-                elasticIdList.forEach((id: string) => this.processedIds.push(id));
             }
         }
     };

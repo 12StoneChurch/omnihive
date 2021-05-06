@@ -41,9 +41,11 @@ export const getUserData = async (mpAuthData: any, metadata: any) => {
     return {
         user: {
             active: true,
+            verified: true,
             data: {
                 mpUserId: mpAuthData.UserId,
                 mpContactId: mpAuthData.ContactId,
+                migrated: true,
             },
             registrations: [
                 {

@@ -12,6 +12,8 @@
     "scripts": {
         "build:debug": "yarn node --inspect=127.0.0.1:9228 --trace-warnings -r ts-node/register ./src/build/build.ts",
         "build": "yarn node -r ts-node/register ./src/build/build.ts",
+        "build:custom:debug": "yarn node --inspect=127.0.0.1:9228 --trace-warnings -r ts-node/register ./src/build/buildCustom.ts",
+        "build:custom:publish": "yarn node -r ts-node/register ./src/build/buildCustom.ts -p --pa \"public\"",
         "cli:debug": "cd src/packages/omnihive && yarn run cli:debug",
         "cli:taskRunner:debug": "cd src/packages/omnihive && yarn run cli:taskRunner:debug",
         "doctor": "yarn dlx @yarnpkg/doctor",

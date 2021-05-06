@@ -4,11 +4,8 @@ import { getUserData } from "../lib/services/FusionServices";
 import { MpLogin, SetDanyMetadata, SetRootUrl } from "../lib/services/OhServices";
 
 let _client: FusionAuthClient;
-let metadata: any;
 
-export const GetMpUser = async (args: any, workerMetadata: any, rootUrl: string) => {
-    metadata = workerMetadata;
-
+export const GetMpUser = async (args: any, metadata: any, rootUrl: string) => {
     try {
         _client = new FusionAuthClient(metadata.authApiKey, metadata.authHost, metadata.authTenantId);
 
@@ -18,7 +15,7 @@ export const GetMpUser = async (args: any, workerMetadata: any, rootUrl: string)
             const mpAuthData = await MpLogin(args.loginId, args.password);
 
             if (mpAuthData) {
-                return await getUserData(mpAuthData, metadata);
+                return getUserData(mpAuthData, metadata);
             } else {
                 throw new Error("Invalid Username or Password");
             }

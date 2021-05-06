@@ -39,6 +39,7 @@ __metadata:
   resolution: "@12stonechurch/omnihive-worker-auth@workspace:src/custom/omnihive-worker-12stone-auth"
   dependencies:
     "@12stonechurch/omnihive-worker-common": "workspace:*"
+    "@fusionauth/typescript-client": 1.26.0
     "@istanbuljs/nyc-config-typescript": 1.0.1
     "@types/chai": 4.2.15
     "@types/mocha": 8.2.1
@@ -60,6 +61,7 @@ __metadata:
     serialize-error: 8.0.1
     ts-node: 9.1.1
     typescript: 4.2.3
+    uuid: 8.3.2
   languageName: unknown
   linkType: soft
 
@@ -202,21 +204,6 @@ __metadata:
     serialize-error: 8.0.1
     ts-node: 9.1.1
     typescript: 4.2.3
-  languageName: unknown
-  linkType: soft
-
-"@12stonechurch/omnihive-worker-fusionauth@workspace:src/custom/omnihive-worker-fusionauth":
-  version: 0.0.0-use.local
-  resolution: "@12stonechurch/omnihive-worker-fusionauth@workspace:src/custom/omnihive-worker-fusionauth"
-  dependencies:
-    "@12stonechurch/omnihive-worker-common": "workspace:*"
-    "@fusionauth/typescript-client": 1.26.0
-    "@withonevision/omnihive-core": 5.1.0
-    chai: 4.3.3
-    dayjs: 1.10.4
-    serialize-error: 8.0.1
-    typescript: 4.2.3
-    uuid: 8.3.2
   languageName: unknown
   linkType: soft
 
@@ -1807,16 +1794,6 @@ __metadata:
     graphql: 15.5.0
     serialize-error: 8.0.1
   checksum: 93dab2831a878cf8e9ffe3157b2ca7714ebe9c6aa80afa3adf0b38ac7405cbaa277b62211d55a478924bfa4b92e552c7045486207ad7c037abb20a656256383b
-  languageName: node
-  linkType: hard
-
-"@withonevision/omnihive-core@npm:5.1.0":
-  version: 5.1.0
-  resolution: "@withonevision/omnihive-core@npm:5.1.0"
-  dependencies:
-    graphql: 15.5.0
-    serialize-error: 8.0.1
-  checksum: dca77ced29c06e0872bd6df149e9ed944254e05b0c49c0b245e6156b2958c6c1c906727277b2c5d2c234e0b97a378787c75661ee2740ca9045d719dfb062b0c6
   languageName: node
   linkType: hard
 

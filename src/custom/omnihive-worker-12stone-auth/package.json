@@ -25,6 +25,7 @@
     },
     "dependencies": {
         "@12stonechurch/omnihive-worker-common": "workspace:*",
+        "@fusionauth/typescript-client": "1.26.0",
         "@istanbuljs/nyc-config-typescript": "1.0.1",
         "@typescript-eslint/eslint-plugin": "4.17.0",
         "@typescript-eslint/parser": "4.17.0",
@@ -33,7 +34,8 @@
         "axios": "0.21.1",
         "dayjs": "1.10.4",
         "query-string": "7.0.0",
-        "serialize-error": "8.0.1"
+        "serialize-error": "8.0.1",
+        "uuid": "8.3.2"
     },
     "devDependencies": {
         "@types/chai": "4.2.15",

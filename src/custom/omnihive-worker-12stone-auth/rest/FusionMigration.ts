@@ -88,7 +88,7 @@ export default class FusionSignIn extends HiveWorkerBase implements IRestEndpoin
                 },
             },
             paths: {
-                "/FusionAuth/SignIn": {
+                "/FusionAuth/GetUser": {
                     post: {
                         description: "Sign In User to MP and grab data to create FusionAuth user",
                         tags: [

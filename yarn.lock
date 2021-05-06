@@ -97,6 +97,7 @@ __metadata:
     eslint: 7.22.0
     eslint-config-prettier: 8.1.0
     eslint-plugin-prettier: 3.3.1
+    listr2: 3.8.2
     mocha: 8.3.2
     nyc: 15.1.0
     prettier: 2.2.1
@@ -113,6 +114,35 @@ __metadata:
   dependencies:
     "@12stonechurch/omnihive-worker-cloudinary": "workspace:*"
     "@12stonechurch/omnihive-worker-elastic": "workspace:*"
+    "@istanbuljs/nyc-config-typescript": 1.0.1
+    "@types/chai": 4.2.15
+    "@types/mocha": 8.2.1
+    "@types/node": 14.14.34
+    "@typescript-eslint/eslint-plugin": 4.17.0
+    "@typescript-eslint/parser": 4.17.0
+    "@withonevision/omnihive-client": 5.0.2
+    "@withonevision/omnihive-core": 5.0.2
+    axios: 0.21.1
+    chai: 4.3.4
+    dayjs: 1.10.4
+    eslint: 7.22.0
+    eslint-config-prettier: 8.1.0
+    eslint-plugin-prettier: 3.3.1
+    mocha: 8.3.2
+    nyc: 15.1.0
+    prettier: 2.2.1
+    query-string: 7.0.0
+    serialize-error: 8.0.1
+    ts-node: 9.1.1
+    typescript: 4.2.3
+  languageName: unknown
+  linkType: soft
+
+"@12stonechurch/omnihive-worker-communications@workspace:src/custom/omnihive-worker-12stone-communications":
+  version: 0.0.0-use.local
+  resolution: "@12stonechurch/omnihive-worker-communications@workspace:src/custom/omnihive-worker-12stone-communications"
+  dependencies:
+    "@12stonechurch/omnihive-worker-common": "workspace:*"
     "@istanbuljs/nyc-config-typescript": 1.0.1
     "@types/chai": 4.2.15
     "@types/mocha": 8.2.1
@@ -2349,7 +2379,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansi-escapes@npm:^4.2.1":
+"ansi-escapes@npm:^4.2.1, ansi-escapes@npm:^4.3.0":
   version: 4.3.2
   resolution: "ansi-escapes@npm:4.3.2"
   dependencies:
@@ -3312,7 +3342,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:^4.0.0, chalk@npm:^4.1.0":
+"chalk@npm:^4.0.0, chalk@npm:^4.1.0, chalk@npm:^4.1.1":
   version: 4.1.1
   resolution: "chalk@npm:4.1.1"
   dependencies:
@@ -3442,6 +3472,16 @@ __metadata:
   dependencies:
     restore-cursor: ^3.1.0
   checksum: 15dbfc222f27da8cbc61680e4948b189e811224271f6ee5be9db0dcbabe23ae3b2c5a5663be6f17ee51f6203ab44abddd4f4cffb20d69458fc845fa86976f96a
+  languageName: node
+  linkType: hard
+
+"cli-truncate@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "cli-truncate@npm:2.1.0"
+  dependencies:
+    slice-ansi: ^3.0.0
+    string-width: ^4.2.0
+  checksum: 2b20f9e353cd34b015ff0067effd2810490c4e23eb9b4edfd7cdc41f00311d0d1a6148eb7e9947d4ab858295f4da5b5d8f150842a8802dc7999c51288fe26e62
   languageName: node
   linkType: hard
 
@@ -4897,7 +4937,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"figures@npm:^3.0.0":
+"figures@npm:^3.0.0, figures@npm:^3.2.0":
   version: 3.2.0
   resolution: "figures@npm:3.2.0"
   dependencies:
@@ -6722,6 +6762,25 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
+"listr2@npm:3.8.2":
+  version: 3.8.2
+  resolution: "listr2@npm:3.8.2"
+  dependencies:
+    chalk: ^4.1.1
+    cli-truncate: ^2.1.0
+    figures: ^3.2.0
+    indent-string: ^4.0.0
+    log-update: ^4.0.0
+    p-map: ^4.0.0
+    rxjs: ^6.6.7
+    through: ^2.3.8
+    wrap-ansi: ^7.0.0
+  peerDependencies:
+    enquirer: ">= 2.3.0 < 3"
+  checksum: ecc039103c8d1065782d327b87045431b609105bcdada16cd209daf1b2f971605ba5c083fbe74e4d17a0002d7f8ab038c94c4feaaf48a0601dba628cd6f0b6e3
+  languageName: node
+  linkType: hard
+
 "locate-path@npm:^3.0.0":
   version: 3.0.0
   resolution: "locate-path@npm:3.0.0"
@@ -6868,6 +6927,18 @@ fsevents@~2.3.1:
   dependencies:
     chalk: ^4.0.0
   checksum: 2cbdb0427d1853f2bd36645bff42aaca200902284f28aadacb3c0fa4c8c43fe6bfb71b5d61ab08b67063d066d7c55b8bf5fbb43b03e4a150dbcdd643e9cd1dbf
+  languageName: node
+  linkType: hard
+
+"log-update@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "log-update@npm:4.0.0"
+  dependencies:
+    ansi-escapes: ^4.3.0
+    cli-cursor: ^3.1.0
+    slice-ansi: ^4.0.0
+    wrap-ansi: ^6.2.0
+  checksum: 65ee082f30570fb315a0f674cccef4d16ef5a7c9d2651a65099e665f0adbf848af5e4f9e580b6e81d5677a4df3d7ea06ff8118fe8428a570a4a387875bb8210c
   languageName: node
   linkType: hard
 
@@ -9007,7 +9078,7 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^6.4.0, rxjs@npm:^6.6.6":
+"rxjs@npm:^6.4.0, rxjs@npm:^6.6.6, rxjs@npm:^6.6.7":
   version: 6.6.7
   resolution: "rxjs@npm:6.6.7"
   dependencies:
@@ -9274,6 +9345,17 @@ fsevents@~2.3.1:
   version: 3.0.0
   resolution: "slash@npm:3.0.0"
   checksum: fc3e8597d822ee3ba6cd76e9b001cd5be315f9b81c3a03a29bb611c003d1484e3b29a9e7bc020298fa669b585ff7c9268f44513f60c186216eb6af3111a3e838
+  languageName: node
+  linkType: hard
+
+"slice-ansi@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "slice-ansi@npm:3.0.0"
+  dependencies:
+    ansi-styles: ^4.0.0
+    astral-regex: ^2.0.0
+    is-fullwidth-code-point: ^3.0.0
+  checksum: a31bd5c48a4997dcfc9494613cbf38157ae956b05ccdeedf905113e6ff81fd2b7d3b5c3f368e36fe941be28e0031ead4ea39355e9d647915357ce96ce70ace5b
   languageName: node
   linkType: hard
 
@@ -9942,7 +10024,7 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"through@npm:^2.3.6":
+"through@npm:^2.3.6, through@npm:^2.3.8":
   version: 2.3.8
   resolution: "through@npm:2.3.8"
   checksum: 918d9151680b5355990011eb8c4b02e8cb8cf6e9fb6ea3d3e5a1faa688343789e261634ae35de4ea9167ab029d1e7bac6af2fe61b843931768d405fdc3e8897c

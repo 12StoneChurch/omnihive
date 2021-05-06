@@ -33,6 +33,7 @@
         "@withonevision/omnihive-core": "5.0.2",
         "axios": "0.21.1",
         "dayjs": "1.10.4",
+        "listr2": "3.8.2",
         "query-string": "7.0.0",
         "serialize-error": "8.0.1"
     },

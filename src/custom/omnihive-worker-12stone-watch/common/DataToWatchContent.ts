@@ -13,7 +13,7 @@ export const transformDataToWatchContent = (data: any): WatchContent | undefined
         slug: data["Slug"],
     };
 
-    if (content.id && content.date && content.poster && content.title) {
+    if (content.id && content.date && content.title) {
         return content;
     }
 

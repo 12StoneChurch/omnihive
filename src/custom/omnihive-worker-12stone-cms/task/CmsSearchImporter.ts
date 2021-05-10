@@ -8,67 +8,104 @@ import dayjs from "dayjs";
 import { serializeError } from "serialize-error";
 import ElasticWorker from "@12stonechurch/omnihive-worker-elastic";
 import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
+import { Listr } from "listr2";
 
 export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEndpointWorker {
     private graphUrl = "";
-    private processedIds: string[] = [];
     private elasticWorker: ElasticWorker | undefined;
     private idList: { [siteId: number]: string[] } = {};
 
     public execute = async (): Promise<any> => {
+        this.elasticWorker = this.getWorker(HiveWorkerType.Unknown, "ohElastic") as ElasticWorker | undefined;
+        const tokenWorker = this.getWorker(HiveWorkerType.Token) as ITokenWorker | undefined;
+
+        if (this.elasticWorker && tokenWorker) {
+            const accessToken = await tokenWorker.get();
+            OmniHiveClient.getSingleton().setAccessToken(accessToken);
+            this.graphUrl = this.config.metadata.mpGraphUrl;
+
+            const documentDataIds: { typeIds: number[]; siteIds: number[] } = await AwaitHelper.execute<{
+                typeIds: number[];
+                siteIds: number[];
+            }>(this.getDocumentTypeIds());
+
+            const taskArgs: { siteId: number; typeIds: number[] }[] = documentDataIds.siteIds.map((id) => ({
+                siteId: id,
+                typeIds: documentDataIds.typeIds,
+            }));
+
+            const tasks = new Listr<{ siteId: number; typeIds: number[] }>(
+                [
+                    ...taskArgs.map((args) => ({
+                        title: `Import SiteId ${args.siteId}`,
+                        task: (_ctx: any, task: any): Listr =>
+                            task.newListr(
+                                args.typeIds.map((typeId: number) => ({
+                                    title: `Import Document Type ${typeId}`,
+                                    task: async (): Promise<void> => await this.importCmsDocs(args.siteId, typeId),
+                                    retry: 5,
+                                    options: {
+                                        persistentOutput: true,
+                                        showTimer: true,
+                                        suffixRetries: true,
+                                        showSubtasks: true,
+                                    },
+                                })),
+                                { concurrent: true }
+                            ),
+                        retry: 5,
+                        options: {
+                            persistentOutput: true,
+                            showTimer: true,
+                            suffixRetries: true,
+                            showSubtasks: true,
+                        },
+                    })),
+                    {
+                        title: "Remove Unused Documents",
+                        task: (_ctx, task): Listr =>
+                            task.newListr(
+                                taskArgs.map((arg) => ({
+                                    title: `Removeing Unused Documents for Site ${arg.siteId}`,
+                                    task: async (): Promise<void> => await this.removeUnusedIds(arg.siteId),
+                                    options: {
+                                        persistentOutput: true,
+                                        showTimer: true,
+                                        showSubtasks: true,
+                                    },
+                                })),
+                                {
+                                    concurrent: true,
+                                }
+                            ),
+                        options: {
+                            persistentOutput: true,
+                            showTimer: true,
+                        },
+                    },
+                ],
+                { concurrent: false }
+            );
+
+            await tasks.run();
+        } else {
+            throw new Error("Failed to find an elastic worker");
+        }
+    };
+
+    private importCmsDocs = async (siteId: number, typeId: number): Promise<any> => {
         try {
-            this.elasticWorker = this.getWorker(HiveWorkerType.Unknown, "ohElastic") as ElasticWorker | undefined;
-            const tokenWorker = this.getWorker(HiveWorkerType.Token) as ITokenWorker | undefined;
-
-            if (this.elasticWorker && tokenWorker) {
-                const accessToken = await tokenWorker.get();
-                OmniHiveClient.getSingleton().setAccessToken(accessToken);
-
+            if (this.elasticWorker) {
                 await AwaitHelper.execute(this.elasticWorker.init(this.elasticWorker.config));
 
-                this.graphUrl = this.config.metadata.mpGraphUrl;
+                const elasticIndex = `cms-${siteId}`;
+                await this.elasticWorker.validateIndex(elasticIndex);
+                await this.uploadTypeDocuments(typeId, siteId);
 
-                const documentDataIds: { typeIds: number[]; siteIds: number[] } = await AwaitHelper.execute<{
-                    typeIds: number[];
-                    siteIds: number[];
-                }>(this.getDocumentTypeIds());
-
-                for (const siteId of documentDataIds.siteIds) {
-                    const elasticIndex = `cms-${siteId}`;
-                    await this.elasticWorker.validateIndex(elasticIndex);
-                    await Promise.all(
-                        documentDataIds.typeIds.map(async (typeId) => {
-                            await this.uploadTypeDocuments(typeId, siteId);
-                        })
-                    );
-                }
-
-                if (this.elasticWorker.client && Object.keys(this.idList).length > 0) {
-                    for (const siteId in this.idList) {
-                        console.log(
-                            chalk.gray(
-                                `(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Removing unused Ids => typeId: ${siteId}`
-                            )
-                        );
-
-                        await AwaitHelper.execute(
-                            this.elasticWorker.removeUnused(`cms-${siteId}`, this.idList[siteId], "DocumentId")
-                        );
-
-                        console.log(
-                            chalk.greenBright(
-                                `(${dayjs().format(
-                                    "YYYY-MM-DD HH:mm:ss"
-                                )}) Completed removing unused Ids => typeId: ${siteId}`
-                            )
-                        );
-                    }
-                }
+                return;
             } else {
                 throw new Error("Failed to find an elastic worker");
             }
-
-            return;
         } catch (err) {
             console.log(chalk.redBright(JSON.stringify(serializeError(err))));
             throw new Error(JSON.stringify(serializeError(err)));
@@ -76,14 +113,7 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
     };
 
     private uploadTypeDocuments = async (typeId: number, siteId: number) => {
-        console.log(
-            chalk.yellow(
-                `(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Started processing => siteId: ${siteId} typeId: ${typeId}`
-            )
-        );
-
         let docList = await AwaitHelper.execute<any>(this.getFullDocuments(siteId, typeId));
-        docList = docList?.filter((x: any) => !this.processedIds.some((y: string) => y === x.DocumentId.toString()));
 
         if (docList && docList.length > 0) {
             docList.forEach((x: any) => {
@@ -141,16 +171,8 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
                 if (this.elasticWorker) {
                     await AwaitHelper.execute(this.elasticWorker.upsert(`cms-${siteId}`, "DocumentId", docChunk));
                 }
-
-                elasticIdList.forEach((id: string) => this.processedIds.push(id));
             }
         }
-
-        console.log(
-            chalk.greenBright(
-                `(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Completed processing => siteId: ${siteId} typeId: ${typeId}`
-            )
-        );
     };
 
     private getDocumentTypeIds = async (): Promise<{ typeIds: number[]; siteIds: number[] }> => {
@@ -192,6 +214,14 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
             return results.data[0].doc[0];
         } else {
             return undefined;
+        }
+    };
+
+    private removeUnusedIds = async (siteId: number) => {
+        if (this.elasticWorker?.client && Object.keys(this.idList).length > 0 && this.idList[siteId]?.length > 0) {
+            await AwaitHelper.execute(
+                this.elasticWorker.removeUnused(`cms-${siteId}`, this.idList[siteId], "DocumentId")
+            );
         }
     };
 }

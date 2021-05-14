@@ -120,8 +120,8 @@ __metadata:
     "@types/node": 14.14.34
     "@typescript-eslint/eslint-plugin": 4.17.0
     "@typescript-eslint/parser": 4.17.0
-    "@withonevision/omnihive-client": 5.0.2
-    "@withonevision/omnihive-core": 5.0.2
+    "@withonevision/omnihive-client": 5.1.7
+    "@withonevision/omnihive-core": 5.1.7
     axios: 0.21.1
     chai: 4.3.4
     dayjs: 1.10.4
@@ -1833,6 +1833,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@withonevision/omnihive-client@npm:5.1.7":
+  version: 5.1.7
+  resolution: "@withonevision/omnihive-client@npm:5.1.7"
+  dependencies:
+    "@withonevision/omnihive-core": 5.1.7
+    axios: 0.21.1
+    graphql: 15.5.0
+    object-hash: 2.1.1
+    serialize-error: 8.0.1
+  checksum: 7ab3069660fc264d9a1d1cf8ad428015d7908d57587f1d3242da7ff5fb25632fa0c198e4b89d246f98d49031f371d7d66a7525471c0098289743f2b611eaf2ab
+  languageName: node
+  linkType: hard
+
 "@withonevision/omnihive-client@workspace:src/packages/omnihive-client":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-client@workspace:src/packages/omnihive-client"
@@ -1857,6 +1870,16 @@ __metadata:
     graphql: 15.5.0
     serialize-error: 8.0.1
   checksum: 93dab2831a878cf8e9ffe3157b2ca7714ebe9c6aa80afa3adf0b38ac7405cbaa277b62211d55a478924bfa4b92e552c7045486207ad7c037abb20a656256383b
+  languageName: node
+  linkType: hard
+
+"@withonevision/omnihive-core@npm:5.1.7":
+  version: 5.1.7
+  resolution: "@withonevision/omnihive-core@npm:5.1.7"
+  dependencies:
+    graphql: 15.5.0
+    serialize-error: 8.0.1
+  checksum: 51b3437e7ac6b6d2684103c478481562d539887160eefaed304b6f1ffd6dbf523f463403370fb38ce15ebf001b12ec1d1a3a40cab589678882e224cd8a199b71
   languageName: node
   linkType: hard
 

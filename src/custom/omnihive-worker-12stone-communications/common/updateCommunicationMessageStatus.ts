@@ -18,19 +18,21 @@ export const updateCommunicationMessageStatus = async (
 
     const query = `
         mutation {
-            update_DpCommunicationMessage(updateObject: {
-                ${statusId ? `,actionStatusId: ${statusId}` : ""}
-                ${actionText ? `,actionText: ${actionText}` : ""}
-                ${twilioSid ? `,replyTo: ${twilioSid}` : ""}
+            data: update_DpCommunicationMessage(updateObject: {
+                ${statusId ? `actionStatusId: ${statusId},` : ""}
+                ${actionText ? `actionText: "${actionText}",` : ""}
+                ${twilioSid ? `replyTo: "${twilioSid}",` : ""}
             }, 
             whereObject: {
-            communicationId: ${id},
-            contactId: ${contactId}
+                communicationId: "= ${id}",
+                contactId: "= ${contactId}"
             })
         }
         `;
 
     setGraphUrl(graphUrl);
 
-    return (await runGraphQuery(query)).data[0].proc[0];
+    const response = await runGraphQuery(query);
+
+    return response.data === 1;
 };

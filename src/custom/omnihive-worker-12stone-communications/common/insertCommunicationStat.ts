@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { runGraphQuery, setGraphUrl } from "../lib/services/GraphService";
 
 export const insertCommunicationStat = async (
@@ -10,13 +11,16 @@ export const insertCommunicationStat = async (
 ) => {
     const query = `
         mutation {
-            insert_CommunicationManagerStatisticsDetails(communicationManagerStatisticsDetails: {
+            data: insert_CommunicationManagerStatisticsDetails(communicationManagerStatisticsDetails: {
                 communication: ${commId},
                 contactId: ${contactId},
-                statisticsType: ${typeId}
-                ${eventId ? `,providerEventId: ${eventId}` : ""}
-                ${timestamp ? `,providerTimestamp: ${timestamp}` : ""}
-              })
+                statisticsType: ${typeId},
+                ${eventId ? `providerEventId: "${eventId}",` : ""}
+                ${timestamp ? `providerTimestamp: "${dayjs(timestamp).format("YYYY-MM-DDTHH:mm:ss")}",` : ""}
+                domainId: 1
+              }) {
+                  id: communicationManagerStatisticsDetailId
+              }
         }
     `;
 

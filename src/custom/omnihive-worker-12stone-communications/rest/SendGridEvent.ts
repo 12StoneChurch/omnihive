@@ -2,11 +2,10 @@ import { IRestEndpointWorker } from "@withonevision/omnihive-core/interfaces/IRe
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { serializeError } from "serialize-error";
 import swaggerUi from "swagger-ui-express";
-import client from "@sendgrid/client";
 import dayjs from "dayjs";
 import { updateCommunicationMessageStatus } from "../common/updateCommunicationMessageStatus";
 import { insertCommunicationStat } from "../common/insertCommunicationStat";
-import { runGraphQuery } from "../lib/services/GraphService";
+import { runGraphQuery, setGraphUrl } from "../lib/services/GraphService";
 
 type StatData = {
     commId: number;
@@ -17,6 +16,9 @@ type StatData = {
 };
 
 export default class SupportSearch extends HiveWorkerBase implements IRestEndpointWorker {
+    private currentCommMgrMsgId: number = 0;
+    private dataUrl = "";
+
     public getSwaggerDefinition = (): swaggerUi.JsonObject | undefined => {
         return {
             paths: {
@@ -35,66 +37,78 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
                             content: {
                                 "application/json": {
                                     schema: {
-                                        type: "object",
-                                        properties: {
-                                            email: {
-                                                type: "string",
-                                            },
-                                            timestamp: {
-                                                type: "number",
-                                            },
-                                            pool: {
-                                                type: "object",
-                                                properties: {
-                                                    name: {
-                                                        type: "string",
-                                                    },
-                                                    id: {
-                                                        type: "number",
+                                        type: "array",
+                                        items: {
+                                            type: "object",
+                                            properties: {
+                                                ApplicationName: {
+                                                    type: "string",
+                                                },
+                                                CommunicationId: {
+                                                    type: "number",
+                                                },
+                                                ContactId: {
+                                                    type: "number",
+                                                },
+                                                email: {
+                                                    type: "string",
+                                                },
+                                                timestamp: {
+                                                    type: "number",
+                                                },
+                                                pool: {
+                                                    type: "object",
+                                                    properties: {
+                                                        name: {
+                                                            type: "string",
+                                                        },
+                                                        id: {
+                                                            type: "number",
+                                                        },
                                                     },
                                                 },
-                                            },
-                                            "smtp-id": {
-                                                type: "string",
-                                            },
-                                            event: {
-                                                type: "string",
-                                            },
-                                            category: {
-                                                type: "string",
-                                            },
-                                            sg_event_id: {
-                                                type: "string",
-                                            },
-                                            sg_message_id: {
-                                                type: "string",
-                                            },
-                                            reason: {
-                                                type: "string",
-                                            },
-                                            status: {
-                                                type: "string",
-                                            },
-                                            response: {
-                                                type: "string",
-                                            },
-                                            attempt: {
-                                                type: "string",
-                                            },
-                                            type: {
-                                                type: "string",
-                                            },
-                                            useragent: {
-                                                type: "string",
-                                            },
-                                            ip: {
-                                                type: "string",
-                                            },
-                                            url: {
-                                                type: "string",
-                                            },
-                                            asm_group_id: {
-                                                type: "number",
+                                                "smtp-id": {
+                                                    type: "string",
+                                                },
+                                                event: {
+                                                    type: "string",
+                                                },
+                                                category: {
+                                                    type: "string",
+                                                },
+                                                sg_event_id: {
+                                                    type: "string",
+                                                },
+                                                sg_message_id: {
+                                                    type: "string",
+                                                },
+                                                reason: {
+                                                    type: "string",
+                                                },
+                                                status: {
+                                                    type: "string",
+                                                },
+                                                response: {
+                                                    type: "string",
+                                                },
+                                                attempt: {
+                                                    type: "string",
+                                                },
+                                                type: {
+                                                    type: "string",
+                                                },
+                                                useragent: {
+                                                    type: "string",
+                                                },
+                                                ip: {
+                                                    type: "string",
+                                                },
+                                                url: {
+                                                    type: "string",
+                                                },
+                                                asm_group_id: {
+                                                    type: "number",
+                                                },
                                             },
                                         },
                                     },
@@ -114,18 +128,28 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
 
     public execute = async (_headers: any, _url: string, body: any): Promise<any> => {
         try {
-            client.setApiKey(this.config.metadata.sendGridKey);
+            this.dataUrl = `${this.serverSettings.config.webRootUrl}/${this.config.metadata.data.dataSlug}`;
+            setGraphUrl(this.dataUrl);
 
-            const { status, statType } = this.getStatusValues(body);
+            const orderedBody = body.sort((a: any, b: any) => a.timestamp - b.timestamp);
 
-            if (status > 0) {
-                await this.setStatus(body, status);
+            for (const item of orderedBody) {
+                if (!item.CommunicationId || !item.ContactId) {
+                    continue;
+                }
+
+                this.currentCommMgrMsgId = await this.validateCommunication(item.CommunicationId);
+
+                const { status, statType } = this.getStatusValues(item);
+
+                if (status > 0) {
+                    await this.setStatus(item, status);
+                }
+
+                if (statType > 0) {
+                    await this.setStatisticData(item, statType);
+                }
             }
-
-            if (statType > 0) {
-                await this.setStatisticData(body, statType);
-            }
-
             return { status: 200 };
         } catch (err) {
             return { response: { error: serializeError(err) }, status: 400 };
@@ -142,19 +166,19 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
                 statType = 1;
                 break;
             case "delivered":
-                status = 2;
+                status = 4;
                 statType = 1;
                 break;
             case "dropped":
-                status = 8;
+                status = 5;
                 statType = 6;
                 break;
             case "deferred":
-                status = 8;
+                status = 6;
                 statType = 5;
                 break;
             case "bounce":
-                status = 8;
+                status = 6;
                 statType = 5;
                 break;
             case "open":
@@ -181,37 +205,38 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
     };
 
     private setStatus = async (body: any, statusId: number) => {
-        const dataUrl = `${this.serverSettings.config.webRootUrl}/${this.config.metadata.dataSlug}`;
-        const messageIds = await this.getSendGridMessage(body);
-
-        if (await this.validateCommunication(messageIds.commId)) {
+        if (this.currentCommMgrMsgId > 0) {
             const statData: StatData = {
-                ...messageIds,
+                commId: body.CommunicationId,
+                contactId: body.ContactId,
                 eventTypeId: statusId,
             };
 
             const statusText: string = this.getStatusString(statusId, body);
 
-            await updateCommunicationMessageStatus(dataUrl, statData.commId, statData.contactId, statusId, statusText);
+            await updateCommunicationMessageStatus(
+                this.dataUrl,
+                statData.commId,
+                statData.contactId,
+                statusId,
+                statusText
+            );
         }
     };
 
     private setStatisticData = async (body: any, statTypeId: number) => {
-        const dataUrl = `${this.serverSettings.config.webRootUrl}/${this.config.metadata.dataSlug}`;
-
-        const messageIds = await this.getSendGridMessage(body);
-
-        if (await this.validateCommunication(messageIds.commId)) {
+        if (this.currentCommMgrMsgId > 0) {
             const statData: StatData = {
-                ...messageIds,
+                commId: body.CommunicationId,
+                contactId: body.ContactId,
                 eventTypeId: statTypeId,
                 sgEventId: body.sg_event_id,
-                sgTimestampId: dayjs(body.timestamp).toDate(),
+                sgTimestampId: dayjs.unix(body.timestamp).toDate(),
             };
 
-            await insertCommunicationStat(
-                dataUrl,
-                statData.commId,
+            return await insertCommunicationStat(
+                this.dataUrl,
+                this.currentCommMgrMsgId,
                 statData.contactId,
                 statData.eventTypeId,
                 statData.sgEventId,
@@ -220,33 +245,25 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
         }
     };
 
-    private validateCommunication = async (id: number): Promise<boolean> => {
+    private validateCommunication = async (id: number): Promise<number> => {
         const query: string = `
             query {
-                data: dpCommunications(communicationId: "= ${id}") {
-                    communicationId
+                data: communicationManagerMessages(communicationId:"= ${id}") {
+                  id: communicationManagerMessageId
                 }
             }`;
 
-        return (await runGraphQuery(query)).data?.length > 0;
-    };
+        const results = await runGraphQuery(query);
 
-    private getSendGridMessage = async (body: any) => {
-        const request: any = {
-            method: "GET",
-            url: `/v3/messages/${body.sg_message_id}`,
-        };
+        if (results.data?.length > 0) {
+            return results.data[0].id;
+        }
 
-        const response = await client.request(request);
-
-        return {
-            commId: response?.[1]?.unique_args?.CommunicationId,
-            contactId: response?.[1]?.unique_args?.ContactId,
-        };
+        return 0;
     };
 
     private getStatusString = (id: number, body: any): string => {
-        if (id === 8) {
+        if (id === 6) {
             switch (body.event) {
                 case "dropped":
                     return `Dropped with error ${body.reason}`;

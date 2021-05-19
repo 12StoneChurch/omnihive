@@ -1,7 +1,7 @@
 import { ITaskEndpointWorker } from "@withonevision/omnihive-core/interfaces/ITaskEndpointWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { sendEmails } from "../common/sendEmails";
-import { sendSms } from "../common/sendSms";
+import { sendTwilioSms } from "../common/sendTwilioSms";
 import { Listr } from "listr2";
 import { MailDataRequired } from "@sendgrid/mail";
 import { updateCommunicationMessageStatus } from "../common/updateCommunicationMessageStatus";
@@ -16,7 +16,7 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
         const tasks = new Listr<any>([
             {
                 title: "Get Messages",
-                task: async () => getMessages(graphUrl),
+                task: async () => (this.messages = await getMessages(graphUrl)),
                 retry: 5,
                 options: {
                     persistentOutput: true,
@@ -26,7 +26,7 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
             {
                 title: "Send Emails",
                 task: this.sendEmails,
-                retry: 5,
+                retry: 1,
                 options: {
                     persistentOutput: true,
                     showTimer: true,
@@ -35,7 +35,7 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
             {
                 title: "Send SMS Messages",
                 task: this.sendSms,
-                retry: 5,
+                retry: 1,
                 options: {
                     persistentOutput: true,
                     showTimer: true,
@@ -49,6 +49,7 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
     private sendEmails = async (): Promise<void> => {
         const emails: MailDataRequired[] = [];
         const graphUrl = `${this.serverSettings.config.webRootUrl}/${this.config.metadata.dataSlug}`;
+        const sentEmailData = [];
 
         for (const message of this.messages.filter((message: any) => message.MessageTypeId === 1)) {
             const idObj: { id: number; contactId: number } = {
@@ -76,11 +77,17 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
                         ContactId: idObj.contactId,
                     },
                 });
+
+                sentEmailData.push({ commId: idObj.id, contactId: idObj.contactId });
             }
         }
 
         try {
             await sendEmails(emails, this.config.metadata);
+
+            for (const ids of sentEmailData) {
+                await updateCommunicationMessageStatus(graphUrl, ids.commId, ids.contactId, 3);
+            }
         } catch (err) {
             throw new Error(err);
         }
@@ -101,13 +108,17 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
                 );
             } else {
                 texts.push({
-                    data: { to: message.ToAddress, from: message.FromAddress, html: message.Body },
+                    data: {
+                        to: "+1" + message.ToAddress.replace(/-/g, ""),
+                        from: "+1" + message.FromAddress,
+                        body: message.Body,
+                    },
                     id: message.CommunicationId,
                     contactId: message.ContactId,
                 });
 
                 try {
-                    const results = await sendSms(texts, this.config.metadata);
+                    const results = await sendTwilioSms(texts, this.config.metadata);
 
                     for (const ids of results.sent) {
                         await updateCommunicationMessageStatus(graphUrl, ids.id, ids.contactId, 3, "", ids.sid);

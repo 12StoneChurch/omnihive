@@ -76,6 +76,14 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
                         CommunicationId: idObj.id,
                         ContactId: idObj.contactId,
                     },
+                    trackingSettings: {
+                        clickTracking: {
+                            enable: true,
+                        },
+                        openTracking: {
+                            enable: true,
+                        },
+                    },
                 });
 
                 sentEmailData.push({ commId: idObj.id, contactId: idObj.contactId });

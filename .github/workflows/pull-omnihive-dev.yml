@@ -1,0 +1,18 @@
+name: Pull New OmniHive Package - DEV
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Log-in to DO
+              run: doctl registry login
+            - name: Save DigitalOcean kubeconfig with short-lived credentials
+              run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 d37c6fc0-8e4b-478b-828d-6380dff0f3a5
+            - name: Pull Image to K8s deployment
+              run: "kubectl set image deployment/omnihive-dev omnihive-dev:withonevision/omnihive:latest"

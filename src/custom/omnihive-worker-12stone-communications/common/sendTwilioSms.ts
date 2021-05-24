@@ -2,7 +2,7 @@ import twilio, { Twilio } from "twilio";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { serializeError } from "serialize-error";
 
-export const sendSms = async (
+export const sendTwilioSms = async (
     texts: any,
     metadata: any
 ): Promise<{

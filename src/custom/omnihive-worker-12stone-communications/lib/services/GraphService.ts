@@ -1,9 +1,14 @@
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
+import { serializeError } from "serialize-error";
 
 export const setGraphUrl = (url: string): void => {
     GraphService.getSingleton().graphRootUrl = url;
 };
 
 export const runGraphQuery = async (query: string): Promise<any> => {
-    return await GraphService.getSingleton().runQuery(query);
+    try {
+        return await GraphService.getSingleton().runQuery(query);
+    } catch (err) {
+        throw new Error(JSON.stringify(serializeError(err)));
+    }
 };

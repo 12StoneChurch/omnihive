@@ -1,8 +1,6 @@
 name: Pull New OmniHive Package - DEV
 
 on:
-    push:
-        branches: [main]
     workflow_dispatch:
 
 jobs:

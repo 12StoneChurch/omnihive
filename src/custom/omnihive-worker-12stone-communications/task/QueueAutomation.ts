@@ -7,7 +7,7 @@ import { MailDataRequired } from "@sendgrid/mail";
 import { updateCommunicationMessageStatus } from "../common/updateCommunicationMessageStatus";
 import { getMessages } from "../common/getCommunicationMessages";
 
-export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEndpointWorker {
+export default class QueueAutomation extends HiveWorkerBase implements ITaskEndpointWorker {
     private messages: any;
 
     public execute = async (): Promise<any> => {

@@ -5,6 +5,36 @@ __metadata:
   version: 4
   cacheKey: 7
 
+"@12stonechurch/omnihive-worker-addresses@workspace:src/custom/omnihive-worker-12stone-addresses":
+  version: 0.0.0-use.local
+  resolution: "@12stonechurch/omnihive-worker-addresses@workspace:src/custom/omnihive-worker-12stone-addresses"
+  dependencies:
+    "@12stonechurch/omnihive-worker-common": "workspace:*"
+    "@googlemaps/google-maps-services-js": 3.1.16
+    "@istanbuljs/nyc-config-typescript": 1.0.1
+    "@types/chai": 4.2.15
+    "@types/mocha": 8.2.1
+    "@types/node": 14.14.34
+    "@typescript-eslint/eslint-plugin": 4.17.0
+    "@typescript-eslint/parser": 4.17.0
+    "@withonevision/omnihive-client": 5.0.2
+    "@withonevision/omnihive-core": 5.0.2
+    axios: 0.21.1
+    chai: 4.3.4
+    dayjs: 1.10.4
+    eslint: 7.22.0
+    eslint-config-prettier: 8.1.0
+    eslint-plugin-prettier: 3.3.1
+    mocha: 8.3.2
+    nyc: 15.1.0
+    prettier: 2.2.1
+    query-string: 7.0.0
+    serialize-error: 8.0.1
+    ts-node: 9.1.1
+    typescript: 4.2.3
+  languageName: unknown
+  linkType: soft
+
 "@12stonechurch/omnihive-worker-analytics@workspace:src/custom/omnihive-worker-12stone-analytics":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-analytics@workspace:src/custom/omnihive-worker-12stone-analytics"
@@ -151,8 +181,8 @@ __metadata:
     "@types/node": 14.14.34
     "@typescript-eslint/eslint-plugin": 4.17.0
     "@typescript-eslint/parser": 4.17.0
-    "@withonevision/omnihive-client": 5.0.2
-    "@withonevision/omnihive-core": 5.0.2
+    "@withonevision/omnihive-client": 5.1.7
+    "@withonevision/omnihive-core": 5.1.7
     axios: 0.21.1
     chai: 4.3.4
     dayjs: 1.10.4
@@ -799,6 +829,18 @@ __metadata:
   dependencies:
     node-fetch: ^2.6.1
   checksum: 7f5370896755243d497f853e85aab34e71f54a299039bec7584504d6414cd3e8d9bdaeed236f409b92f0cb436e4a7e105688cb4cd4557ffe79dccb8ffafca093
+  languageName: node
+  linkType: hard
+
+"@googlemaps/google-maps-services-js@npm:3.1.16":
+  version: 3.1.16
+  resolution: "@googlemaps/google-maps-services-js@npm:3.1.16"
+  dependencies:
+    agentkeepalive: ^4.1.0
+    axios: ^0.21.1
+    query-string: ^6.11.0
+    retry-axios: ^2.2.1
+  checksum: 477facb089b9d45efbd13b53aa3a95b162ceca353252955de0ddefe78f881fffd1290c14c1f6e7a85877724544d57fda9ad84c0ed99b58c41980bdd27c073c50
   languageName: node
   linkType: hard
 
@@ -2348,7 +2390,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"agentkeepalive@npm:^4.1.3":
+"agentkeepalive@npm:^4.1.0, agentkeepalive@npm:^4.1.3":
   version: 4.1.4
   resolution: "agentkeepalive@npm:4.1.4"
   dependencies:
@@ -8695,6 +8737,18 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
+"query-string@npm:^6.11.0":
+  version: 6.14.1
+  resolution: "query-string@npm:6.14.1"
+  dependencies:
+    decode-uri-component: ^0.2.0
+    filter-obj: ^1.1.0
+    split-on-first: ^1.0.0
+    strict-uri-encode: ^2.0.0
+  checksum: 5d651ac420f5298baf00bb71228ffac32ed342c09836a7d2b1df3cdc7870313339cf6927827370c654cf73571bd639af497a0d9ef677a3a11b7396de2f761aa4
+  languageName: node
+  linkType: hard
+
 "querystringify@npm:^2.1.1":
   version: 2.2.0
   resolution: "querystringify@npm:2.2.0"
@@ -9067,6 +9121,15 @@ fsevents@~2.3.1:
     onetime: ^5.1.0
     signal-exit: ^3.0.2
   checksum: 38e0af0830336dbc7d36b8d02e9194489dc52aaf64f41d02c427303a78552019434ad87082d67ce171a569a8be898caf7c70d5e17bd347cf6f7bd38d332d0bd4
+  languageName: node
+  linkType: hard
+
+"retry-axios@npm:^2.2.1":
+  version: 2.4.0
+  resolution: "retry-axios@npm:2.4.0"
+  peerDependencies:
+    axios: "*"
+  checksum: eeb2d03b90ae3d4ba0f9342e1af0669bb92745b3d32b0672332621d7e59529f2fd2bc91c0dfe42b1594b937cc9fe4792b9ef0e026704d8fbb8d02014f6aef4c5
   languageName: node
   linkType: hard
 

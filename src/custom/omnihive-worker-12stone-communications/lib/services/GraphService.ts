@@ -12,3 +12,11 @@ export const runGraphQuery = async (query: string): Promise<any> => {
         throw new Error(JSON.stringify(serializeError(err)));
     }
 };
+
+export const runCustomSql = async (query: string): Promise<any> => {
+    try {
+        return await GraphService.getSingleton().runCustomSql(query);
+    } catch (err) {
+        throw new Error(JSON.stringify(serializeError(err)));
+    }
+};

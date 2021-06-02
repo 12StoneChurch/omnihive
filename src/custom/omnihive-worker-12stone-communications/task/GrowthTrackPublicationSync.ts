@@ -1,9 +1,9 @@
 import { ITaskEndpointWorker } from "@withonevision/omnihive-core/interfaces/ITaskEndpointWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { Listr } from "listr2";
-import { addContactPublication } from "../common/addContactPublication";
-import { updateContactPublication } from "../common/updateContactPublication";
-import { runCustomSql, setGraphUrl } from "../lib/services/GraphService";
+import { addContactPublications } from "../common/addContactPublications";
+import { updateContactPublications } from "../common/updateContactPublications";
+import { init, runCustomSql, setGraphUrl } from "../lib/services/GraphService";
 
 export default class QueueAutomation extends HiveWorkerBase implements ITaskEndpointWorker {
     private contacts: {
@@ -19,7 +19,9 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
     };
 
     public execute = async (): Promise<any> => {
-        setGraphUrl(`${this.serverSettings.config.webRootUrl}/${this.config.metadata.dataSlug}`);
+        const rootUrl: string = `${this.serverSettings.config.webRootUrl}${this.config.metadata.dataSlug}`;
+        setGraphUrl(rootUrl);
+        await init(this.registeredWorkers);
 
         const tasks = new Listr<any>([
             {
@@ -33,21 +35,7 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
             },
             {
                 title: "Update Publications",
-                task: (_ctx: any, task: any): Listr =>
-                    task.newListr(
-                        this.contacts.map((contact) => ({
-                            title: `Contact #${contact.contactId}`,
-                            task: async () => this.updatePublications(contact),
-                            retry: 5,
-                            options: {
-                                persistentOutput: true,
-                                showTimer: true,
-                                suffixRetries: true,
-                                showSubtasks: true,
-                            },
-                        })),
-                        { concurrent: true }
-                    ),
+                task: async () => this.updatePublications(),
             },
         ]);
 
@@ -80,7 +68,7 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                 module: number;
                 publicationContactId: number;
                 unsubscribed: boolean;
-            }[] = await runCustomSql(query);
+            }[] = (await runCustomSql(query))[0];
 
             const contactReturn: {
                 contactId: number;
@@ -106,22 +94,25 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                     }
                 }
             });
+
+            return contactReturn;
         } catch (err) {
             throw new Error(JSON.stringify(err));
         }
     };
 
-    private updatePublications = async (contact: {
-        contactId: number;
-        modules: number[];
-        pubSubId: number;
-        unsubscribed: boolean;
-    }): Promise<void> => {
-        if (contact.modules.length >= this.numOfModules && !contact.unsubscribed && contact.pubSubId) {
-            return await updateContactPublication(contact.pubSubId, this.updateObject);
+    private updatePublications = async (): Promise<void> => {
+        const updatePublications = this.contacts
+            .filter((x) => x.modules.length >= this.numOfModules && !x.unsubscribed && x.pubSubId)
+            .map((x) => x.pubSubId);
+        const newContacts = this.contacts
+            .filter((x) => !x.pubSubId && x.modules.length <= this.numOfModules)
+            .map((x) => x.contactId);
+        if (updatePublications?.length > 0) {
+            return await updateContactPublications(updatePublications, this.updateObject);
         }
-        if (!contact.pubSubId && contact.modules.length <= this.numOfModules) {
-            return await addContactPublication(contact.contactId, this.publicationId);
+        if (newContacts?.length > 0) {
+            return await addContactPublications(newContacts, this.publicationId);
         }
     };
 }

@@ -4,6 +4,7 @@ import { OmniHiveClient } from "@withonevision/omnihive-client";
 import { ClientSettings } from "@withonevision/omnihive-core/models/ClientSettings";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { serializeError } from "serialize-error";
+import { RegisteredHiveWorker } from "@withonevision/omnihive-core/models/RegisteredHiveWorker";
 
 export class GraphService {
     public graphRootUrl: string = "";
@@ -31,6 +32,14 @@ export class GraphService {
         return GraphService.singleton;
     };
 
+    public init = async (workers: RegisteredHiveWorker[]) => {
+        try {
+            OmniHiveClient.getSingleton().registeredWorkers = workers;
+        } catch (err) {
+            throw new Error(JSON.stringify(serializeError(err)));
+        }
+    };
+
     public runQuery = async (query: string): Promise<any> => {
         try {
             if (!query) {
@@ -46,14 +55,14 @@ export class GraphService {
         }
     };
 
-    public runCustomSql = async (query: string): Promise<any> => {
+    public runCustomSql = async (query: string, encryptionWorker: string = ""): Promise<any> => {
         try {
             if (!query) {
                 throw new Error("A query is required.");
             }
 
             const results = await AwaitHelper.execute(
-                OmniHiveClient.getSingleton().runCustomSql(this.graphRootUrl, query)
+                OmniHiveClient.getSingleton().runCustomSql(this.graphRootUrl, query, encryptionWorker)
             );
 
             return results;

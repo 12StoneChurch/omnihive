@@ -5,11 +5,8 @@ import type { Page } from "../../types/Page";
 import { SelectEventsListResult, selectEventsList } from "../sql/listEvents";
 import { SelectEventTagResult, selectEventTags } from "../sql/selectEventTags";
 
-export const listEvents = async (page: number, perPage: number): Promise<Page<any>> => {
+export const listEvents = async (page: number = 1, perPage: number = 20): Promise<Page<any>> => {
     const graph = GraphService.getSingleton();
-
-    if (page < 1) throw new Error("Argument 'page' must be greater than 0");
-    if (perPage < 1) throw new Error("Argument 'perPage' must be greater than 0");
 
     const [events] = (await AwaitHelper.execute(
         graph.runCustomSql(selectEventsList(page, perPage))
@@ -75,6 +72,7 @@ export const listEvents = async (page: number, perPage: number): Promise<Page<an
         })
     );
 
+    // TODO: get total count to calculate whether next page exists
     return {
         page: page,
         nextPage: page + 1,

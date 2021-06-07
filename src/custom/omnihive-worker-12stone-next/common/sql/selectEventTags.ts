@@ -1,8 +1,6 @@
 export type SelectEventTagResult = { id: number; tag: string }[];
 
 export const selectEventTags = (eventId: number): string => {
-    if (!eventId) throw new Error("Argument 'eventId' is required");
-
     return `
 		select ete.event_tag_id id,
 			   et.event_tag tag

@@ -32,8 +32,6 @@ export type SelectEventResult = {
 }[];
 
 export const selectEvent = (id: number): string => {
-    if (!id) throw new Error("Argument 'id' is required");
-
     return `
 		select *,
 			(q.participants_expected - q.participants_registered) spots_available

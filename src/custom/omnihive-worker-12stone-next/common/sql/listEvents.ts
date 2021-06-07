@@ -32,9 +32,6 @@ export type SelectEventsListResult = {
 }[];
 
 export const selectEventsList = (page: number, perPage: number): string => {
-    if (!page) throw new Error("Argument 'page' is required");
-    if (!perPage) throw new Error("Argument 'perPage' is required");
-
     return `
 		select *,
        		   (q.participants_expected - q.participants_registered) spots_available

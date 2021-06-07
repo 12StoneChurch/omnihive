@@ -8,10 +8,6 @@ import { SelectEventTagResult, selectEventTags } from "../sql/selectEventTags";
 export const getEventById = async (id: number) => {
     const graph = GraphService.getSingleton();
 
-    if (!id) {
-        throw new Error("Argument 'id' is required");
-    }
-
     const eventQuery = selectEvent(id);
     const eventTagQuery = selectEventTags(id);
 

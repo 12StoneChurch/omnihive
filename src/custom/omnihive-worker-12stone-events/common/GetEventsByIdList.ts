@@ -1,10 +1,11 @@
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
+
 import { Event } from "../lib/models/Event";
 
 export const GetEventsByIdList = async (ids: number[], participantId?: number): Promise<Event[]> => {
     if (!ids || ids.length <= 0) {
-        throw new Error("At least one event id is reaquired");
+        throw new Error("At least one event id is required");
     }
 
     const query = `

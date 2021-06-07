@@ -1,10 +1,11 @@
+import { WatchContent } from "@12stonechurch/omnihive-worker-common/models/WatchModels";
+import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import dayjs from "dayjs";
 import { serializeError } from "serialize-error";
-import { WatchContent } from "@12stonechurch/omnihive-worker-common/models/WatchModels";
-import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
+
 import { getMessageById } from "../common/GetMessaegById";
 
 export default class GetLatestMessage extends HiveWorkerBase implements IGraphEndpointWorker {

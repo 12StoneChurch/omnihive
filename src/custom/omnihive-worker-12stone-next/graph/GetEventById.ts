@@ -8,7 +8,7 @@ import { EventType } from "../types/Event";
 
 /**
  * Args:
- *   id: string
+ *   id: number
  */
 
 export default class GetEventById extends HiveWorkerBase implements IGraphEndpointWorker {

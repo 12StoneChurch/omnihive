@@ -14,6 +14,13 @@ const argsSchema = Joi.object({
 interface Args {
     id: number;
 }
+
+export interface GetEventByIdResult {
+    data: {
+        GetEventById: EventType | null;
+    };
+}
+
 /**
  * Args:
  *   id: number
@@ -27,7 +34,6 @@ export default class GetEventById extends HiveWorkerBase implements IGraphEndpoi
 
         try {
             const { error, value } = argsSchema.validate(customArgs);
-            console.log({ error, value });
             if (error) throw new Error(`Validation error: ${error.message}`);
 
             const { id } = value;

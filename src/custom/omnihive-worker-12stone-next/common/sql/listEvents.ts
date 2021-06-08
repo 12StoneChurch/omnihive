@@ -124,6 +124,5 @@ export const selectEventsList = (page: number, perPage: number): string => {
 						ct.last_name,
 						ct.email_address
 			) q;
-
 		`;
 };

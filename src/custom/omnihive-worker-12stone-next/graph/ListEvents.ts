@@ -5,6 +5,7 @@ import Joi from "joi";
 import { serializeError } from "serialize-error";
 
 import { listEvents } from "../common/queries/listEvents";
+import type { EventType } from "../types/Event";
 import type { Page } from "../types/Page";
 
 const argsSchema = Joi.object({
@@ -17,6 +18,12 @@ interface Args {
     perPage: number;
 }
 
+export interface ListEventsResult {
+    data: {
+        ListEvents: Page<EventType> | null;
+    };
+}
+
 /**
  * Args:
  *   page?: number = 1
@@ -24,14 +31,13 @@ interface Args {
  */
 
 export default class ListEvents extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: Args = { page: 1, perPage: 20 }): Promise<Page<any>> => {
+    public execute = async (customArgs: Args = { page: 1, perPage: 20 }): Promise<Page<EventType>> => {
         const graph = GraphService.getSingleton();
         graph.init(this.registeredWorkers); // init encryption worker (required for custom SQL)
         graph.graphRootUrl = this.serverSettings.config.webRootUrl + this.config.metadata.dataSlug;
 
         try {
             const { error, value } = argsSchema.validate(customArgs);
-            console.log({ error, value });
             if (error) throw new Error(`Validation error: ${error.message}`);
 
             const { page, perPage } = value;

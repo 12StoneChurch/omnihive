@@ -4,8 +4,10 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import Joi from "joi";
 import { serializeError } from "serialize-error";
 
-import { getEventById } from "../common/queries/getEventById";
-import { EventType } from "../types/Event";
+import { mapEvent } from "../common/helpers/mapEvent";
+import { queryEvent } from "../common/queries/queryEvent";
+import { queryEventTags } from "../common/queries/queryEventTags";
+import type { EventType } from "../types/Event";
 
 const argsSchema = Joi.object({
     id: Joi.number().min(1).required(),
@@ -21,15 +23,10 @@ export interface GetEventByIdResult {
     };
 }
 
-/**
- * Args:
- *   id: number
- */
-
 export default class GetEventById extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: Args): Promise<EventType> => {
         const graph = GraphService.getSingleton();
-        graph.init(this.registeredWorkers); // init encryption worker (required for custom SQL)
+        graph.init(this.registeredWorkers);
         graph.graphRootUrl = this.serverSettings.config.webRootUrl + this.config.metadata.dataSlug;
 
         try {
@@ -43,4 +40,11 @@ export default class GetEventById extends HiveWorkerBase implements IGraphEndpoi
             return err;
         }
     };
+}
+
+export async function getEventById(id: number) {
+    return await Promise.all([queryEventTags(id), queryEvent(id)]).then(([tags, events]) => {
+        const [event]: EventType[] = mapEvent(tags, events);
+        return event;
+    });
 }

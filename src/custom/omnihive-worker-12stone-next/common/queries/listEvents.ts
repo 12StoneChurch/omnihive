@@ -7,14 +7,18 @@ import { SelectEventsCountResult, selectEventsCount } from "../sql/countEvents";
 import { SelectEventsListResult, selectEventsList } from "../sql/listEvents";
 import { SelectEventTagResult, selectEventTags } from "../sql/selectEventTags";
 
-export const listEvents = async (page: number = 1, perPage: number = 20): Promise<Page<EventType>> => {
+export const listEvents = async (
+    page: number = 1,
+    perPage: number = 20,
+    visibility: number = 4
+): Promise<Page<EventType>> => {
     const graph = GraphService.getSingleton();
 
     return await Promise.all([
         new Promise<number>(async (resolve, reject) => {
             try {
                 const [[{ total }]] = (await AwaitHelper.execute(
-                    graph.runCustomSql(selectEventsCount())
+                    graph.runCustomSql(selectEventsCount(visibility))
                 )) as SelectEventsCountResult[];
                 resolve(total);
             } catch (err) {
@@ -24,7 +28,7 @@ export const listEvents = async (page: number = 1, perPage: number = 20): Promis
         new Promise<EventType[]>(async (resolve, reject) => {
             try {
                 const [events] = (await AwaitHelper.execute(
-                    graph.runCustomSql(selectEventsList(page, perPage))
+                    graph.runCustomSql(selectEventsList(page, perPage, visibility))
                 )) as SelectEventsListResult[];
 
                 const mappedEvents = await Promise.all(

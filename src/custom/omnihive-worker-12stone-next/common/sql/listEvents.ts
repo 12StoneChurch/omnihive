@@ -31,7 +31,7 @@ export type SelectEventsListResult = {
     spots_available: number | null;
 }[];
 
-export const selectEventsList = (page: number, perPage: number): string => {
+export const selectEventsList = (page: number, perPage: number, visibility: number): string => {
     return `
 		select *,
        		   (q.participants_expected - q.participants_registered) spots_available
@@ -85,6 +85,7 @@ export const selectEventsList = (page: number, perPage: number): string => {
 						x.participants_expected
 					from events x
 					where x.event_start_date <= getdate()
+						and x.visibility_level_id = ${visibility}
 					order by x.event_id desc
 					offset ${(page - 1) * perPage} rows
 					fetch next ${perPage} rows only

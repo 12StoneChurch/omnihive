@@ -9,6 +9,11 @@ type EventAgeRangeRef = GenericRef;
 type EventCampusRef = GenericRef;
 type EventTypeRef = GenericRef;
 
+type EventDate = {
+    start: string;
+    end: string;
+};
+
 type EventAddressRef = {
     id: number;
     address_line_1: string;
@@ -44,10 +49,7 @@ export type EventType = {
     title: string;
     description?: string;
     img_url?: string;
-    date: {
-        start: string;
-        end: string;
-    };
+    date: EventDate;
     type: EventTypeRef;
     campus: EventCampusRef;
     address?: EventAddressRef;

@@ -1,6 +1,9 @@
 export type Page<T> = {
     page: number;
-    previousPage?: number;
-    nextPage?: number;
+    per_page: number;
+    total_items: number;
+    total_pages: number;
+    previous_page?: number;
+    next_page?: number;
     items: T[];
 };

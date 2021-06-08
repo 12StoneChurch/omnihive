@@ -102,5 +102,5 @@ export const selectEvent = (id: number): string => {
 					ct.last_name,
 					ct.email_address
 			) q;
-	`;
+		`;
 };

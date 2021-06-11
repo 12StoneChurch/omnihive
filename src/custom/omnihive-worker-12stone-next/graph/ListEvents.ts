@@ -48,19 +48,13 @@ export default class ListEvents extends HiveWorkerBase implements IGraphEndpoint
     };
 }
 
-export async function listEvents(
-    page: number = 1,
-    perPage: number = 20,
-    visibility: number = 4
-): Promise<Page<EventType>> {
+export async function listEvents(page: number, perPage: number, visibility: number): Promise<Page<EventType>> {
     return await Promise.all([
         queryEventsCount(visibility),
         new Promise<EventType[]>(async (resolve, reject) => {
             try {
                 const events = await queryEventsList(page, perPage, visibility);
-
                 const mappedEvents = await mapEventsList(events);
-
                 resolve(mappedEvents);
             } catch (err) {
                 reject(err);

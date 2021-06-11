@@ -14,7 +14,7 @@ describe("queryEventTags function", () => {
     it("executes a custom sql query", async () => {
         const fakeSqlQueryResult: SelectEventTagResult = fakeSelectEventTagsResult;
 
-        const fakeRunCustomSql = sinon.fake.resolves(fakeSqlQueryResult);
+        const fakeRunCustomSql = sinon.fake.resolves([fakeSqlQueryResult]);
 
         sinon.stub(GraphService, "getSingleton").callsFake(() => ({
             graphRootUrl: "",
@@ -23,9 +23,11 @@ describe("queryEventTags function", () => {
             runCustomSql: fakeRunCustomSql,
         }));
 
-        const [expectedResult] = fakeSqlQueryResult;
+        const expectedResult = fakeSqlQueryResult;
 
         const result = await queryEventTags(fakeSqlQueryResult[0].id);
+
+        console.log(result);
 
         expect(fakeRunCustomSql.calledOnce).to.be.true;
         expect(fakeRunCustomSql.getCall(0).args[0]).to.equal(selectEventTags(fakeSqlQueryResult[0].id));

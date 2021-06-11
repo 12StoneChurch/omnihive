@@ -1,3 +1,5 @@
+import { SelectEventsCountResult } from "../common/sql/countEvents";
+import { SelectEventsListResult } from "../common/sql/listEvents";
 import { SelectEventResult } from "../common/sql/selectEvent";
 import { SelectEventTagResult } from "../common/sql/selectEventTags";
 import { EventType } from "../types/Event";
@@ -36,6 +38,12 @@ export const fakeSelectEventResult: SelectEventResult = [
         spots_available: null,
     },
 ];
+
+export const fakeSelectEventTagsResult: SelectEventTagResult = [{ id: 1, tag: "Fake Tag" }];
+
+export const fakeSelectEventsListResult: SelectEventsListResult = fakeSelectEventResult;
+
+export const fakeSelectEventsCountResult: SelectEventsCountResult = [{ total: 1 }];
 
 export const fakeEvent: EventType = {
     id: 1,
@@ -76,5 +84,3 @@ export const fakeEvent: EventType = {
     },
     tags: [{ id: 1, tag: "Fake Tag" }],
 };
-
-export const fakeSelectEventTagsResult: SelectEventTagResult = [{ id: 1, tag: "Fake Tag" }];

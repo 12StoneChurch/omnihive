@@ -4,7 +4,10 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import Joi from "joi";
 import { serializeError } from "serialize-error";
 
-import { listEvents } from "../common/queries/listEvents";
+import { mapEventsList } from "../common/helpers/mapEventsList";
+import { paginatedItemsResult } from "../common/helpers/paginatedItemsResult";
+import { queryEventsCount } from "../common/queries/queryEventsCount";
+import { queryEventsList } from "../common/queries/queryEventsList";
 import type { EventType } from "../types/Event";
 import type { Page } from "../types/Page";
 
@@ -26,17 +29,10 @@ export interface ListEventsResult {
     };
 }
 
-/**
- * Args:
- *   page?: number = 1
- *   perPage?: number = 20
- *   visibility?: number = 4
- */
-
 export default class ListEvents extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: Args = { page: 1, perPage: 20, visibility: 4 }): Promise<Page<EventType>> => {
         const graph = GraphService.getSingleton();
-        graph.init(this.registeredWorkers); // init encryption worker (required for custom SQL)
+        graph.init(this.registeredWorkers);
         graph.graphRootUrl = this.serverSettings.config.webRootUrl + this.config.metadata.dataSlug;
 
         try {
@@ -50,4 +46,25 @@ export default class ListEvents extends HiveWorkerBase implements IGraphEndpoint
             return err;
         }
     };
+}
+
+export async function listEvents(page: number, perPage: number, visibility: number): Promise<Page<EventType>> {
+    return await Promise.all([
+        queryEventsCount(visibility),
+        new Promise<EventType[]>(async (resolve, reject) => {
+            try {
+                const events = await queryEventsList(page, perPage, visibility);
+                const mappedEvents = await mapEventsList(events);
+                resolve(mappedEvents);
+            } catch (err) {
+                reject(err);
+            }
+        }),
+    ])
+        .then(([total, items]) => {
+            return paginatedItemsResult(items, page, total, perPage);
+        })
+        .catch((err) => {
+            throw err;
+        });
 }

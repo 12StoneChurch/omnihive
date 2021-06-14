@@ -144,8 +144,15 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                             5,
                             "Recipient's phone number is currently blocking messages from the communication manager."
                         );
+                    } else {
+                        await updateCommunicationMessageStatus(
+                            graphUrl,
+                            message.CommunicationId,
+                            message.ContactId,
+                            9,
+                            "Recipient's phone number is encountering an unknown error."
+                        );
                     }
-                    throw new Error(err);
                 }
             }
         }

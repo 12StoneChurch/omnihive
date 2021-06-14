@@ -102,7 +102,6 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
     };
 
     private sendSms = async (): Promise<void> => {
-        const texts = [];
         const graphUrl = `${this.serverSettings.config.webRootUrl}/${this.config.metadata.dataSlug}`;
 
         for (const message of this.messages.filter((message: any) => message.MessageTypeId === 2)) {
@@ -115,7 +114,7 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                     "Recipient's e-mail address or phone number is not provided."
                 );
             } else {
-                texts.push({
+                const text = {
                     data: {
                         to: "+1" + message.ToAddress.replace(/-/g, ""),
                         from: "+1" + message.FromAddress,
@@ -123,15 +122,29 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                     },
                     id: message.CommunicationId,
                     contactId: message.ContactId,
-                });
+                };
 
                 try {
-                    const results = await sendTwilioSms(texts, this.config.metadata);
+                    const result = await sendTwilioSms(text, this.config.metadata);
 
-                    for (const ids of results.sent) {
-                        await updateCommunicationMessageStatus(graphUrl, ids.id, ids.contactId, 3, "", ids.sid);
-                    }
+                    await updateCommunicationMessageStatus(
+                        graphUrl,
+                        message.CommunicationId,
+                        message.ContactId,
+                        3,
+                        "",
+                        result
+                    );
                 } catch (err) {
+                    if (err.code === 21610) {
+                        await updateCommunicationMessageStatus(
+                            graphUrl,
+                            message.CommunicationId,
+                            message.ContactId,
+                            5,
+                            "Recipient's phone number is currently blocking messages from the communication manager."
+                        );
+                    }
                     throw new Error(err);
                 }
             }

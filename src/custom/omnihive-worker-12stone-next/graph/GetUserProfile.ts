@@ -4,13 +4,10 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import Joi from "joi";
 import { serializeError } from "serialize-error";
 
+import { queryCdnUrl } from "../common/queries/queryCdnUrl";
+import { queryPhotoGuid } from "../common/queries/queryPhotoGuid";
 import { queryUserProfile } from "../common/queries/queryUserProfile";
 import type { UserType } from "../types/User";
-
-// import { mapEvent } from "../common/helpers/mapEvent";
-// import { queryEvent } from "../common/queries/queryEvent";
-// import { queryEventTags } from "../common/queries/queryEventTags";
-// import type { EventType } from "../types/Event";
 
 const argsSchema = Joi.object({
     id: Joi.number().min(1).required(),
@@ -30,14 +27,15 @@ export default class GetUserProfile extends HiveWorkerBase implements IGraphEndp
     public execute = async (customArgs: Args): Promise<UserType> => {
         const graph = GraphService.getSingleton();
         graph.init(this.registeredWorkers);
-        graph.graphRootUrl = this.serverSettings.config.webRootUrl + this.config.metadata.dataSlug;
+        const mpGraphRootUrl = this.serverSettings.config.webRootUrl + this.config.metadata.dataSlug;
+        const customGraphRootUrl = this.serverSettings.config.webRootUrl + this.config.metadata.customSlug;
 
         try {
             const { error, value } = argsSchema.validate(customArgs);
             if (error) throw new Error(`Validation error: ${error.message}`);
 
             const { id } = value as Args;
-            return await getUserProfile(id);
+            return await getUserProfile(id, mpGraphRootUrl, customGraphRootUrl);
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
             return err;
@@ -45,7 +43,17 @@ export default class GetUserProfile extends HiveWorkerBase implements IGraphEndp
     };
 }
 
-export async function getUserProfile(id: number): Promise<UserType> {
-    const [user] = await queryUserProfile(id);
-    return user;
+export async function getUserProfile(
+    id: number,
+    mpGraphRootUrl: string,
+    customGraphRootUrl: string
+): Promise<UserType> {
+    const [user] = await queryUserProfile(id, mpGraphRootUrl);
+    const photoGuid = await queryPhotoGuid(user.contact_id, mpGraphRootUrl);
+    const img = await queryCdnUrl(photoGuid, customGraphRootUrl);
+
+    return {
+        ...user,
+        img,
+    };
 }

@@ -1,4 +1,4 @@
-export type Page<T> = {
+export type PageType<T> = {
     page: number;
     per_page: number;
     total_items: number;

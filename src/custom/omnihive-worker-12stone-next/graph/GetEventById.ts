@@ -33,7 +33,7 @@ export default class GetEventById extends HiveWorkerBase implements IGraphEndpoi
             const { error, value } = argsSchema.validate(customArgs);
             if (error) throw new Error(`Validation error: ${error.message}`);
 
-            const { id } = value;
+            const { id } = value as Args;
             return await getEventById(id);
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));

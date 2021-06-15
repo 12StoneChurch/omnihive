@@ -1,6 +1,6 @@
-import type { Page } from "../../types/Page";
+import type { PageType } from "../../types/Page";
 
-export function paginatedItemsResult<T>(items: T[], page: number, total_items: number, per_page: number): Page<T> {
+export function paginatedItemsResult<T>(items: T[], page: number, total_items: number, per_page: number): PageType<T> {
     const total_pages = Math.ceil(total_items / per_page);
 
     const next_page = (function () {

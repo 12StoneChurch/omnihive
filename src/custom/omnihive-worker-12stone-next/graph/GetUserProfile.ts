@@ -4,10 +4,13 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import Joi from "joi";
 import { serializeError } from "serialize-error";
 
-import { mapEvent } from "../common/helpers/mapEvent";
-import { queryEvent } from "../common/queries/queryEvent";
-import { queryEventTags } from "../common/queries/queryEventTags";
-import type { EventType } from "../types/Event";
+import { queryUserProfile } from "../common/queries/queryUserProfile";
+import type { UserType } from "../types/User";
+
+// import { mapEvent } from "../common/helpers/mapEvent";
+// import { queryEvent } from "../common/queries/queryEvent";
+// import { queryEventTags } from "../common/queries/queryEventTags";
+// import type { EventType } from "../types/Event";
 
 const argsSchema = Joi.object({
     id: Joi.number().min(1).required(),
@@ -17,14 +20,14 @@ interface Args {
     id: number;
 }
 
-export interface GetEventByIdResult {
+export interface GetUserProfileResult {
     data: {
-        GetEventById: EventType | null;
+        GetUserProfile: UserType | null;
     };
 }
 
-export default class GetEventById extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: Args): Promise<EventType> => {
+export default class GetUserProfile extends HiveWorkerBase implements IGraphEndpointWorker {
+    public execute = async (customArgs: Args): Promise<UserType> => {
         const graph = GraphService.getSingleton();
         graph.init(this.registeredWorkers);
         graph.graphRootUrl = this.serverSettings.config.webRootUrl + this.config.metadata.dataSlug;
@@ -34,7 +37,7 @@ export default class GetEventById extends HiveWorkerBase implements IGraphEndpoi
             if (error) throw new Error(`Validation error: ${error.message}`);
 
             const { id } = value as Args;
-            return await getEventById(id);
+            return await getUserProfile(id);
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
             return err;
@@ -42,9 +45,7 @@ export default class GetEventById extends HiveWorkerBase implements IGraphEndpoi
     };
 }
 
-export async function getEventById(id: number) {
-    return await Promise.all([queryEventTags(id), queryEvent(id)]).then(([tags, events]) => {
-        const [event]: EventType[] = mapEvent(tags, events);
-        return event;
-    });
+export async function getUserProfile(id: number): Promise<UserType> {
+    const [user] = await queryUserProfile(id);
+    return user;
 }

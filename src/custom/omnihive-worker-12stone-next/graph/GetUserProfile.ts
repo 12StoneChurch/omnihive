@@ -50,10 +50,10 @@ export async function getUserProfile(
 ): Promise<UserType> {
     const [user] = await queryUserProfile(id, mpGraphRootUrl);
     const photoGuid = await queryPhotoGuid(user.contact_id, mpGraphRootUrl);
-    const img = await queryCdnUrl(photoGuid, customGraphRootUrl);
+    const img_url = await queryCdnUrl(photoGuid, customGraphRootUrl);
 
     return {
         ...user,
-        img,
+        img_url,
     };
 }

@@ -1,4 +1,4 @@
-import type { EventTag } from "./EventTag";
+import type { EventTagType } from "./EventTag";
 
 interface GenericRef {
     id: number;
@@ -57,5 +57,5 @@ export type EventType = {
     age_range?: EventAgeRangeRef;
     childcare: EventChildcare;
     primary_contact: EventPrimaryContactRef;
-    tags: EventTag[];
+    tags: EventTagType[];
 };

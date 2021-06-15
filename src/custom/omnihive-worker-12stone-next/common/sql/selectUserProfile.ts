@@ -4,6 +4,7 @@ export type SelectUserProfileResult = {
     first_name: string;
     last_name: string;
     email: string;
+    img: string;
 }[];
 
 export const selectUserProfile = (id: number): string => {

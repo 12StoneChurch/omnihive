@@ -8,6 +8,7 @@ interface GenericRef {
 type EventAgeRangeRef = GenericRef;
 type EventCampusRef = GenericRef;
 type EventTypeRef = GenericRef;
+type EventParticipationRef = GenericRef;
 
 type EventDate = {
     start: string;
@@ -44,7 +45,7 @@ type EventCapacity = {
     spots_available?: number;
 };
 
-export type EventType = {
+export interface EventType {
     id: number;
     title: string;
     description?: string;
@@ -58,4 +59,5 @@ export type EventType = {
     childcare: EventChildcare;
     primary_contact: EventPrimaryContactRef;
     tags: EventTagType[];
-};
+    participation?: EventParticipationRef;
+}

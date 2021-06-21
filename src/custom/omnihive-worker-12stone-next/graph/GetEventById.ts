@@ -10,11 +10,13 @@ import { queryEventTags } from "../common/queries/queryEventTags";
 import type { EventType } from "../types/Event";
 
 const argsSchema = Joi.object({
-    id: Joi.number().min(1).required(),
+    eventId: Joi.number().min(1).required(),
+    userId: Joi.number().min(1).optional(),
 }).required();
 
 interface Args {
-    id: number;
+    eventId: number;
+    userId?: number;
 }
 
 export interface GetEventByIdResult {
@@ -30,11 +32,11 @@ export default class GetEventById extends HiveWorkerBase implements IGraphEndpoi
         graph.graphRootUrl = this.serverSettings.config.webRootUrl + this.config.metadata.dataSlug;
 
         try {
-            const { error, value } = argsSchema.validate(customArgs);
+            const { error, value } = argsSchema.validate(customArgs || {});
             if (error) throw new Error(`Validation error: ${error.message}`);
 
-            const { id } = value as Args;
-            return await getEventById(id);
+            const { eventId, userId } = value as Args;
+            return await getEventById(eventId, userId);
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
             return err;
@@ -42,8 +44,8 @@ export default class GetEventById extends HiveWorkerBase implements IGraphEndpoi
     };
 }
 
-export async function getEventById(id: number) {
-    return await Promise.all([queryEventTags(id), queryEvent(id)]).then(([tags, events]) => {
+export async function getEventById(eventId: number, userId?: number) {
+    return await Promise.all([queryEventTags(eventId), queryEvent(eventId, userId)]).then(([tags, events]) => {
         const [event]: EventType[] = mapEvent(tags, events);
         return event;
     });

@@ -4,7 +4,6 @@ import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { SelectEventTagResult, selectEventTags } from "../sql/selectEventTags";
 
 export async function queryEventTags(id: number): Promise<SelectEventTagResult> {
-    if (!id) throw new Error(`"id" parameter missing in "queryEventTags" function`);
     try {
         const graph = GraphService.getSingleton();
         const eventTagQuery = selectEventTags(id);

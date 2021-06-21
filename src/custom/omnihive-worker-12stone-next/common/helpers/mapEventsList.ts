@@ -1,7 +1,11 @@
+import { EventType } from "../../types/Event";
 import { queryEventTags } from "../queries/queryEventTags";
 import { SelectEventsListResult } from "../sql/listEvents";
+import { SelectUserEventsListResult } from "../sql/listUserEvents";
 
-export async function mapEventsList(eventsResults: SelectEventsListResult) {
+export async function mapEventsList(
+    eventsResults: SelectEventsListResult | SelectUserEventsListResult
+): Promise<EventType[]> {
     return await Promise.all(
         eventsResults.map(async (eventResult) => {
             const tags = await queryEventTags(eventResult.id);
@@ -61,6 +65,13 @@ export async function mapEventsList(eventsResults: SelectEventsListResult) {
                     email: eventResult.primary_contact_email,
                 },
                 tags,
+                participation:
+                    eventResult.participation_status && eventResult.participation_status_id
+                        ? {
+                              id: eventResult.participation_status_id,
+                              name: eventResult.participation_status,
+                          }
+                        : undefined,
             };
         })
     );

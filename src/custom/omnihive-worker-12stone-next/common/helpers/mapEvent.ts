@@ -1,8 +1,9 @@
 import type { EventType } from "../../types/Event";
 import type { SelectEventResult } from "../sql/selectEvent";
 import type { SelectEventTagResult } from "../sql/selectEventTags";
+import { SelectUserEventResult } from "../sql/selectUserEvent";
 
-export function mapEvent(tags: SelectEventTagResult, events: SelectEventResult): EventType[] {
+export function mapEvent(tags: SelectEventTagResult, events: SelectEventResult | SelectUserEventResult): EventType[] {
     return events.map((event) => ({
         id: event.id,
         title: event.title,
@@ -54,5 +55,12 @@ export function mapEvent(tags: SelectEventTagResult, events: SelectEventResult):
             email: event.primary_contact_email,
         },
         tags,
+        participation:
+            event.participation_status && event.participation_status_id
+                ? {
+                      id: event.participation_status_id,
+                      name: event.participation_status,
+                  }
+                : undefined,
     }));
 }

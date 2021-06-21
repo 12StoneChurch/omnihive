@@ -9,6 +9,8 @@ export type SelectUserProfileResult = {
 
 export const selectUserProfile = (id: number): string => {
     return `
+		declare @user_id int = ${id}
+
 		select distinct u.user_id id,
 						c.contact_id contact_id,
 						c.first_name first_name,
@@ -16,6 +18,6 @@ export const selectUserProfile = (id: number): string => {
 						u.user_email email
 		from dp_users u
 		left join contacts c on u.user_id = c.user_account
-		where u.user_id = ${id};
+		where u.user_id = @user_id;
 	`;
 };

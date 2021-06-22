@@ -43,6 +43,7 @@ export const selectEventsList = (page: number, perPage: number, visibility: numb
 		declare @visibility int = ${visibility}
 
 		select distinct e.event_id id,
+					    e.event_title title,
 						e.description description,
 						e.featured_image_url img_url,
 						e.event_start_date start_date,
@@ -69,6 +70,7 @@ export const selectEventsList = (page: number, perPage: number, visibility: numb
 						e.participants_expected participants_expected,
 						count(distinct ep.event_participant_id) participants_registered
 		from (select distinct e.event_id,
+							  e.event_title,
 							  e.description,
 							  e.featured_image_url,
 							  e.event_start_date,
@@ -97,6 +99,7 @@ export const selectEventsList = (page: number, perPage: number, visibility: numb
 		left join event_participants ep on e.event_id = ep.event_id
 		   and ep.participation_status_id not in (5, 7)
 		group by e.event_id,
+		         e.event_title,
 				 e.description,
 				 e.featured_image_url,
 				 e.event_start_date,

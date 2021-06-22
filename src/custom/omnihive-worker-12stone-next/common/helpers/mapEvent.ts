@@ -59,7 +59,7 @@ export function mapEvent(tags: SelectEventTagResult, events: SelectEventResult |
             event.participation_status && event.participation_status_id
                 ? {
                       id: event.participation_status_id,
-                      name: event.participation_status,
+                      name: event.participation_status.substring(3),
                   }
                 : undefined,
     }));

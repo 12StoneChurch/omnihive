@@ -1,3 +1,5 @@
+import { EVENT_TYPE_ID } from "../constants";
+
 export type SelectEventsListResult = {
     id: number;
     title: string;
@@ -37,6 +39,7 @@ export const selectEventsList = (page: number, perPage: number, visibility: numb
     return `
 		declare @page int = ${page}
 		declare @per_page int = ${perPage}
+		declare @event_type int = ${EVENT_TYPE_ID}
 		declare @visibility int = ${visibility}
 
 		select distinct e.event_id id,
@@ -81,6 +84,7 @@ export const selectEventsList = (page: number, perPage: number, visibility: numb
 							  e.participants_expected
 			  from events e
 			  where e.event_start_date >= getDate()
+				 and e.event_type_id = @event_type
 			     and e.visibility_level_id = @visibility
 			  order by e.event_start_date, e.event_id
 			  offset (@page - 1) * @per_page rows

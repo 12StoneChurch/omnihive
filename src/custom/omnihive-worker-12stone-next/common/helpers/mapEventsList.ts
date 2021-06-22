@@ -69,7 +69,7 @@ export async function mapEventsList(
                     eventResult.participation_status && eventResult.participation_status_id
                         ? {
                               id: eventResult.participation_status_id,
-                              name: eventResult.participation_status,
+                              name: eventResult.participation_status.substring(3),
                           }
                         : undefined,
             };

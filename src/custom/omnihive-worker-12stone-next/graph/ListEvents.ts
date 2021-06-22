@@ -16,6 +16,7 @@ const argsSchema = Joi.object({
     perPage: Joi.number().min(1).default(20),
     visibility: Joi.number().allow(1, 2, 3, 4, 5).default(4),
     userId: Joi.number().optional(),
+    registered: Joi.boolean().default(false),
 }).required();
 
 interface Args {
@@ -23,6 +24,7 @@ interface Args {
     perPage: number;
     visibility: number;
     userId?: number;
+    registered?: boolean;
 }
 
 export interface ListEventsResult {
@@ -41,8 +43,11 @@ export default class ListEvents extends HiveWorkerBase implements IGraphEndpoint
             const { error, value } = argsSchema.validate(customArgs || {});
             if (error) throw new Error(`Validation error: ${error.message}`);
 
-            const { page, perPage, visibility, userId } = value as Args;
-            return await listEvents(page, perPage, visibility, userId);
+            const { page, perPage, visibility, userId, registered } = value as Args;
+
+            if (registered && !userId) throw new Error(`Parameter "registered" requires the "userId" parameter.`);
+
+            return await listEvents(page, perPage, visibility, userId, registered);
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
             return err;
@@ -54,13 +59,14 @@ export async function listEvents(
     page: number,
     perPage: number,
     visibility: number,
-    userId?: number
+    userId?: number,
+    registered?: boolean
 ): Promise<PageType<EventType>> {
     return await Promise.all([
-        queryEventsCount(visibility),
+        queryEventsCount(visibility, userId, registered),
         new Promise<EventType[]>(async (resolve, reject) => {
             try {
-                const events = await queryEventsList(page, perPage, visibility, userId);
+                const events = await queryEventsList(page, perPage, visibility, userId, registered);
                 const mappedEvents = await mapEventsList(events);
                 resolve(mappedEvents);
             } catch (err) {

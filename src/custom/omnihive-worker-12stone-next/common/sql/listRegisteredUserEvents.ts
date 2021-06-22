@@ -1,4 +1,4 @@
-import { EVENT_TYPE_ID } from "../constants";
+import { EVENT_TYPE_ID, REGISTERED_STATUS_ID } from "../constants";
 
 export type SelectUserEventsListResult = {
     id: number;
@@ -35,17 +35,21 @@ export type SelectUserEventsListResult = {
     participation_status: string | null;
 }[];
 
-export const selectUserEventsList = (page: number, perPage: number, userId: number, visibility: number): string => {
+export const selectRegisteredUserEventsList = (
+    page: number,
+    perPage: number,
+    userId: number,
+    visibility: number
+): string => {
     return `
 		declare @page int = ${page}
 		declare @per_page int = ${perPage}
 		declare @user_id int = ${userId}
 		declare @event_type int = ${EVENT_TYPE_ID}
 		declare @visibility int = ${visibility}
+		declare @participation_status_id int = ${REGISTERED_STATUS_ID}
 
 		select distinct e.*,
-						ep.participation_status_id participation_status_id,
-						ep.participation_status participation_status,
 						(e.participants_expected - e.participants_registered) spots_available
 		from (select distinct e.event_id id,
 								e.description description,
@@ -72,7 +76,9 @@ export const selectUserEventsList = (page: number, perPage: number, userId: numb
 								ct.email_address primary_contact_email,
 								e.allow_anonymous_guests guests_allowed,
 								e.participants_expected participants_expected,
-								count(distinct ep.event_participant_id) participants_registered
+								count(distinct ep.event_participant_id) participants_registered,
+								e.participation_status,
+								e.participation_status_id
 				from (select distinct e.event_id,
 									e.description,
 									e.featured_image_url,
@@ -86,10 +92,22 @@ export const selectUserEventsList = (page: number, perPage: number, userId: numb
 									e.childcare_capacity,
 									e.primary_contact,
 									e.allow_anonymous_guests,
-									e.participants_expected
+									e.participants_expected,
+									ep.participation_status_id,
+									ep.participation_status
 					from events e
+					inner join (select distinct ep.event_id event_id,
+												ps.participation_status participation_status,
+												ep.participation_status_id participation_status_id
+							from dp_users u
+							inner join contacts c on u.user_id = c.user_account
+							inner join participants p on c.contact_id = p.contact_id
+							inner join event_participants ep on p.participant_id = ep.participant_id
+							inner join participation_statuses ps on ep.participation_status_id = ps.participation_status_id
+							where u.user_id = @user_id and ps.participation_status_id = @participation_status_id
+						) ep on e.event_id = ep.event_id
 					where e.event_start_date >= getDate()
-						and e.event_type_id = @event_type
+					    and e.event_type_id = @event_type
 						and e.visibility_level_id = @visibility
 					order by e.event_start_date, e.event_id
 					offset (@page - 1) * @per_page rows
@@ -125,16 +143,8 @@ export const selectUserEventsList = (page: number, perPage: number, userId: numb
 						ct.last_name,
 						ct.email_address,
 						e.allow_anonymous_guests,
-						e.participants_expected) e
-		left join (select distinct ep.event_id event_id,
-								ep.participation_status_id participation_status_id,
-								ps.participation_status participation_status
-				from dp_users u
-				inner join contacts c on u.user_id = c.user_account
-				inner join participants p on c.contact_id = p.contact_id
-				inner join event_participants ep on p.participant_id = ep.participant_id
-				inner join participation_statuses ps on ep.participation_status_id = ps.participation_status_id
-				where u.user_id = @user_id
-			) ep on ep.event_id = e.id;
+						e.participants_expected,
+						e.participation_status_id,
+						e.participation_status) e;
 		`;
 };

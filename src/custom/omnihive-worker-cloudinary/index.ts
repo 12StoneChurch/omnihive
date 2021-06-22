@@ -45,4 +45,30 @@ export default class CloudinaryWorker extends HiveWorkerBase {
 
         return url;
     }
+
+    public async search(expression: string, sortBy: {key: string, orderBy: "asc" | "desc"},
+        maxResults: number, nextCursor: string, withFields: string, aggregate: string) {
+            
+        const search = this.client.search.expression(expression).max_results(maxResults ?? 500);
+
+        search;
+        
+        if (sortBy) {
+            search.sort_by(sortBy.key, sortBy.orderBy)
+        }
+
+        if (nextCursor) {
+            search.next_cursor(nextCursor);
+        }
+
+        if (withFields) {
+            search.with_field(withFields);
+        }
+
+        if (aggregate) {
+            search.aggregate(aggregate);
+        }
+
+        return await search.execute();
+    }
 }

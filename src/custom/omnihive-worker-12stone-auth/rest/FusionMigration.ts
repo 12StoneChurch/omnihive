@@ -152,7 +152,7 @@ export default class FusionSignIn extends HiveWorkerBase implements IRestEndpoin
         try {
             const user = await GetMpUser(args, this.config.metadata.data, this.serverSettings.config.webRootUrl);
 
-            return { response: user, status: 200 };
+            return { response: JSON.stringify(user), status: 200 };
         } catch (err) {
             return serializeError(err);
         }

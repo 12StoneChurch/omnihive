@@ -117,7 +117,7 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                 const text = {
                     data: {
                         to: "+1" + message.ToAddress.replace(/-/g, ""),
-                        from: "+1" + message.FromAddress,
+                        from: message.FromAddress.length > 5 ? "+1" + message.FromAddress : message.FromAddress,
                         body: message.Body,
                     },
                     id: message.CommunicationId,

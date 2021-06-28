@@ -7,7 +7,6 @@ import FusionAuthClient, {
     UserRegistration,
 } from "@fusionauth/typescript-client";
 import ClientResponse from "@fusionauth/typescript-client/build/src/ClientResponse";
-import dayjs from "dayjs";
 import { buildAuthUser } from "./OhServices";
 
 export const buildRegistrationRequest = async (
@@ -41,7 +40,6 @@ export const getUserData = async (mpAuthData: any, metadata: any) => {
     return {
         user: {
             active: true,
-            verified: true,
             data: {
                 mpUserId: mpAuthData.UserId,
                 mpContactId: mpAuthData.ContactId,
@@ -52,8 +50,6 @@ export const getUserData = async (mpAuthData: any, metadata: any) => {
                     applicationId: metadata.authApplicationId,
                     roles: ["User"],
                     username: mpAuthData.UserName,
-                    verified: true,
-                    insertInstant: dayjs().unix(),
                 },
             ],
             email: mpAuthData.UserName,
@@ -61,7 +57,6 @@ export const getUserData = async (mpAuthData: any, metadata: any) => {
             fullName: mpAuthData.DisplayName,
             lastName: mpAuthData.DisplayName.split(" ")[1],
             passwordChangeRequired: false,
-            twoFactorEnabled: false,
             usernameStatus: "ACTIVE",
             username: mpAuthData.UserName,
         },

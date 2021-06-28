@@ -8,6 +8,7 @@ import FusionAuthClient, {
 } from "@fusionauth/typescript-client";
 import ClientResponse from "@fusionauth/typescript-client/build/src/ClientResponse";
 import { buildAuthUser } from "./OhServices";
+import { v4 as uuidv4 } from "uuid";
 
 export const buildRegistrationRequest = async (
     mpAuthData: any,
@@ -39,6 +40,7 @@ export const buildRegistrationRequest = async (
 export const getUserData = async (mpAuthData: any, metadata: any) => {
     return {
         user: {
+            id: uuidv4(),
             active: true,
             data: {
                 mpUserId: mpAuthData.UserId,

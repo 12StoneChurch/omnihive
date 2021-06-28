@@ -25,7 +25,7 @@
     },
     "dependencies": {
         "@12stonechurch/omnihive-worker-common": "workspace:*",
-        "@fusionauth/typescript-client": "1.26.0",
+        "@fusionauth/typescript-client": "1.28.1",
         "@istanbuljs/nyc-config-typescript": "1.0.1",
         "@typescript-eslint/eslint-plugin": "4.17.0",
         "@typescript-eslint/parser": "4.17.0",

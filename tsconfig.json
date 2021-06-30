@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "allowJs": true,
         "allowSyntheticDefaultImports": true,
         "baseUrl": ".",
         "composite": true,
@@ -8,6 +9,8 @@
         "emitDecoratorMetadata": true,
         "esModuleInterop": true,
         "experimentalDecorators": true,
+        "forceConsistentCasingInFileNames": true,
+        "jsx": "preserve",
         "lib": ["ES2020", "DOM"],
         "module": "CommonJS",
         "moduleResolution": "Node",
@@ -15,14 +18,19 @@
         "noImplicitReturns": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
+        "outDir": "./dist",
         "removeComments": true,
         "resolveJsonModule": true,
+        "rootDir": "./src",
         "skipLibCheck": true,
         "sourceMap": true,
         "strict": true,
         "target": "ES6",
         "types": ["mocha", "node"]
     },
-    "include": ["**/package.json"],
-    "exclude": [".yarn/**/*", "node_modules/**/*", "**/node_modules/**/*"]
+    "paths": {
+        "@withonevision/*": ["./src/packages/*"]
+    },
+    "include": ["./src/**/*.ts", "./src/**/*.tsx", "./src/**/package.json"],
+    "exclude": [".yarn/**/*", "node_modules/**/*", "**/node_modules/**/*", "./dist/**/*" ]
 }

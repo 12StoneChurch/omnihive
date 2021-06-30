@@ -1,6 +1,6 @@
 {
     "name": "@withonevision/omnihive-worker-graphql-builder-v1",
-    "version": "0.0.1",
+    "version": "6.2.33",
     "description": "OmniHive GraphQL Build Worker V1",
     "license": "MIT",
     "author": {
@@ -25,15 +25,14 @@
     "dependencies": {
         "@withonevision/omnihive-core": "workspace:*",
         "graphql": "15.5.0",
-        "knex": "0.95.2",
+        "knex": "0.95.6",
         "lodash": "4.17.21",
-        "pluralize": "8.0.0",
-        "serialize-error": "8.0.1"
+        "pluralize": "8.0.0"
     },
     "devDependencies": {
-        "@types/lodash": "4.14.168",
+        "@types/lodash": "4.14.170",
         "@types/pluralize": "0.0.29",
-        "chai": "4.3.3",
-        "typescript": "4.2.3"
+        "chai": "4.3.4",
+        "typescript": "4.2.4"
     }
 }

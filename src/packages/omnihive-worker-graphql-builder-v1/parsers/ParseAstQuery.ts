@@ -3,12 +3,10 @@
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { OmniHiveLogLevel } from "@withonevision/omnihive-core/enums/OmniHiveLogLevel";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
-import { StringHelper } from "@withonevision/omnihive-core/helpers/StringHelper";
 import { ICacheWorker } from "@withonevision/omnihive-core/interfaces/ICacheWorker";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { IDateWorker } from "@withonevision/omnihive-core/interfaces/IDateWorker";
 import { IEncryptionWorker } from "@withonevision/omnihive-core/interfaces/IEncryptionWorker";
-import { IFeatureWorker } from "@withonevision/omnihive-core/interfaces/IFeatureWorker";
 import { ILogWorker } from "@withonevision/omnihive-core/interfaces/ILogWorker";
 import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
 import { ConnectionSchema } from "@withonevision/omnihive-core/models/ConnectionSchema";
@@ -31,6 +29,7 @@ import { WhereMode } from "../enum/WhereModes";
 import { GraphHelper } from "../helpers/GraphHelper";
 import { ConverterDatabaseTable } from "../models/ConverterDatabaseTable";
 import { ConverterOrderBy } from "../models/ConverterOrderBy";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 export class ParseAstQuery {
     private databaseWorker!: IDatabaseWorker;
@@ -50,12 +49,13 @@ export class ParseAstQuery {
 
     public parse = async (
         workerName: string,
+        args: any,
         resolveInfo: GraphQLResolveInfo,
         omniHiveContext: GraphContext
     ): Promise<any> => {
         const logWorker: ILogWorker | undefined = global.omnihive.getWorker<ILogWorker | undefined>(HiveWorkerType.Log);
 
-        if (!logWorker) {
+        if (IsHelper.isNullOrUndefined(logWorker)) {
             throw new Error("Log Worker Not Defined.  This graph converter will not work without a Log worker.");
         }
 
@@ -64,7 +64,7 @@ export class ParseAstQuery {
             workerName
         );
 
-        if (!databaseWorker) {
+        if (IsHelper.isNullOrUndefined(databaseWorker)) {
             throw new Error(
                 "Database Worker Not Defined.  This graph converter will not work without a Database worker."
             );
@@ -74,43 +74,42 @@ export class ParseAstQuery {
             IEncryptionWorker | undefined
         >(HiveWorkerType.Encryption);
 
-        if (!encryptionWorker) {
+        if (IsHelper.isNullOrUndefined(encryptionWorker)) {
             throw new Error(
                 "Encryption Worker Not Defined.  This graph converter with Cache worker enabled will not work without an Encryption worker."
             );
         }
 
-        const featureWorker: IFeatureWorker | undefined = global.omnihive.getWorker<IFeatureWorker | undefined>(
-            HiveWorkerType.Feature
-        );
-
-        const disableSecurity: boolean = (await featureWorker?.get<boolean>("disableSecurity", false)) ?? false;
-
         const tokenWorker: ITokenWorker | undefined = global.omnihive.getWorker<ITokenWorker | undefined>(
             HiveWorkerType.Token
         );
 
-        if (!disableSecurity && !tokenWorker) {
+        let disableSecurity: boolean =
+            global.omnihive.getEnvironmentVariable<boolean>("OH_SECURITY_DISABLE_TOKEN_CHECK") ?? false;
+
+        if (!disableSecurity && IsHelper.isNullOrUndefined(tokenWorker)) {
             throw new Error("[ohAccessError] No token worker defined.");
         }
 
         if (
             !disableSecurity &&
-            tokenWorker &&
-            (!omniHiveContext || !omniHiveContext.access || StringHelper.isNullOrWhiteSpace(omniHiveContext.access))
+            !IsHelper.isNullOrUndefined(tokenWorker) &&
+            (IsHelper.isNullOrUndefined(omniHiveContext) ||
+                IsHelper.isNullOrUndefined(omniHiveContext.access) ||
+                IsHelper.isEmptyStringOrWhitespace(omniHiveContext.access))
         ) {
             throw new Error("[ohAccessError] Access token is invalid or expired.");
         }
 
         if (
             !disableSecurity &&
-            tokenWorker &&
-            omniHiveContext &&
-            omniHiveContext.access &&
-            !StringHelper.isNullOrWhiteSpace(omniHiveContext.access)
+            !IsHelper.isNullOrUndefined(tokenWorker) &&
+            !IsHelper.isNullOrUndefined(omniHiveContext) &&
+            !IsHelper.isNullOrUndefined(omniHiveContext.access) &&
+            !IsHelper.isEmptyStringOrWhitespace(omniHiveContext.access)
         ) {
-            const verifyToken: boolean = await AwaitHelper.execute<boolean>(tokenWorker.verify(omniHiveContext.access));
-            if (verifyToken === false) {
+            const verifyToken: boolean = await AwaitHelper.execute(tokenWorker.verify(omniHiveContext.access));
+            if (!verifyToken) {
                 throw new Error("[ohAccessError] Access token is invalid or expired.");
             }
         }
@@ -120,13 +119,16 @@ export class ParseAstQuery {
         this.databaseWorker = databaseWorker;
         this.encryptionWorker = encryptionWorker;
 
-        const converterInfo: ConverterSqlInfo = await this.getSqlFromGraph(resolveInfo);
+        const converterInfo: ConverterSqlInfo = await AwaitHelper.execute(this.getSqlFromGraph(resolveInfo, args));
 
         let cacheKey: string = "";
         let cacheSeconds = -1;
 
-        if (this.cacheWorker) {
-            if (omniHiveContext && omniHiveContext.cacheSeconds) {
+        if (!IsHelper.isNullOrUndefined(this.cacheWorker)) {
+            if (
+                !IsHelper.isNullOrUndefined(omniHiveContext) &&
+                !IsHelper.isNullOrUndefined(omniHiveContext.cacheSeconds)
+            ) {
                 try {
                     cacheSeconds = +omniHiveContext.cacheSeconds;
                 } catch {
@@ -135,31 +137,34 @@ export class ParseAstQuery {
             }
 
             if (
-                omniHiveContext &&
-                omniHiveContext.cache &&
-                !StringHelper.isNullOrWhiteSpace(omniHiveContext.cache) &&
+                !IsHelper.isNullOrUndefined(omniHiveContext) &&
+                !IsHelper.isNullOrUndefined(omniHiveContext.cache) &&
+                !IsHelper.isEmptyStringOrWhitespace(omniHiveContext.cache) &&
                 omniHiveContext.cache !== "none"
             ) {
                 cacheKey = this.encryptionWorker.base64Encode(workerName + "||||" + converterInfo.sql);
             }
 
             if (
-                omniHiveContext &&
-                omniHiveContext.cache &&
-                !StringHelper.isNullOrWhiteSpace(omniHiveContext.cache) &&
+                !IsHelper.isNullOrUndefined(omniHiveContext) &&
+                !IsHelper.isNullOrUndefined(omniHiveContext.cache) &&
+                !IsHelper.isEmptyStringOrWhitespace(omniHiveContext.cache) &&
                 omniHiveContext.cache === "cache"
             ) {
-                const keyExists: boolean = await this.cacheWorker.exists(cacheKey);
+                const keyExists: boolean = await AwaitHelper.execute(this.cacheWorker.exists(cacheKey));
 
                 if (keyExists) {
                     logWorker.write(
                         OmniHiveLogLevel.Info,
                         `(Retrieved from Cache) => ${workerName} => ${converterInfo.sql}`
                     );
-                    const cacheResults: string | undefined = await this.cacheWorker.get(cacheKey);
+                    const cacheResults: string | undefined = await AwaitHelper.execute(this.cacheWorker.get(cacheKey));
 
                     try {
-                        if (cacheResults && !StringHelper.isNullOrWhiteSpace(cacheResults)) {
+                        if (
+                            !IsHelper.isNullOrUndefined(cacheResults) &&
+                            !IsHelper.isEmptyStringOrWhitespace(cacheResults)
+                        ) {
                             return JSON.parse(cacheResults);
                         }
                     } catch {
@@ -169,14 +174,14 @@ export class ParseAstQuery {
             }
         }
 
-        const dataResults: any[][] = await AwaitHelper.execute<any[][]>(databaseWorker.executeQuery(converterInfo.sql));
+        const dataResults: any[][] = await AwaitHelper.execute(databaseWorker.executeQuery(converterInfo.sql));
         const treeResults: any = this.getGraphFromData(dataResults[0], converterInfo.hydrationDefinition);
 
-        if (this.cacheWorker) {
+        if (!IsHelper.isNullOrUndefined(this.cacheWorker)) {
             if (
-                omniHiveContext &&
-                omniHiveContext.cache &&
-                !StringHelper.isNullOrWhiteSpace(omniHiveContext.cache) &&
+                !IsHelper.isNullOrUndefined(omniHiveContext) &&
+                !IsHelper.isNullOrUndefined(omniHiveContext.cache) &&
+                !IsHelper.isEmptyStringOrWhitespace(omniHiveContext.cache) &&
                 omniHiveContext.cache !== "none"
             ) {
                 logWorker.write(OmniHiveLogLevel.Info, `(Written to Cache) => ${workerName} => ${converterInfo.sql}`);
@@ -204,8 +209,8 @@ export class ParseAstQuery {
                 if (
                     // eslint-disable-next-line no-prototype-builtins
                     data.hasOwnProperty(key) &&
-                    Object.prototype.toString.call(data[key]) === "[object Date]" &&
-                    this.dateWorker
+                    IsHelper.isDate(data[key]) &&
+                    !IsHelper.isNullOrUndefined(this.dateWorker)
                 ) {
                     data[key] = this.dateWorker.getFormattedDateString(data[key]);
                 }
@@ -215,7 +220,7 @@ export class ParseAstQuery {
         return hydratedData;
     };
 
-    private getSqlFromGraph = async (resolveInfo: GraphQLResolveInfo): Promise<ConverterSqlInfo> => {
+    private getSqlFromGraph = async (resolveInfo: GraphQLResolveInfo, args: any): Promise<ConverterSqlInfo> => {
         // Get the parent type and the return type to resolve table info
         this.parentPath = _.get(resolveInfo.parentType.getFields(), resolveInfo.fieldNodes[0].name.value);
         const graphReturnType: GraphQLObjectType = (resolveInfo.returnType as GraphQLList<GraphQLObjectType>).ofType;
@@ -234,41 +239,32 @@ export class ParseAstQuery {
 
         this.tables.push(currentTable);
 
-        // Set the intial "from" clause
-        this.query.from(`${graphParentType.extensions?.dbTableName} as t${this.currentTableIndex}`);
+        // Set the initial "from" clause
+        if (this.databaseWorker.config.metadata.ignoreSchema) {
+            this.query.from(`${graphParentType.extensions?.dbTableName} as t${this.currentTableIndex}`);
+        } else {
+            this.query.from(
+                `${graphParentType.extensions?.dbSchemaName}.${graphParentType.extensions?.dbTableName} as t${this.currentTableIndex}`
+            );
+        }
 
-        // Get the main primary key from the root "from" table
-        const primaryKey: any = _.filter(graphParentType.getFields(), (field) => {
-            return field.extensions?.dbColumnName === graphParentType.extensions?.dbPrimaryKey;
-        })[0];
+        // Get the primary keys from the root "from" table if there are any
+        let primaryKeys: any[] = [];
+
+        if (
+            !IsHelper.isNullOrUndefined(graphParentType) &&
+            !IsHelper.isNullOrUndefined(graphParentType.extensions) &&
+            !IsHelper.isNullOrUndefined(graphParentType.extensions.dbPrimaryKeys) &&
+            IsHelper.isArray(graphParentType.extensions.dbPrimaryKeys)
+        ) {
+            primaryKeys = _.filter(graphParentType.getFields(), (field) => {
+                return (graphParentType.extensions?.dbPrimaryKeys as Array<string>).includes(
+                    field.extensions?.dbColumnName
+                );
+            });
+        }
 
         // Build the root where arguments and get the where string
-        const args: any = {};
-
-        Object.keys(resolveInfo.variableValues).forEach((key: string) => {
-            const graphKey = key.replace(/^_.*_/, "");
-
-            if (
-                graphKey !== "dbPage" &&
-                graphKey !== "dbLimit" &&
-                graphKey !== "whereMode" &&
-                graphKey !== "objPage" &&
-                graphKey !== "objLimit" &&
-                !graphReturnType.extensions?.aggregateType
-            ) {
-                const dbColumnName = _.filter(
-                    graphReturnType.getFields(),
-                    (field: GraphQLField<any, any>) => field.name === graphKey
-                )[0].extensions?.dbColumnName;
-                args[dbColumnName] = resolveInfo.variableValues[key];
-            } else if (graphReturnType.extensions?.aggregateType) {
-                const dbColumnName = this.parentPath.args.filter((arg: GraphQLArgument) => arg.name === graphKey)[0]
-                    ?.extensions?.dbColumnName;
-                args[dbColumnName] = resolveInfo.variableValues[key];
-            } else {
-                args[graphKey] = resolveInfo.variableValues[key];
-            }
-        });
 
         this.whereOrderByHandler(graphParentType.extensions?.dbTableName, `t${this.currentTableIndex}`, args);
 
@@ -277,12 +273,12 @@ export class ParseAstQuery {
         const hydrationDefinition: any = this.turnGraphNodeIntoSql(
             resolveInfo.fieldNodes[0].selectionSet?.selections ?? [],
             graphReturnType.getFields(),
-            primaryKey,
+            primaryKeys,
             args
         );
 
         // Handle orderBy
-        if (this.orderByList.length > 0) {
+        if (!IsHelper.isEmptyArray(this.orderByList)) {
             this.query.orderBy(this.orderByList);
         }
 
@@ -299,7 +295,7 @@ export class ParseAstQuery {
             if (data.hasOwnProperty(key)) {
                 if (this.objPagination.some((x) => x.key === key)) {
                     const pageObject = this.objPagination.find((x) => x.key === key);
-                    if (pageObject) {
+                    if (!IsHelper.isNullOrUndefined(pageObject)) {
                         data[key] = data[key].slice(
                             (pageObject.page - 1) * pageObject.limit,
                             pageObject.page * pageObject.limit
@@ -318,7 +314,7 @@ export class ParseAstQuery {
     private turnGraphNodeIntoSql = (
         selections: readonly SelectionNode[],
         selectionFields: GraphQLFieldMap<any, any>,
-        primaryKey: any,
+        primaryKeys: any[],
         args: any,
         parentTable?: ConverterDatabaseTable
     ): any => {
@@ -329,15 +325,19 @@ export class ParseAstQuery {
         const maxLimitSetting = this.databaseWorker.config.metadata.rowLimit;
         let maxLimit: number = 100000;
 
-        if (maxLimitSetting && typeof maxLimitSetting === "number" && +maxLimitSetting !== 0) {
+        if (
+            !IsHelper.isNullOrUndefined(maxLimitSetting) &&
+            IsHelper.isNumber(maxLimitSetting) &&
+            +maxLimitSetting !== 0
+        ) {
             maxLimit = +maxLimitSetting;
         }
 
         // Handle first pass
-        if (!parentTable) {
+        if (IsHelper.isNullOrUndefined(parentTable)) {
             let pageNumber = 1;
 
-            if (args.whereMode) {
+            if (!IsHelper.isNullOrUndefined(args.whereMode)) {
                 this.whereMode = args.whereMode;
             }
 
@@ -372,29 +372,31 @@ export class ParseAstQuery {
         // Get table for reference
         const table: ConverterDatabaseTable = this.tables[this.currentTableIndex];
 
-        // Primary key must ALWAYS be pushed in for every table so the hydrator will
-        // work.  It must also be pushed in FIRST.  We will ignore the primary key
+        // Primary keys must ALWAYS be pushed in for every table so the hydrator will
+        // work.  They must also be pushed in FIRST.  We will ignore the primary keys
         // later if the query has requested it.
 
         const graphParentType: GraphQLObjectType = (this.parentPath.type as GraphQLList<GraphQLObjectType>).ofType;
 
-        if (!graphParentType.extensions?.aggregateType) {
-            returnHydration[primaryKey.name] = { column: `f${this.currentFieldIndex}`, id: true };
-            this.query.select(
-                `${table.tableAlias}.${primaryKey.extensions.dbColumnName} as f${this.currentFieldIndex}`
-            );
-            this.currentFieldIndex++;
+        if (IsHelper.isNullOrUndefined(graphParentType.extensions?.aggregateType)) {
+            primaryKeys.forEach((primaryKey) => {
+                returnHydration[primaryKey.name] = { column: `f${this.currentFieldIndex}`, id: true };
+                this.query.select(
+                    `${table.tableAlias}.${primaryKey.extensions.dbColumnName} as f${this.currentFieldIndex}`
+                );
+                this.currentFieldIndex++;
+            });
 
             // Get the selection fields that are actual fields, push them into the catcher interface,
             // and add them to the select.  Ignore the primary key if it is in the query.
-            const fields: SelectionNode[] = selections.filter(
-                (selection: SelectionNode) => (selection as FieldNode).selectionSet === undefined
+            const fields: SelectionNode[] = selections.filter((selection: SelectionNode) =>
+                IsHelper.isUndefined((selection as FieldNode).selectionSet)
             );
 
             fields.forEach((selection: SelectionNode) => {
                 const graphField: GraphQLField<any, any> = _.get(selectionFields, (selection as FieldNode).name.value);
 
-                if (graphField.extensions?.dbColumnName !== primaryKey.extensions.dbColumnName) {
+                if (!primaryKeys.some((key) => key.extensions.dbColumnName === graphField.extensions?.dbColumnName)) {
                     returnHydration[graphField.name] = { column: `f${this.currentFieldIndex}` };
                     this.query.select(
                         `${table.tableAlias}.${graphField.extensions?.dbColumnName} as f${this.currentFieldIndex}`
@@ -411,7 +413,7 @@ export class ParseAstQuery {
             aggTypes.forEach((agg: SelectionNode) => {
                 const aggFieldNode: FieldNode = agg as FieldNode;
 
-                if (aggFieldNode.arguments && aggFieldNode.arguments.length > 1) {
+                if (!IsHelper.isNullOrUndefined(aggFieldNode.arguments) && aggFieldNode.arguments.length > 1) {
                     throw new Error("Only one argument allowed for aggregate functions.");
                 } else {
                     const knexFunctionField: GraphQLField<any, any> = _.filter(
@@ -421,14 +423,18 @@ export class ParseAstQuery {
                     const knexFunction: string = knexFunctionField.extensions?.knexFunction;
 
                     const dbFieldName = knexFunctionField.args.filter((arg) => {
-                        if (aggFieldNode && aggFieldNode.arguments && aggFieldNode.arguments.length > 0) {
+                        if (
+                            !IsHelper.isNullOrUndefined(aggFieldNode) &&
+                            !IsHelper.isNullOrUndefined(aggFieldNode.arguments) &&
+                            aggFieldNode.arguments.length > 0
+                        ) {
                             return arg.name === aggFieldNode.arguments[0].name.value;
                         } else {
                             return undefined;
                         }
                     })[0].extensions?.dbColumnName;
 
-                    if (knexFunction !== "count" && !dbFieldName) {
+                    if (knexFunction !== "count" && IsHelper.isNullOrUndefined(dbFieldName)) {
                         throw new Error("This aggregate function requires one argument.");
                     } else {
                         returnHydration[knexFunction] = { column: `f${this.currentFieldIndex}` };
@@ -475,7 +481,7 @@ export class ParseAstQuery {
             (selection: SelectionNode) => (selection as FieldNode).selectionSet !== undefined
         );
 
-        if (subTables && subTables.length > 0) {
+        if (!IsHelper.isNullOrUndefined(subTables) && !IsHelper.isEmptyArray(subTables)) {
             this.currentTableIndex++;
         }
 
@@ -492,20 +498,21 @@ export class ParseAstQuery {
             }
 
             // Grab the join's primary key for the recursion
-            const subPrimaryKey: any = _.filter(subFields, (field: any) => {
+            const subPrimaryKey: any[] = _.filter(subFields, (field: any) => {
                 return (
                     field.extensions.dbColumnName !== undefined &&
                     !field.name.toString().startsWith("from_") &&
                     !field.name.toString().startsWith("to_") &&
                     field.extensions.dbColumnName === graphField.extensions?.dbJoinForeignTablePrimaryKey
                 );
-            })[0];
+            });
 
             // Push into the catcher interface
             const subTable: ConverterDatabaseTable = {
                 index: this.currentTableIndex,
-                graphPath:
-                    parentTable?.graphPath === "" ? graphField.name : parentTable?.graphPath + "." + graphField.name,
+                graphPath: IsHelper.isEmptyStringOrWhitespace(parentTable?.graphPath)
+                    ? graphField.name
+                    : parentTable?.graphPath + "." + graphField.name,
                 tableAlias: `t${this.currentTableIndex}`,
                 tableName: graphField.extensions?.dbTableName,
             };
@@ -535,7 +542,7 @@ export class ParseAstQuery {
                                 (x: { name: string; dbName: string }) => x.name === args.name.value
                             )?.dbName;
 
-                            if (dbName) {
+                            if (!IsHelper.isNullOrUndefined(dbName)) {
                                 const conditions = args.value.value.split("||");
 
                                 this.andOn(function () {
@@ -563,7 +570,7 @@ export class ParseAstQuery {
                                 (x: { name: string; dbName: string }) => x.name === args.name.value
                             )?.dbName;
 
-                            if (dbName) {
+                            if (!IsHelper.isNullOrUndefined(dbName)) {
                                 const conditions = args.value.value.split("||");
 
                                 this.andOn(function () {
@@ -649,7 +656,7 @@ export class ParseAstQuery {
     };
 
     public whereOrderByHandler = (tableName: string, tableAlias: string, args: any): void => {
-        if (!args || Object.keys(args).length === 0) {
+        if (IsHelper.isNullOrUndefined(args) || IsHelper.isEmptyObject(args)) {
             return;
         }
 
@@ -659,7 +666,7 @@ export class ParseAstQuery {
 
         let tableSchema: TableSchema[] = [];
 
-        if (schema) {
+        if (!IsHelper.isNullOrUndefined(schema)) {
             tableSchema = schema.tables;
         }
 
@@ -678,13 +685,13 @@ export class ParseAstQuery {
                 return column.columnNameDatabase === key;
             });
 
-            if (!columnSchema) {
+            if (IsHelper.isNullOrUndefined(columnSchema)) {
                 columnSchema = tableSchema.find((column: TableSchema) => {
                     return column.columnNameEntity === key;
                 });
             }
 
-            if (!columnSchema) {
+            if (IsHelper.isNullOrUndefined(columnSchema)) {
                 return;
             }
 
@@ -697,7 +704,7 @@ export class ParseAstQuery {
                 .map((y) => y.trim());
 
             orderByArgs.forEach((orderBy: string) => {
-                if (columnSchema) {
+                if (!IsHelper.isNullOrUndefined(columnSchema)) {
                     this.orderByList.push({
                         column: `${tableAlias}.${columnSchema.columnNameDatabase}`,
                         order: orderBy.includes("asc") ? "asc" : "desc",
@@ -709,7 +716,7 @@ export class ParseAstQuery {
                 this.query.where((subWhereBuilder) => {
                     whereArgs.forEach((whereSub: string, subIndex: number) => {
                         if (subIndex === 0) {
-                            if (!StringHelper.isNullOrWhiteSpace(tableAlias)) {
+                            if (!IsHelper.isEmptyStringOrWhitespace(tableAlias)) {
                                 subWhereBuilder.whereRaw(
                                     tableAlias + "." + columnSchema?.columnNameDatabase + " " + whereSub
                                 );
@@ -717,7 +724,7 @@ export class ParseAstQuery {
                                 subWhereBuilder.whereRaw(columnSchema?.columnNameDatabase + " " + whereSub);
                             }
                         } else {
-                            if (!StringHelper.isNullOrWhiteSpace(tableAlias)) {
+                            if (!IsHelper.isEmptyStringOrWhitespace(tableAlias)) {
                                 subWhereBuilder.orWhereRaw(
                                     tableAlias + "." + columnSchema?.columnNameDatabase + " " + whereSub
                                 );
@@ -731,7 +738,7 @@ export class ParseAstQuery {
                 this.query.andWhere((subWhereBuilder) => {
                     whereArgs.forEach((whereSub: string, subIndex: number) => {
                         if (subIndex === 0) {
-                            if (!StringHelper.isNullOrWhiteSpace(tableAlias)) {
+                            if (!IsHelper.isEmptyStringOrWhitespace(tableAlias)) {
                                 subWhereBuilder.whereRaw(
                                     tableAlias + "." + columnSchema?.columnNameDatabase + " " + whereSub
                                 );
@@ -739,7 +746,7 @@ export class ParseAstQuery {
                                 subWhereBuilder.whereRaw(columnSchema?.columnNameDatabase + " " + whereSub);
                             }
                         } else {
-                            if (!StringHelper.isNullOrWhiteSpace(tableAlias)) {
+                            if (!IsHelper.isEmptyStringOrWhitespace(tableAlias)) {
                                 subWhereBuilder.orWhereRaw(
                                     tableAlias + "." + columnSchema?.columnNameDatabase + " " + whereSub
                                 );
@@ -757,7 +764,7 @@ export class ParseAstQuery {
 
     private getDbColumnName = (graphField: any, arg: any): string => {
         let dbColumnName: string = "";
-        if (graphField.extensions?.aggregateType) {
+        if (!IsHelper.isNullOrUndefined(graphField.extensions?.aggregateType)) {
             dbColumnName = graphField.args.filter((field: GraphQLArgument) => field.name === arg.name.value)[0]
                 .extensions?.dbColumnName;
         } else {

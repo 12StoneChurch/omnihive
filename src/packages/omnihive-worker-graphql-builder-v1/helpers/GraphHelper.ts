@@ -70,11 +70,7 @@ export class GraphHelper {
      * the data has column names that follow a particular convention then a
      * nested structures can also be created.
      */
-    public nestHydrate(
-        data: any,
-        structPropToColumnMap: IDefinition | IDefinition[] | null | boolean,
-        verbose = false
-    ): any {
+    public nestHydrate(data: any, structPropToColumnMap: IDefinition | IDefinition[] | null | boolean): any {
         let table;
 
         // VALIDATE PARAMS AND BASIC INITIALIZATION
@@ -277,10 +273,6 @@ export class GraphHelper {
 
         // struct is populated inside the build function
         this.struct = null;
-
-        if (verbose) {
-            console.log(meta);
-        }
 
         for (const row of table) {
             for (const primeIdColumn of meta.primeIdColumnList) {

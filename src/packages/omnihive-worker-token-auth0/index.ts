@@ -1,5 +1,5 @@
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
-import { StringHelper } from "@withonevision/omnihive-core/helpers/StringHelper";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
 import { HiveWorker } from "@withonevision/omnihive-core/models/HiveWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
@@ -27,7 +27,7 @@ export default class AuthZeroTokenWorker extends HiveWorkerBase implements IToke
     }
 
     public async init(config: HiveWorker): Promise<void> {
-        await AwaitHelper.execute<void>(super.init(config));
+        await AwaitHelper.execute(super.init(config));
 
         this.metadata = this.checkObjectStructure<AuthZeroTokenWorkerMetadata>(
             AuthZeroTokenWorkerMetadata,
@@ -51,7 +51,7 @@ export default class AuthZeroTokenWorker extends HiveWorkerBase implements IToke
                 audience: this.metadata.audience,
             };
 
-            this.token = (await this.authClient.clientCredentialsGrant(options)).access_token;
+            this.token = (await AwaitHelper.execute(this.authClient.clientCredentialsGrant(options))).access_token;
             this.token = `${this.metadata.clientId}||${this.token}`;
             return this.token;
         } catch (err) {
@@ -67,7 +67,7 @@ export default class AuthZeroTokenWorker extends HiveWorkerBase implements IToke
             const currentTimestamp = Math.floor(Date.now().valueOf() / 1000);
             const decoded: any = jwtDecode(token);
 
-            if (decoded.azp !== clientId || decoded.exp === "undefined" || currentTimestamp > decoded.exp) {
+            if (decoded.azp !== clientId || IsHelper.isUndefined(decoded.exp) || currentTimestamp > decoded.exp) {
                 throw new Error("[ohAccessError] Access token is either the wrong client or expired");
             }
 
@@ -78,16 +78,16 @@ export default class AuthZeroTokenWorker extends HiveWorkerBase implements IToke
     };
 
     public verify = async (token: string): Promise<boolean> => {
-        if (this.metadata.verifyOn === false) {
+        if (!this.metadata.verifyOn) {
             return true;
         }
 
-        if (StringHelper.isNullOrWhiteSpace(token)) {
+        if (IsHelper.isNullOrUndefined(token) || IsHelper.isEmptyStringOrWhitespace(token)) {
             throw new Error("[ohAccessError] No access token was given");
         }
 
-        const clientId = token.split("||")[0];
-        token = token.split("||")[1];
+        const clientId = (token as string).split("||")[0];
+        token = (token as string).split("||")[1];
 
         const sections: string[] = token.split(".");
 
@@ -100,9 +100,7 @@ export default class AuthZeroTokenWorker extends HiveWorkerBase implements IToke
         let jwks: AxiosResponse<any>;
 
         try {
-            jwks = await AwaitHelper.execute<AxiosResponse<any>>(
-                axios.get(`https://${this.metadata.domain}/.well-known/jwks.json`)
-            );
+            jwks = await AwaitHelper.execute(axios.get(`https://${this.metadata.domain}/.well-known/jwks.json`));
         } catch (e) {
             throw new Error("[ohAccessError] JWKS Url Not Responding");
         }
@@ -131,7 +129,7 @@ export default class AuthZeroTokenWorker extends HiveWorkerBase implements IToke
         let jwkKey: jose.JWK.Key;
 
         try {
-            jwkKey = await AwaitHelper.execute<jose.JWK.Key>(jose.JWK.asKey(keys[keyIndex]));
+            jwkKey = await AwaitHelper.execute(jose.JWK.asKey(keys[keyIndex]));
         } catch (e) {
             throw new Error("[ohAccessError] Invalid key");
         }
@@ -140,9 +138,7 @@ export default class AuthZeroTokenWorker extends HiveWorkerBase implements IToke
         let jwkVerification: jose.JWS.VerificationResult;
 
         try {
-            jwkVerification = await AwaitHelper.execute<jose.JWS.VerificationResult>(
-                jose.JWS.createVerify(jwkKey).verify(token)
-            );
+            jwkVerification = await AwaitHelper.execute(jose.JWS.createVerify(jwkKey).verify(token));
         } catch (e) {
             throw new Error("[ohAccessError] Signature verification failed");
         }

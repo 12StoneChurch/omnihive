@@ -37,6 +37,14 @@
         "autoUpdateTime": 2000,
         "showDebugTestStatus": true
     },
+    "debug.javascript.autoAttachFilter": "onlyWithFlag",
     "typescript.tsdk": "node_modules/typescript/lib",
-    "typescript.enablePromptUseWorkspaceTsdk": false
+    "typescript.enablePromptUseWorkspaceTsdk": false,
+    "conventionalCommits.scopes": [
+        "omnihive",
+        "client",
+        "worker",
+        "monorepo"
+    ],
+    "typescript.preferences.quoteStyle": "double"
 }

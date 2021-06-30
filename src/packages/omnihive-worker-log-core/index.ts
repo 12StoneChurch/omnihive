@@ -2,7 +2,6 @@
 
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { OmniHiveLogLevel } from "@withonevision/omnihive-core/enums/OmniHiveLogLevel";
-import { IFeatureWorker } from "@withonevision/omnihive-core/interfaces/IFeatureWorker";
 import { ILogWorker } from "@withonevision/omnihive-core/interfaces/ILogWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { RegisteredHiveWorker } from "@withonevision/omnihive-core/models/RegisteredHiveWorker";
@@ -10,7 +9,8 @@ import chalk from "chalk";
 import dayjs from "dayjs";
 import os from "os";
 import { serializeError } from "serialize-error";
-import { AdminEventResponse } from "@withonevision/omnihive-core/models/AdminEventResponse";
+import { AdminEventType } from "@withonevision/omnihive-core/enums/AdminEventType";
+import { AdminRoomType } from "@withonevision/omnihive-core/enums/AdminRoomType";
 
 export default class LogWorkerServerDefault extends HiveWorkerBase implements ILogWorker {
     constructor() {
@@ -18,47 +18,21 @@ export default class LogWorkerServerDefault extends HiveWorkerBase implements IL
     }
 
     public write = async (logLevel: OmniHiveLogLevel, logString: string): Promise<void> => {
-        let featureWorker: IFeatureWorker | undefined = undefined;
-        let consoleOnlyLogging: boolean = true;
         const timestamp: string = dayjs().format("YYYY-MM-DD HH:mm:ss");
         const osName: string = os.hostname();
 
-        try {
-            featureWorker = global.omnihive.getWorker<IFeatureWorker | undefined>(HiveWorkerType.Feature);
-        } catch {
-            featureWorker = undefined;
-        }
-
-        try {
-            (await featureWorker?.get<boolean>("consoleOnlyLogging")) ?? true;
-        } catch {
-            consoleOnlyLogging = true;
-        }
-
-        let adminEvent: AdminEventResponse = {
-            event: "log-response",
-            data: {
-                logLevel,
-                timestamp,
-                osName,
-                logString,
-            },
-            requestComplete: true,
-            requestError: undefined,
-        };
-
-        global.omnihive.adminServer.clients.forEach((ws) => {
-            ws.send(JSON.stringify(adminEvent));
+        global.omnihive.emitToNamespace(AdminRoomType.Log, AdminEventType.LogResponse, {
+            logLevel,
+            timestamp,
+            osName,
+            logString,
         });
 
-        if (consoleOnlyLogging) {
-            this.chalkConsole(logLevel, osName, timestamp, logString);
-            return;
-        }
+        this.chalkConsole(logLevel, osName, timestamp, logString);
 
         const logWorkers: RegisteredHiveWorker[] = global.omnihive.registeredWorkers.filter(
             (value: RegisteredHiveWorker) => {
-                return value.enabled === true && value.type === HiveWorkerType.Log && value.name !== "ohreqLogWorker";
+                return value.enabled && value.type === HiveWorkerType.Log && value.name !== "__ohBootLogWorker";
             }
         );
 

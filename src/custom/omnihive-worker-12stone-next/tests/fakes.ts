@@ -14,8 +14,8 @@ export const fakeSelectEventResult: SelectEventResult = [
         end_date: "Fake End Date",
         type_id: 1,
         type: "Fake Type",
-        campus_id: 1,
         campus: "Fake Campus",
+        campus_id: 1,
         address_id: 1,
         address_line_1: "Fake Address Line 1",
         address_line_2: null,
@@ -36,6 +36,8 @@ export const fakeSelectEventResult: SelectEventResult = [
         participants_expected: null,
         participants_registered: 1,
         spots_available: null,
+        participation_status_id: 1,
+        participation_status: null,
     },
 ];
 

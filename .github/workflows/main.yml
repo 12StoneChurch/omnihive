@@ -18,7 +18,7 @@ jobs:
               run: |
                   year=$(date +%Y)
                   versionMinor=$(date +%m.%d%H%M)
-                  let versionMajor=$year-2020
+                  let versionMajor=$year-2019
                   version=$versionMajor.$versionMinor
 
                   echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" >> ~/.npmrc

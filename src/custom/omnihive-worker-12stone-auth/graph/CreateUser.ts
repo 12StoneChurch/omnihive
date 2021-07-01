@@ -24,7 +24,7 @@ export default class CreateUser extends HiveWorkerBase implements IGraphEndpoint
     public execute = async (customArgs: CreateUserArgs): Promise<any> => {
         try {
             // Get Metadata
-            DanyService.getSingleton().setMetaData(this.config.metadata);
+            DanyService.getSingleton().setMetaData(this.metadata);
 
             const result = await AwaitHelper.execute(danyPost("/Security/Register", customArgs));
 

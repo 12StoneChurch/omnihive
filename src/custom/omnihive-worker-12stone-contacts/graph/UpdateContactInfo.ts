@@ -8,7 +8,7 @@ import { UpdateContactInfoArgs } from "../lib/models/UpdateModels";
 export default class UpdateContactInfo extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (data: UpdateContactInfoArgs) => {
         try {
-            GraphService.getSingleton().graphRootUrl = this.config.metadata.mpGraphUrl;
+            GraphService.getSingleton().graphRootUrl = this.metadata.mpGraphUrl;
 
             const res: {
                 contact: boolean | undefined;

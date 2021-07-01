@@ -3,6 +3,7 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import Joi from "joi";
 import { serializeError } from "serialize-error";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 import { mapEventsList } from "../common/helpers/mapEventsList";
 import { paginatedItemsResult } from "../common/helpers/paginatedItemsResult";
@@ -35,9 +36,15 @@ export interface ListEventsResult {
 
 export default class ListEvents extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: Args): Promise<PageType<EventType>> => {
+        const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+        if (IsHelper.isNullOrUndefined(webRootUrl)) {
+            throw new Error("Web Root URL undefined");
+        }
+
         const graph = GraphService.getSingleton();
-        graph.init(this.registeredWorkers);
-        graph.graphRootUrl = this.serverSettings.config.webRootUrl + this.config.metadata.dataSlug;
+        graph.init(this.registeredWorkers, this.environmentVariables);
+        graph.graphRootUrl = webRootUrl + this.metadata.dataSlug;
 
         try {
             const { error, value } = argsSchema.validate(customArgs || {});

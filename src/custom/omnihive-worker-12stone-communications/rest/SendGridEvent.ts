@@ -128,7 +128,7 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
 
     public execute = async (_headers: any, _url: string, body: any): Promise<any> => {
         try {
-            this.dataUrl = `${this.serverSettings.config.webRootUrl}/${this.config.metadata.data.dataSlug}`;
+            this.dataUrl = `${this.serverSettings.config.webRootUrl}/${this.metadata.data.dataSlug}`;
             setGraphUrl(this.dataUrl);
 
             const orderedBody = body.sort((a: any, b: any) => a.timestamp - b.timestamp);

@@ -26,7 +26,7 @@ export default class SendSms extends HiveWorkerBase implements IGraphEndpointWor
                     mediaUrl: customArgs.mediaUrl,
                 },
             };
-            return { sid: await AwaitHelper.execute(sendTwilioSms(messageArg, this.config.metadata)) };
+            return { sid: await AwaitHelper.execute(sendTwilioSms(messageArg, this.metadata)) };
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
             return err;

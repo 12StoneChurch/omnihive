@@ -15,7 +15,7 @@ export default class Profile extends HiveWorkerBase implements IGraphEndpointWor
     public execute = async (customArgs: any): Promise<any> => {
         try {
             // Get Metadata
-            DanyService.getSingleton().setMetaData(this.config.metadata);
+            DanyService.getSingleton().setMetaData(this.metadata);
 
             // Validate arguments
             this.checkObjectStructure(Args, customArgs);

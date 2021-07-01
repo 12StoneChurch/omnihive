@@ -5,6 +5,7 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import dayjs from "dayjs";
 import { serializeError } from "serialize-error";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 import { getMessageById } from "../common/GetMessaegById";
 
@@ -57,8 +58,13 @@ export default class GetLatestMessage extends HiveWorkerBase implements IGraphEn
 
     public execute = async (_customArgs: any): Promise<WatchContent | {}> => {
         try {
-            GraphService.getSingleton().graphRootUrl =
-                this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+            const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+            if (IsHelper.isNullOrUndefined(webRootUrl)) {
+                throw new Error("Web Root URL undefined");
+            }
+
+            GraphService.getSingleton().graphRootUrl = webRootUrl + "/server1/builder1/ministryplatform";
 
             const latestSiteDocId = await this.getLatestMessageId();
 

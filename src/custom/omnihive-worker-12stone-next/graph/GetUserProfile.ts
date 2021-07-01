@@ -3,6 +3,7 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import Joi from "joi";
 import { serializeError } from "serialize-error";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 import { queryCdnUrl } from "../common/queries/queryCdnUrl";
 import { queryPhotoGuid } from "../common/queries/queryPhotoGuid";
@@ -25,10 +26,16 @@ export interface GetUserProfileResult {
 
 export default class GetUserProfile extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: Args): Promise<UserType> => {
+        const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+        if (IsHelper.isNullOrUndefined(webRootUrl)) {
+            throw new Error("Web Root URL undefined");
+        }
+
         const graph = GraphService.getSingleton();
-        graph.init(this.registeredWorkers);
-        const mpGraphRootUrl = this.serverSettings.config.webRootUrl + this.config.metadata.dataSlug;
-        const customGraphRootUrl = this.serverSettings.config.webRootUrl + this.config.metadata.customSlug;
+        graph.init(this.registeredWorkers, this.environmentVariables);
+        const mpGraphRootUrl = webRootUrl + this.metadata.dataSlug;
+        const customGraphRootUrl = webRootUrl + this.metadata.customSlug;
 
         try {
             const { error, value } = argsSchema.validate(customArgs);

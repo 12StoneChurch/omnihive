@@ -6,9 +6,16 @@ import { PaginationModel } from "@12stonechurch/omnihive-worker-common/models/Pa
 import { WatchContent } from "@12stonechurch/omnihive-worker-common/models/WatchModels";
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 import { transformDataToWatchContent } from "../common/DataToWatchContent";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 export default class getPastMessages extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: any | undefined): Promise<PaginationModel<WatchContent>> => {
+        const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+        if (IsHelper.isNullOrUndefined(webRootUrl)) {
+            throw new Error("Web Root URL undefined");
+        }
+
         const page: number = customArgs?.page ?? 1;
         const limit: number = customArgs?.limit ?? 100;
 
@@ -22,8 +29,7 @@ export default class getPastMessages extends HiveWorkerBase implements IGraphEnd
           }
       `;
 
-        GraphService.getSingleton().graphRootUrl =
-            this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+        GraphService.getSingleton().graphRootUrl = webRootUrl + "/server1/builder1/ministryplatform";
 
         const results: any = await AwaitHelper.execute(GraphService.getSingleton().runQuery(query));
 

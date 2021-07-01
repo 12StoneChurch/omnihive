@@ -72,7 +72,7 @@ export default class StopCommand extends HiveWorkerBase implements IRestEndpoint
     private updateDb = async (phoneNumber: string) => {
         try {
             await init(this.registeredWorkers);
-            setGraphUrl(`${this.serverSettings.config.webRootUrl}/${this.config.metadata.data.dataSlug}`);
+            setGraphUrl(`${this.serverSettings.config.webRootUrl}/${this.metadata.data.dataSlug}`);
 
             const mutation = `
                 update c

@@ -1,12 +1,3 @@
 {
-    "extends": "../../../tsconfig.json",
-    "compilerOptions": {
-        "outDir": "../../../dist/custom/omnihive-worker-cloudinary",
-        "rootDir": "."
-    },
-    "paths": {
-        "@withonevision/*": ["../../packages/*"]
-    },
-    "include": ["./**/*.ts", "./**/*.tsx"],
-    "exclude": ["./tests/**/*"]
+    "extends": "../../../tsconfig.json"
 }

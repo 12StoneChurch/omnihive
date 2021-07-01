@@ -14,7 +14,7 @@ export default class Track extends HiveWorkerBase implements IGraphEndpointWorke
     public execute = async (customArgs: any): Promise<any> => {
         try {
             // Get Metadata
-            DanyService.getSingleton().setMetaData(this.config.metadata);
+            DanyService.getSingleton().setMetaData(this.metadata);
 
             // Validate arguments
             this.checkObjectStructure(Args, customArgs);

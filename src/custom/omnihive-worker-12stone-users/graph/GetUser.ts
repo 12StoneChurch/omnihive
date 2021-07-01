@@ -9,7 +9,7 @@ export default class ForgotPassword extends HiveWorkerBase implements IGraphEndp
     public execute = async (customArgs: any): Promise<any> => {
         try {
             // Get Metadata
-            DanyService.getSingleton().setMetaData(this.config.metadata);
+            DanyService.getSingleton().setMetaData(this.metadata);
 
             const result = await AwaitHelper.execute(danyGet("/Users/GetUser", customArgs.authToken));
 

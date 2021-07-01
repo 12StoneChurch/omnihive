@@ -2,6 +2,7 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { serializeError } from "serialize-error";
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 class VerifyTokenArgs {
     AuthToken: string = "";
@@ -10,6 +11,12 @@ class VerifyTokenArgs {
 export default class VerifyToken extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: VerifyTokenArgs): Promise<any> => {
         try {
+            const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+            if (IsHelper.isNullOrUndefined(webRootUrl)) {
+                throw new Error("Web Root URL undefined");
+            }
+
             const query = `
                 query {
                     storedProcedures {
@@ -21,8 +28,7 @@ export default class VerifyToken extends HiveWorkerBase implements IGraphEndpoin
                 }
             `;
 
-            GraphService.getSingleton().graphRootUrl =
-                this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+            GraphService.getSingleton().graphRootUrl = webRootUrl + "/server1/builder1/ministryplatform";
 
             const results = (await GraphService.getSingleton().runQuery(query)).storedProcedures[0].data[0][0];
             delete results.SessionId;

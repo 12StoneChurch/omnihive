@@ -59,7 +59,7 @@ export default class SendEmail extends HiveWorkerBase implements IGraphEndpointW
                 messageArg.text = customArgs.text;
             }
 
-            return { email: await AwaitHelper.execute(sendEmails([messageArg], this.config.metadata)) };
+            return { email: await AwaitHelper.execute(sendEmails([messageArg], this.metadata)) };
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
             return err;

@@ -19,7 +19,7 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
     };
 
     public execute = async (): Promise<any> => {
-        const rootUrl: string = `${this.serverSettings.config.webRootUrl}${this.config.metadata.dataSlug}`;
+        const rootUrl: string = `${this.serverSettings.config.webRootUrl}${this.metadata.dataSlug}`;
         setGraphUrl(rootUrl);
         await init(this.registeredWorkers);
 

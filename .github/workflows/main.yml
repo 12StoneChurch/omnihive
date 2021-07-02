@@ -23,4 +23,4 @@ jobs:
 
                   echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" >> ~/.npmrc
 
-                  yarn build:custom:publish -v $version
+                  yarn build:custom -p -v $version

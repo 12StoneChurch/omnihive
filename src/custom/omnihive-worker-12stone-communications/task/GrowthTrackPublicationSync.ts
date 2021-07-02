@@ -1,6 +1,7 @@
 import { ITaskEndpointWorker } from "@withonevision/omnihive-core/interfaces/ITaskEndpointWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { Listr } from "listr2";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 import { addContactPublications } from "../common/addContactPublications";
 import { updateContactPublications } from "../common/updateContactPublications";
 import { init, runCustomSql, setGraphUrl } from "../lib/services/GraphService";
@@ -19,9 +20,15 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
     };
 
     public execute = async (): Promise<any> => {
-        const rootUrl: string = `${this.serverSettings.config.webRootUrl}${this.metadata.dataSlug}`;
+        const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+        if (IsHelper.isNullOrUndefined(webRootUrl)) {
+            throw new Error("Web Root URL undefined");
+        }
+
+        const rootUrl: string = `${webRootUrl}${this.metadata.dataSlug}`;
         setGraphUrl(rootUrl);
-        await init(this.registeredWorkers);
+        await init(this.registeredWorkers, this.environmentVariables);
 
         const tasks = new Listr<any>([
             {

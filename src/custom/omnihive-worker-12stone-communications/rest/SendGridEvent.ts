@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { updateCommunicationMessageStatus } from "../common/updateCommunicationMessageStatus";
 import { insertCommunicationStat } from "../common/insertCommunicationStat";
 import { runGraphQuery, setGraphUrl } from "../lib/services/GraphService";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 type StatData = {
     commId: number;
@@ -128,7 +129,13 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
 
     public execute = async (_headers: any, _url: string, body: any): Promise<any> => {
         try {
-            this.dataUrl = `${this.serverSettings.config.webRootUrl}/${this.metadata.data.dataSlug}`;
+            const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+            if (IsHelper.isNullOrUndefined(webRootUrl)) {
+                throw new Error("Web Root URL undefined");
+            }
+
+            this.dataUrl = `${webRootUrl}/${this.metadata.data.dataSlug}`;
             setGraphUrl(this.dataUrl);
 
             const orderedBody = body.sort((a: any, b: any) => a.timestamp - b.timestamp);

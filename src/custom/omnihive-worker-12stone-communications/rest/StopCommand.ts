@@ -1,6 +1,7 @@
 import { IRestEndpointWorker } from "@withonevision/omnihive-core/interfaces/IRestEndpointWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { serializeError } from "serialize-error";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 import swaggerUi from "swagger-ui-express";
 import { init, runCustomSql, setGraphUrl } from "../lib/services/GraphService";
 
@@ -71,8 +72,14 @@ export default class StopCommand extends HiveWorkerBase implements IRestEndpoint
 
     private updateDb = async (phoneNumber: string) => {
         try {
-            await init(this.registeredWorkers);
-            setGraphUrl(`${this.serverSettings.config.webRootUrl}/${this.metadata.data.dataSlug}`);
+            const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+            if (IsHelper.isNullOrUndefined(webRootUrl)) {
+                throw new Error("Web Root URL undefined");
+            }
+
+            await init(this.registeredWorkers, this.environmentVariables);
+            setGraphUrl(`${webRootUrl}/${this.metadata.data.dataSlug}`);
 
             const mutation = `
                 update c

@@ -29,6 +29,7 @@
         "server:debug": "nodemon --no-stdin --config ./nodemon.server.json"
     },
     "dependencies": {
+        "@12stonechurch/omnihive-worker-communications": "workspace:*",
         "@socket.io/redis-adapter": "7.0.0",
         "@socket.io/redis-emitter": "4.1.0",
         "@withonevision/omnihive-core": "workspace:*",

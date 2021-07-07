@@ -8,6 +8,7 @@ import { serializeError } from "serialize-error";
 import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 import { getMessageById } from "../common/GetMessaegById";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 export default class GetLatestMessage extends HiveWorkerBase implements IGraphEndpointWorker {
     private getLatestMessageId = async (): Promise<number | undefined> => {
@@ -56,7 +57,7 @@ export default class GetLatestMessage extends HiveWorkerBase implements IGraphEn
         }
     };
 
-    public execute = async (_customArgs: any): Promise<WatchContent | {}> => {
+    public execute = async (_customArgs: any, _omniHiveContext: GraphContext): Promise<WatchContent | {}> => {
         try {
             const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
 

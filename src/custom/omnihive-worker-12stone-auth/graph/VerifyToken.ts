@@ -3,13 +3,14 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import { serializeError } from "serialize-error";
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 class VerifyTokenArgs {
     AuthToken: string = "";
 }
 
 export default class VerifyToken extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: VerifyTokenArgs): Promise<any> => {
+    public execute = async (customArgs: VerifyTokenArgs, _omniHiveContext: GraphContext): Promise<any> => {
         try {
             const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
 

@@ -3,6 +3,7 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { serializeError } from "serialize-error";
 import { sendTwilioSms } from "../common/sendTwilioSms";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 class SendSmsArgs {
     body: string = "";
@@ -14,7 +15,7 @@ class SendSmsArgs {
 }
 
 export default class SendSms extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: SendSmsArgs): Promise<any> => {
+    public execute = async (customArgs: SendSmsArgs, _omniHiveContext: GraphContext): Promise<any> => {
         try {
             const messageArg = {
                 id: customArgs.commId,

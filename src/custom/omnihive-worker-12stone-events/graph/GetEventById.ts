@@ -4,6 +4,7 @@ import { serializeError } from "serialize-error";
 
 import { GetEventsByIdList } from "../common/GetEventsByIdList";
 import { Event } from "../lib/models/Event";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 /**
  * Args:
@@ -12,7 +13,7 @@ import { Event } from "../lib/models/Event";
  */
 
 export default class EventSearch extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: any): Promise<Event> => {
+    public execute = async (customArgs: any, _omniHiveContext: GraphContext): Promise<Event> => {
         try {
             const eventId: number = customArgs.id;
             const participantId: number = customArgs.participantId;

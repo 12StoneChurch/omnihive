@@ -5,13 +5,14 @@ import { WatchContent } from "@12stonechurch/omnihive-worker-common/models/Watch
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 import { getMessageById } from "../common/GetMessaegById";
 import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 class GetMessageByIdArguemnts {
     id: number = 0;
 }
 
 export default class GetMessageById extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: any): Promise<WatchContent | {}> => {
+    public execute = async (customArgs: any, _omniHiveContext: GraphContext): Promise<WatchContent | {}> => {
         const args: GetMessageByIdArguemnts = this.checkObjectStructure<GetMessageByIdArguemnts>(
             GetMessageByIdArguemnts,
             customArgs

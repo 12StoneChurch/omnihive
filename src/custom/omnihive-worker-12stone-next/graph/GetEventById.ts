@@ -9,6 +9,7 @@ import { mapEvent } from "../common/helpers/mapEvent";
 import { queryEvent } from "../common/queries/queryEvent";
 import { queryEventTags } from "../common/queries/queryEventTags";
 import type { EventType } from "../types/Event";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 const argsSchema = Joi.object({
     eventId: Joi.number().min(1).required(),
@@ -27,7 +28,7 @@ export interface GetEventByIdResult {
 }
 
 export default class GetEventById extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: Args): Promise<EventType> => {
+    public execute = async (customArgs: Args, _omniHiveContext: GraphContext): Promise<EventType> => {
         const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
 
         if (IsHelper.isNullOrUndefined(webRootUrl)) {

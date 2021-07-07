@@ -25,8 +25,8 @@
     },
     "dependencies": {
         "@12stonechurch/omnihive-worker-common": "workspace:*",
-        "@withonevision/omnihive-client": "6.2.46",
-        "@withonevision/omnihive-core": "6.2.46",
+        "@withonevision/omnihive-client": "6.2.48",
+        "@withonevision/omnihive-core": "6.2.48",
         "chalk": "4.1.1",
         "dayjs": "1.10.5",
         "query-string": "7.0.1",

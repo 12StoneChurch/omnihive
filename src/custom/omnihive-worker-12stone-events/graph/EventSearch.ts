@@ -11,6 +11,7 @@ import { GetEventsByIdList } from "../common/GetEventsByIdList";
 import { Event } from "../lib/models/Event";
 import { PaginationModel } from "@12stonechurch/omnihive-worker-common/models/PaginationModel";
 import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 /**
  * Args:
@@ -27,7 +28,7 @@ import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
  */
 
 export default class EventSearch extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: any): Promise<PaginationModel<Event>> => {
+    public execute = async (customArgs: any, _omniHiveContext: GraphContext): Promise<PaginationModel<Event>> => {
         try {
             const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
 

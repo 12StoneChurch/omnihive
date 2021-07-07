@@ -5,6 +5,7 @@ import { serializeError } from "serialize-error";
 import ElasticWorker, { ElasticSearchFieldModel } from "@12stonechurch/omnihive-worker-elastic";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { Search } from "../common/Search";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 /**
  * Args:
@@ -14,7 +15,7 @@ import { Search } from "../common/Search";
  *  limit: number
  */
 export default class WwwSearch extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: any): Promise<any> => {
+    public execute = async (customArgs: any, _omniHiveContext: GraphContext): Promise<any> => {
         try {
             const query: string = customArgs.query;
             const typeIds: number[] = customArgs.typeIds ?? [];

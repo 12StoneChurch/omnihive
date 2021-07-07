@@ -10,9 +10,13 @@ import { GraphService } from "@12stonechurch/omnihive-worker-common/services/Gra
 import { getMessageById } from "../common/GetMessaegById";
 import getPastMessages from "./GetPastMessages";
 import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 export default class MessageSearch extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: any | undefined): Promise<PaginationModel<WatchContent> | {}> => {
+    public execute = async (
+        customArgs: any | undefined,
+        omniHiveContext: GraphContext
+    ): Promise<PaginationModel<WatchContent> | {}> => {
         try {
             const query = customArgs?.query ?? "";
             const page = customArgs?.page ?? 1;
@@ -25,7 +29,9 @@ export default class MessageSearch extends HiveWorkerBase implements IGraphEndpo
                     limit: limit,
                 };
 
-                return AwaitHelper.execute<PaginationModel<WatchContent>>(pastMessageFunction.execute(args));
+                return AwaitHelper.execute<PaginationModel<WatchContent>>(
+                    pastMessageFunction.execute(args, omniHiveContext)
+                );
             }
 
             const elasticWorker: ElasticWorker | undefined = this.getWorker(HiveWorkerType.Unknown, "ohElastic") as

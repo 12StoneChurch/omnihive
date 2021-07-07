@@ -11,6 +11,7 @@ import { queryEventsCount } from "../common/queries/queryEventsCount";
 import { queryEventsList } from "../common/queries/queryEventsList";
 import type { EventType } from "../types/Event";
 import type { PageType } from "../types/Page";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 const argsSchema = Joi.object({
     page: Joi.number().min(1).default(1),
@@ -35,7 +36,7 @@ export interface ListEventsResult {
 }
 
 export default class ListEvents extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: Args): Promise<PageType<EventType>> => {
+    public execute = async (customArgs: Args, _omniHiveContext: GraphContext): Promise<PageType<EventType>> => {
         const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
 
         if (IsHelper.isNullOrUndefined(webRootUrl)) {

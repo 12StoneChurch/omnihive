@@ -5,6 +5,7 @@ import { serializeError } from "serialize-error";
 import { sendEmails } from "../common/sendEmails";
 import dayjs from "dayjs";
 import { MailDataRequired } from "@sendgrid/mail";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 class SendEmailArgs {
     to?: { name: string; email: string } | { name: string; email: string }[] = [];
@@ -19,7 +20,7 @@ class SendEmailArgs {
 }
 
 export default class SendEmail extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: SendEmailArgs): Promise<any> => {
+    public execute = async (customArgs: SendEmailArgs, _omniHiveContext: GraphContext): Promise<any> => {
         try {
             if (!customArgs.text && !customArgs.html) {
                 throw new Error("A message is required to send an email.");

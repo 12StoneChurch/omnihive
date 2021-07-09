@@ -36,6 +36,8 @@ export default class EventSearch extends HiveWorkerBase implements IGraphEndpoin
                 throw new Error("Web Root URL undefined");
             }
 
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
+
             if (!customArgs) {
                 customArgs = {};
             }

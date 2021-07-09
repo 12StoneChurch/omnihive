@@ -29,6 +29,7 @@ export default class GetMessageById extends HiveWorkerBase implements IGraphEndp
                 throw new Error("Web Root URL undefined");
             }
 
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
             GraphService.getSingleton().graphRootUrl = webRootUrl + "/server1/builder1/ministryplatform";
 
             const latestMessage = await getMessageById(args.id);

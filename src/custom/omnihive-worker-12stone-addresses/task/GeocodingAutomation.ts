@@ -20,6 +20,8 @@ export default class GeocodingAutomation extends HiveWorkerBase implements ITask
             }
 
             const graphUrl = webRootUrl + this.metadata.dataUrl;
+
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
             GraphService.getSingleton().graphRootUrl = graphUrl;
 
             const query = `

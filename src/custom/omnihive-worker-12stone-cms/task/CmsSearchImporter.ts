@@ -20,6 +20,7 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
         const tokenWorker = this.getWorker(HiveWorkerType.Token) as ITokenWorker | undefined;
 
         if (this.elasticWorker && tokenWorker) {
+            await OmniHiveClient.getSingleton().init(this.registeredWorkers, this.environmentVariables);
             const accessToken = await tokenWorker.get();
             OmniHiveClient.getSingleton().setAccessToken(accessToken);
             this.graphUrl = this.metadata.mpGraphUrl;

@@ -36,7 +36,7 @@ export default class GetEventById extends HiveWorkerBase implements IGraphEndpoi
         }
 
         const graph = GraphService.getSingleton();
-        graph.init(this.registeredWorkers, this.environmentVariables);
+        await graph.init(this.registeredWorkers, this.environmentVariables);
         graph.graphRootUrl = webRootUrl + this.metadata.dataSlug;
 
         try {

@@ -33,7 +33,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-analytics@workspace:src/custom/omnihive-worker-12stone-analytics":
+"@12stonechurch/omnihive-worker-analytics@workspace:*, @12stonechurch/omnihive-worker-analytics@workspace:src/custom/omnihive-worker-12stone-analytics":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-analytics@workspace:src/custom/omnihive-worker-12stone-analytics"
   dependencies:
@@ -59,7 +59,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-auth@workspace:src/custom/omnihive-worker-12stone-auth":
+"@12stonechurch/omnihive-worker-auth@workspace:*, @12stonechurch/omnihive-worker-auth@workspace:src/custom/omnihive-worker-12stone-auth":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-auth@workspace:src/custom/omnihive-worker-12stone-auth"
   dependencies:
@@ -99,7 +99,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-cms@workspace:src/custom/omnihive-worker-12stone-cms":
+"@12stonechurch/omnihive-worker-cms@workspace:*, @12stonechurch/omnihive-worker-cms@workspace:src/custom/omnihive-worker-12stone-cms":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-cms@workspace:src/custom/omnihive-worker-12stone-cms"
   dependencies:
@@ -142,7 +142,7 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-client": 6.2.48
+    "@withonevision/omnihive-client": "workspace:*"
     "@withonevision/omnihive-core": 6.2.48
     axios: 0.21.1
     chai: 4.3.4
@@ -191,7 +191,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-contacts@workspace:src/custom/omnihive-worker-12stone-contacts":
+"@12stonechurch/omnihive-worker-contacts@workspace:*, @12stonechurch/omnihive-worker-contacts@workspace:src/custom/omnihive-worker-12stone-contacts":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-contacts@workspace:src/custom/omnihive-worker-12stone-contacts"
   dependencies:
@@ -229,7 +229,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-events@workspace:src/custom/omnihive-worker-12stone-events":
+"@12stonechurch/omnihive-worker-events@workspace:*, @12stonechurch/omnihive-worker-events@workspace:src/custom/omnihive-worker-12stone-events":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-events@workspace:src/custom/omnihive-worker-12stone-events"
   dependencies:
@@ -259,7 +259,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-groups@workspace:src/custom/omnihive-worker-12stone-groups":
+"@12stonechurch/omnihive-worker-groups@workspace:*, @12stonechurch/omnihive-worker-groups@workspace:src/custom/omnihive-worker-12stone-groups":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-groups@workspace:src/custom/omnihive-worker-12stone-groups"
   dependencies:
@@ -289,7 +289,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-media@workspace:src/custom/omnihive-worker-12stone-media":
+"@12stonechurch/omnihive-worker-media@workspace:*, @12stonechurch/omnihive-worker-media@workspace:src/custom/omnihive-worker-12stone-media":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-media@workspace:src/custom/omnihive-worker-12stone-media"
   dependencies:
@@ -315,7 +315,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-next@workspace:src/custom/omnihive-worker-12stone-next":
+"@12stonechurch/omnihive-worker-next@workspace:*, @12stonechurch/omnihive-worker-next@workspace:src/custom/omnihive-worker-12stone-next":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-next@workspace:src/custom/omnihive-worker-12stone-next"
   dependencies:
@@ -366,7 +366,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-watch@workspace:src/custom/omnihive-worker-12stone-watch":
+"@12stonechurch/omnihive-worker-watch@workspace:*, @12stonechurch/omnihive-worker-watch@workspace:src/custom/omnihive-worker-12stone-watch":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-watch@workspace:src/custom/omnihive-worker-12stone-watch"
   dependencies:
@@ -1063,6 +1063,27 @@ __metadata:
   dependencies:
     purgecss: ^3.1.3
   checksum: 9e304fa7da1d4b7ee03dd16408c343a4a91eaf79a4cdb24a71b33987d1466c864c563b774f4195d82b55f3ba9e03d38947d9de72df61cc1f83caaec64886de52
+  languageName: node
+  linkType: hard
+
+"@fusionauth/typescript-client@npm:1.28.1":
+  version: 1.28.1
+  resolution: "@fusionauth/typescript-client@npm:1.28.1"
+  dependencies:
+    node-fetch: ^2.6.1
+  checksum: 70b936a7ea2c752a03846ae82a37fd4b8c71cb16bb6d92c5386894d4c0c0c6d68628f939fdfebc4c4e4f6dd7c015ec39d00ce5259d2801975f60bce2de72d000
+  languageName: node
+  linkType: hard
+
+"@googlemaps/google-maps-services-js@npm:3.1.16":
+  version: 3.1.16
+  resolution: "@googlemaps/google-maps-services-js@npm:3.1.16"
+  dependencies:
+    agentkeepalive: ^4.1.0
+    axios: ^0.21.1
+    query-string: ^6.11.0
+    retry-axios: ^2.2.1
+  checksum: 477facb089b9d45efbd13b53aa3a95b162ceca353252955de0ddefe78f881fffd1290c14c1f6e7a85877724544d57fda9ad84c0ed99b58c41980bdd27c073c50
   languageName: node
   linkType: hard
 
@@ -2620,7 +2641,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@withonevision/omnihive-client@workspace:src/packages/omnihive-client":
+"@withonevision/omnihive-client@workspace:*, @withonevision/omnihive-client@workspace:src/packages/omnihive-client":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-client@workspace:src/packages/omnihive-client"
   dependencies:
@@ -2875,7 +2896,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@withonevision/omnihive-worker-knex-mssql@workspace:*, @withonevision/omnihive-worker-knex-mssql@workspace:src/packages/omnihive-worker-knex-mssql":
+"@withonevision/omnihive-worker-knex-mssql@npm:6.2.48":
+  version: 6.2.48
+  resolution: "@withonevision/omnihive-worker-knex-mssql@npm:6.2.48"
+  dependencies:
+    "@withonevision/omnihive-core": 6.2.48
+    fs-extra: 10.0.0
+    knex: 0.95.6
+    mssql: 6.3.1
+    serialize-error: 8.1.0
+    tedious: 11.0.8
+  checksum: c1e7b6a9e12f97c9be7612548f3b0b39570a3540038b8bb399941764d93b0f22a6432acd98bfc77ec980d1a409b6615c0b958e99681d7cfce1948845d5f40306
+  languageName: node
+  linkType: hard
+
+"@withonevision/omnihive-worker-knex-mssql@workspace:src/packages/omnihive-worker-knex-mssql":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-worker-knex-mssql@workspace:src/packages/omnihive-worker-knex-mssql"
   dependencies:
@@ -2892,7 +2927,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@withonevision/omnihive-worker-knex-mysql@workspace:*, @withonevision/omnihive-worker-knex-mysql@workspace:src/packages/omnihive-worker-knex-mysql":
+"@withonevision/omnihive-worker-knex-mysql@workspace:src/packages/omnihive-worker-knex-mysql":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-worker-knex-mysql@workspace:src/packages/omnihive-worker-knex-mysql"
   dependencies:
@@ -2909,7 +2944,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@withonevision/omnihive-worker-knex-postgres@workspace:*, @withonevision/omnihive-worker-knex-postgres@workspace:src/packages/omnihive-worker-knex-postgres":
+"@withonevision/omnihive-worker-knex-postgres@workspace:src/packages/omnihive-worker-knex-postgres":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-worker-knex-postgres@workspace:src/packages/omnihive-worker-knex-postgres"
   dependencies:
@@ -2927,7 +2962,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@withonevision/omnihive-worker-knex-sqlite@workspace:*, @withonevision/omnihive-worker-knex-sqlite@workspace:src/packages/omnihive-worker-knex-sqlite":
+"@withonevision/omnihive-worker-knex-sqlite@workspace:src/packages/omnihive-worker-knex-sqlite":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-worker-knex-sqlite@workspace:src/packages/omnihive-worker-knex-sqlite"
   dependencies:
@@ -11811,7 +11846,18 @@ fsevents@^1.2.7:
   version: 0.0.0-use.local
   resolution: "omnihive@workspace:src/packages/omnihive"
   dependencies:
+    "@12stonechurch/omnihive-worker-analytics": "workspace:*"
+    "@12stonechurch/omnihive-worker-auth": "workspace:*"
+    "@12stonechurch/omnihive-worker-cloudinary": "workspace:*"
+    "@12stonechurch/omnihive-worker-cms": "workspace:*"
     "@12stonechurch/omnihive-worker-communications": "workspace:*"
+    "@12stonechurch/omnihive-worker-contacts": "workspace:*"
+    "@12stonechurch/omnihive-worker-elastic": "workspace:*"
+    "@12stonechurch/omnihive-worker-events": "workspace:*"
+    "@12stonechurch/omnihive-worker-groups": "workspace:*"
+    "@12stonechurch/omnihive-worker-media": "workspace:*"
+    "@12stonechurch/omnihive-worker-next": "workspace:*"
+    "@12stonechurch/omnihive-worker-watch": "workspace:*"
     "@socket.io/redis-adapter": 7.0.0
     "@socket.io/redis-emitter": 4.1.0
     "@types/cors": 2.8.10
@@ -11839,10 +11885,7 @@ fsevents@^1.2.7:
     "@withonevision/omnihive-worker-filesystem-fsextra": "workspace:*"
     "@withonevision/omnihive-worker-function-core": "workspace:*"
     "@withonevision/omnihive-worker-graphql-builder-v1": "workspace:*"
-    "@withonevision/omnihive-worker-knex-mssql": "workspace:*"
-    "@withonevision/omnihive-worker-knex-mysql": "workspace:*"
-    "@withonevision/omnihive-worker-knex-postgres": "workspace:*"
-    "@withonevision/omnihive-worker-knex-sqlite": "workspace:*"
+    "@withonevision/omnihive-worker-knex-mssql": 6.2.48
     "@withonevision/omnihive-worker-log-core": "workspace:*"
     "@withonevision/omnihive-worker-server-v1": "workspace:*"
     "@withonevision/omnihive-worker-token-jsonwebtoken": "workspace:*"
@@ -16072,7 +16115,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"tsutils@npm:^3.17.1":
+"tsutils@npm:^3.17.1, tsutils@npm:^3.21.0":
   version: 3.21.0
   resolution: "tsutils@npm:3.21.0"
   dependencies:

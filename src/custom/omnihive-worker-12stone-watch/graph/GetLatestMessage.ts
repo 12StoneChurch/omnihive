@@ -14,15 +14,16 @@ export default class GetLatestMessage extends HiveWorkerBase implements IGraphEn
     private getLatestMessageId = async (): Promise<number | undefined> => {
         try {
             let latestSiteDocId: number = 0;
+
             const latestMessageQuery = `
-          query {
-              campaign: cmsCampaignSiteDocuments(campaignId: "= 8", startDate: "<= GETDATE()", endDate: "> GETDATE()") {
-                  id: siteDocumentId,
-                  viewOrder,
-                  startDate
-              }
-          }
-      `;
+                query {
+                    campaign: cmsCampaignSiteDocuments(campaignId: "= 8", startDate: "<= GetDate()", endDate: "> GetDate()") {
+                        id: siteDocumentId,
+                        viewOrder,
+                        startDate
+                    }
+                }
+            `;
 
             const response: any = await AwaitHelper.execute(GraphService.getSingleton().runQuery(latestMessageQuery));
 
@@ -65,6 +66,7 @@ export default class GetLatestMessage extends HiveWorkerBase implements IGraphEn
                 throw new Error("Web Root URL undefined");
             }
 
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
             GraphService.getSingleton().graphRootUrl = webRootUrl + "/server1/builder1/ministryplatform";
 
             const latestSiteDocId = await this.getLatestMessageId();

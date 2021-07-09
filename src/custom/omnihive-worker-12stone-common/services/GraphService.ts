@@ -21,13 +21,13 @@ export class GraphService {
 
     public init = async (workers: RegisteredHiveWorker[], environmentVariables: EnvironmentVariable[]) => {
         try {
-            OmniHiveClient.getSingleton().init(workers, environmentVariables);
+            await OmniHiveClient.getSingleton().init(workers, environmentVariables);
         } catch (err) {
             throw new Error(JSON.stringify(serializeError(err)));
         }
     };
 
-    public runQuery = async (query: string): Promise<any> => {
+    public runQuery = async (query: string, retry: boolean = false): Promise<any> => {
         try {
             if (!query) {
                 throw new Error("A query is required.");
@@ -38,7 +38,11 @@ export class GraphService {
             );
             return results;
         } catch (err) {
-            throw new Error(JSON.stringify(serializeError(err)));
+            if (err.message.includes("Connection is closed.") && !retry) {
+                await this.runQuery(query, true);
+            } else {
+                throw new Error(JSON.stringify(serializeError(err)));
+            }
         }
     };
 

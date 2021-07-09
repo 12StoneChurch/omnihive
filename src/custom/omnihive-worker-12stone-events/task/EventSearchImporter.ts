@@ -22,6 +22,8 @@ export default class EventSearchImporter extends HiveWorkerBase implements ITask
                 throw new Error("Web Root URL undefined");
             }
 
+            await OmniHiveClient.getSingleton().init(this.registeredWorkers, this.environmentVariables);
+
             this.elasticWorker = this.getWorker(HiveWorkerType.Unknown, "ohElastic") as ElasticWorker | undefined;
             const tokenWorker = this.getWorker(HiveWorkerType.Token) as ITokenWorker | undefined;
 

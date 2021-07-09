@@ -34,7 +34,7 @@ export default class GetUserProfile extends HiveWorkerBase implements IGraphEndp
         }
 
         const graph = GraphService.getSingleton();
-        graph.init(this.registeredWorkers, this.environmentVariables);
+        await graph.init(this.registeredWorkers, this.environmentVariables);
         const mpGraphRootUrl = webRootUrl + this.metadata.dataSlug;
         const customGraphRootUrl = webRootUrl + this.metadata.customSlug;
 

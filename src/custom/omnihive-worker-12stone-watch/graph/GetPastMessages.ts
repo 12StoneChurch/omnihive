@@ -20,6 +20,9 @@ export default class getPastMessages extends HiveWorkerBase implements IGraphEnd
             throw new Error("Web Root URL undefined");
         }
 
+        await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
+        GraphService.getSingleton().graphRootUrl = webRootUrl + "/server1/builder1/ministryplatform";
+
         const page: number = customArgs?.page ?? 1;
         const limit: number = customArgs?.limit ?? 100;
 
@@ -32,8 +35,6 @@ export default class getPastMessages extends HiveWorkerBase implements IGraphEnd
               }
           }
       `;
-
-        GraphService.getSingleton().graphRootUrl = webRootUrl + "/server1/builder1/ministryplatform";
 
         const results: any = await AwaitHelper.execute(GraphService.getSingleton().runQuery(query));
 

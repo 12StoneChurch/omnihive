@@ -5,6 +5,7 @@ import { serializeError } from "serialize-error";
 import { GetEventsByIdList } from "../common/GetEventsByIdList";
 import { Event } from "../lib/models/Event";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
+import { GraphService } from "src/custom/omnihive-worker-12stone-common/services/GraphService";
 
 /**
  * Args:
@@ -17,6 +18,8 @@ export default class EventSearch extends HiveWorkerBase implements IGraphEndpoin
         try {
             const eventId: number = customArgs.id;
             const participantId: number = customArgs.participantId;
+
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
 
             return (await GetEventsByIdList([eventId], participantId))[0];
         } catch (err) {

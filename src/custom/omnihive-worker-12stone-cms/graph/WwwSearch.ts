@@ -25,7 +25,7 @@ export default class WwwSearch extends HiveWorkerBase implements IGraphEndpointW
             const limit = customArgs.limit ?? 100;
 
             if (!query || query.length < 3) {
-                throw new Error("The query specified is not of sufficent length.");
+                throw new Error("The query specified is not of sufficient length.");
             }
 
             if (searchFields.length <= 0) {

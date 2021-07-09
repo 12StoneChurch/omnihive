@@ -44,7 +44,7 @@ export default class ListEvents extends HiveWorkerBase implements IGraphEndpoint
         }
 
         const graph = GraphService.getSingleton();
-        graph.init(this.registeredWorkers, this.environmentVariables);
+        await graph.init(this.registeredWorkers, this.environmentVariables);
         graph.graphRootUrl = webRootUrl + this.metadata.dataSlug;
 
         try {

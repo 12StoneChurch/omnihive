@@ -5,7 +5,7 @@ import swaggerUi from "swagger-ui-express";
 import dayjs from "dayjs";
 import { updateCommunicationMessageStatus } from "../common/updateCommunicationMessageStatus";
 import { insertCommunicationStat } from "../common/insertCommunicationStat";
-import { runGraphQuery, setGraphUrl } from "../lib/services/GraphService";
+import { init, runGraphQuery, setGraphUrl } from "../lib/services/GraphService";
 import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 type StatData = {
@@ -134,6 +134,8 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
             if (IsHelper.isNullOrUndefined(webRootUrl)) {
                 throw new Error("Web Root URL undefined");
             }
+
+            await init(this.registeredWorkers, this.environmentVariables);
 
             this.dataUrl = `${webRootUrl}/${this.metadata.data.dataSlug}`;
             setGraphUrl(this.dataUrl);

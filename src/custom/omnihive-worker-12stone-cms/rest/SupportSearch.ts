@@ -109,7 +109,7 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
                     : 1;
 
             if (!query || query.length < 3) {
-                throw new Error("The query specified is not of sufficent length.");
+                throw new Error("The query specified is not of sufficient length.");
             }
 
             if (searchFields.length <= 0) {

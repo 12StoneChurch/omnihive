@@ -9,6 +9,7 @@ import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 export default class UpdateContactInfo extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (data: UpdateContactInfoArgs, _omniHiveContext: GraphContext) => {
         try {
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
             GraphService.getSingleton().graphRootUrl = this.metadata.mpGraphUrl;
 
             const res: {

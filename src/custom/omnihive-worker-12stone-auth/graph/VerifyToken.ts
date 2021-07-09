@@ -18,6 +18,8 @@ export default class VerifyToken extends HiveWorkerBase implements IGraphEndpoin
                 throw new Error("Web Root URL undefined");
             }
 
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
+
             const query = `
                 query {
                     storedProcedures {

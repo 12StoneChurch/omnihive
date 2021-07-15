@@ -24,7 +24,7 @@
         "build": "tsc"
     },
     "dependencies": {
-        "@withonevision/omnihive-core": "6.2.48",
+        "@withonevision/omnihive-core": "6.2.52",
         "cloudinary": "1.26.1"
     },
     "devDependencies": {

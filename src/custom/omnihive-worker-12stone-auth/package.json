@@ -26,7 +26,7 @@
     "dependencies": {
         "@12stonechurch/omnihive-worker-common": "workspace:*",
         "@fusionauth/typescript-client": "1.28.1",
-        "@withonevision/omnihive-core": "6.2.48",
+        "@withonevision/omnihive-core": "6.2.52",
         "dayjs": "1.10.5",
         "serialize-error": "8.1.0",
         "uuid": "8.3.2"

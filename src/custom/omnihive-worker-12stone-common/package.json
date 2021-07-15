@@ -26,8 +26,8 @@
     "dependencies": {
         "@12stonechurch/omnihive-worker-cloudinary": "workspace:*",
         "@12stonechurch/omnihive-worker-elastic": "workspace:*",
-        "@withonevision/omnihive-client": "6.2.48",
-        "@withonevision/omnihive-core": "6.2.48",
+        "@withonevision/omnihive-client": "6.2.52",
+        "@withonevision/omnihive-core": "6.2.52",
         "axios": "0.21.1",
         "serialize-error": "8.1.0"
     },

@@ -21,6 +21,7 @@ import { GlobalObject } from "../models/GlobalObject";
 
 export class CommonService {
     public bootLoader = async (rootDir: string, commandLineArgs: CommandLineArgs) => {
+        // @ts-ignore
         global.omnihive = new GlobalObject();
         global.omnihive.ohDirName = rootDir;
         global.omnihive.commandLineArgs = commandLineArgs;

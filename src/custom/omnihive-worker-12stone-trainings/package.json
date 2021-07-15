@@ -1,0 +1,49 @@
+{
+    "name": "@12stonechurch/omnihive-worker-trainings",
+    "version": "0.0.1",
+    "description": "OmniHive Custom Function package",
+    "license": "MIT",
+    "author": {
+        "name": "12Stone Church",
+        "url": "https://www.12stone.com",
+        "email": "itsupport@12stone.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/12StoneChurch/omnihive.git"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "keywords": [
+        "OmniHive",
+        "With One Vision",
+        "12Stone Church"
+    ],
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "@12stonechurch/omnihive-worker-common": "workspace:*",
+        "@withonevision/omnihive-core": "6.2.48",
+        "serialize-error": "8.1.0"
+    },
+    "devDependencies": {
+        "@istanbuljs/nyc-config-typescript": "1.0.1",
+        "@types/chai": "4.2.19",
+        "@types/mocha": "8.2.2",
+        "@types/node": "15.12.5",
+        "@typescript-eslint/eslint-plugin": "4.28.1",
+        "@typescript-eslint/parser": "4.28.1",
+        "chai": "4.3.4",
+        "eslint": "7.29.0",
+        "eslint-config-prettier": "8.3.0",
+        "eslint-plugin-prettier": "3.4.0",
+        "mocha": "9.0.1",
+        "nyc": "15.1.0",
+        "prettier": "2.3.2",
+        "source-map-support": "0.5.19",
+        "ts-node": "10.0.0",
+        "typescript": "4.2.4"
+    }
+}

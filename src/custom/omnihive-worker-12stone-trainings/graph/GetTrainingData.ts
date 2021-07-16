@@ -2,9 +2,9 @@ import { GraphService } from "@12stonechurch/omnihive-worker-common/services/Gra
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
-import { addAuditLogEntry } from "src/custom/omnihive-worker-12stone-common/helpers/MpHelper";
-import { HiveWorkerType } from "src/packages/omnihive-core/enums/HiveWorkerType";
-import { IDatabaseWorker } from "src/packages/omnihive-core/interfaces/IDatabaseWorker";
+import { addAuditLogEntry } from "@12stonechurch/omnihive-worker-common/helpers/MpHelper";
+import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
+import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 
 type TrainingModule = {
     trainingModuleId: number;

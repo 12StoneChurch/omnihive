@@ -21,7 +21,7 @@ export class GraphService {
 
     public init = async (workers: RegisteredHiveWorker[], environmentVariables: EnvironmentVariable[]) => {
         try {
-            await OmniHiveClient.getSingleton().init(workers, environmentVariables);
+            await OmniHiveClient.getSingleton().init(workers, environmentVariables, true);
         } catch (err) {
             throw new Error(JSON.stringify(serializeError(err)));
         }

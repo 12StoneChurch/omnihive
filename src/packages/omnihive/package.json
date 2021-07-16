@@ -55,7 +55,7 @@
         "@withonevision/omnihive-worker-encryption-nodeforge": "workspace:*",
         "@withonevision/omnihive-worker-filesystem-fsextra": "workspace:*",
         "@withonevision/omnihive-worker-function-core": "workspace:*",
-        "@withonevision/omnihive-worker-graphql-builder-v1": "workspace:*",
+        "@12stonchurch/omnihive-worker-graphql-builder-v1": "workspace:*",
         "@withonevision/omnihive-worker-graphql-builder-v2": "workspace:*",
         "@withonevision/omnihive-worker-knex-mssql": "6.2.52",
         "@withonevision/omnihive-worker-log-core": "workspace:*",
@@ -312,9 +312,9 @@
             {
                 "name": "__ohDefaultBuildWorker",
                 "type": "graphBuilder",
-                "package": "@withonevision/omnihive-worker-graphql-builder-v1",
+                "package": "@12stonchurch/omnihive-worker-graphql-builder-v1",
                 "version": "workspace:*",
-                "importPath": "@withonevision/omnihive-worker-graphql-builder-v1/index",
+                "importPath": "@12stonchurch/omnihive-worker-graphql-builder-v1/index",
                 "default": true,
                 "enabled": true,
                 "metadata": {

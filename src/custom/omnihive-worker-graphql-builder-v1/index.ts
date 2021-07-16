@@ -59,7 +59,7 @@ export default class GraphBuilder extends HiveWorkerBase implements IGraphBuildW
         builder.appendLine(`var { AwaitHelper } = require("@withonevision/omnihive-core/helpers/AwaitHelper");`);
         builder.appendLine(`var { HiveWorkerType } = require("@withonevision/omnihive-core/enums/HiveWorkerType");`);
         builder.appendLine(
-            `var { ParseMaster } = require("@withonevision/omnihive-worker-graphql-builder-v1/parsers/ParseMaster");`
+            `var { ParseMaster } = require("@12stonechurch/omnihive-worker-graphql-builder-v1/parsers/ParseMaster");`
         );
         builder.appendLine();
 

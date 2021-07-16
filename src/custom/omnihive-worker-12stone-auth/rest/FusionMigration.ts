@@ -4,7 +4,7 @@ import { serializeError } from "serialize-error";
 import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 import swaggerUi from "swagger-ui-express";
 import { GetMpUser } from "../common/GetMpUser";
-import { GraphService } from "src/custom/omnihive-worker-12stone-common/services/GraphService";
+import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 
 class SignInArgs {
     loginId: string = "";

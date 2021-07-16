@@ -1,6 +1,6 @@
 {
     "name": "omnihive",
-    "version": "6.2.51",
+    "version": "6.2.54",
     "description": "OmniHive Server",
     "license": "MIT",
     "author": {
@@ -44,6 +44,7 @@
         "@12stonechurch/omnihive-worker-watch": "workspace:*",
         "@socket.io/redis-adapter": "7.0.0",
         "@socket.io/redis-emitter": "4.1.0",
+        "@withonevision/omnihive-client": "workspace:*",
         "@withonevision/omnihive-core": "workspace:*",
         "@withonevision/omnihive-worker-config-json": "workspace:*",
         "@withonevision/omnihive-worker-config-mssql": "workspace:*",
@@ -55,9 +56,11 @@
         "@withonevision/omnihive-worker-encryption-nodeforge": "workspace:*",
         "@withonevision/omnihive-worker-filesystem-fsextra": "workspace:*",
         "@withonevision/omnihive-worker-function-core": "workspace:*",
-        "@12stonchurch/omnihive-worker-graphql-builder-v1": "workspace:*",
         "@withonevision/omnihive-worker-graphql-builder-v2": "workspace:*",
-        "@withonevision/omnihive-worker-knex-mssql": "6.2.52",
+        "@withonevision/omnihive-worker-knex-mssql": "workspace:*",
+        "@withonevision/omnihive-worker-knex-mysql": "workspace:*",
+        "@withonevision/omnihive-worker-knex-postgres": "workspace:*",
+        "@withonevision/omnihive-worker-knex-sqlite": "workspace:*",
         "@withonevision/omnihive-worker-log-core": "workspace:*",
         "@withonevision/omnihive-worker-server-v1": "workspace:*",
         "@withonevision/omnihive-worker-token-jsonwebtoken": "workspace:*",
@@ -104,6 +107,7 @@
         "coreDependencies": {
             "@socket.io/redis-adapter": "7.0.0",
             "@socket.io/redis-emitter": "4.1.0",
+            "@withonevision/omnihive-client": "workspace:*",
             "@withonevision/omnihive-core": "workspace:*",
             "@withonevision/omnihive-worker-config-json": "workspace:*",
             "@withonevision/omnihive-worker-config-mssql": "workspace:*",
@@ -312,9 +316,9 @@
             {
                 "name": "__ohDefaultBuildWorker",
                 "type": "graphBuilder",
-                "package": "@12stonchurch/omnihive-worker-graphql-builder-v1",
+                "package": "@withonevision/omnihive-worker-graphql-builder-v2",
                 "version": "workspace:*",
-                "importPath": "@12stonchurch/omnihive-worker-graphql-builder-v1/index",
+                "importPath": "@withonevision/omnihive-worker-graphql-builder-v2/index",
                 "default": true,
                 "enabled": true,
                 "metadata": {

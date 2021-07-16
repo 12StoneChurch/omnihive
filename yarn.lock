@@ -17,7 +17,7 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     dayjs: 1.10.5
     eslint: 7.29.0
@@ -44,7 +44,7 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     eslint: 7.29.0
     eslint-config-prettier: 8.3.0
@@ -71,7 +71,7 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     dayjs: 1.10.5
     eslint: 7.29.0
@@ -93,7 +93,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-cloudinary@workspace:src/custom/omnihive-worker-cloudinary"
   dependencies:
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     cloudinary: 1.26.1
     typescript: 4.2.4
@@ -112,8 +112,8 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-client": 6.2.52
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-client": 6.2.54
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     dayjs: 1.10.5
     enquirer: 2.3.6
@@ -143,8 +143,8 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-client": 6.2.52
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-client": 6.2.54
+    "@withonevision/omnihive-core": 6.2.54
     axios: 0.21.1
     chai: 4.3.4
     eslint: 7.29.0
@@ -173,7 +173,7 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     dayjs: 1.10.5
     enquirer: 2.3.6
@@ -203,7 +203,7 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     dayjs: 1.10.5
     eslint: 7.29.0
@@ -223,7 +223,7 @@ __metadata:
   resolution: "@12stonechurch/omnihive-worker-elastic@workspace:src/custom/omnihive-worker-elastic"
   dependencies:
     "@elastic/elasticsearch": 7.13.0
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     serialize-error: 8.1.0
     typescript: 4.2.4
@@ -241,8 +241,8 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-client": 6.2.52
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-client": 6.2.54
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     chalk: 4.1.1
     dayjs: 1.10.5
@@ -260,13 +260,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-graphql-builder-v1@workspace:src/custom/omnihive-worker-graphql-builder-v1":
+"@12stonechurch/omnihive-worker-graphql-builder-v1@workspace:*, @12stonechurch/omnihive-worker-graphql-builder-v1@workspace:src/custom/omnihive-worker-graphql-builder-v1":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-graphql-builder-v1@workspace:src/custom/omnihive-worker-graphql-builder-v1"
   dependencies:
     "@types/lodash": 4.14.170
     "@types/pluralize": 0.0.29
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     graphql: 15.5.0
     knex: 0.95.7
@@ -287,8 +287,8 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-client": 6.2.52
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-client": 6.2.54
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     chalk: 4.1.1
     dayjs: 1.10.5
@@ -317,7 +317,7 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     eslint: 7.29.0
     eslint-config-prettier: 8.3.0
@@ -340,7 +340,7 @@ __metadata:
     "@types/chai": 4.2.19
     "@types/mocha": 8.2.2
     "@types/node": 15.12.5
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     eslint: 7.29.0
     eslint-config-prettier: 8.3.0
@@ -366,7 +366,7 @@ __metadata:
     "@types/mocha": 8.2.2
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     axios: 0.21.1
     chai: 4.3.4
     eslint: 7.29.0
@@ -392,7 +392,7 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     eslint: 7.29.0
     eslint-config-prettier: 8.3.0
@@ -418,7 +418,7 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     eslint: 7.29.0
     eslint-config-prettier: 8.3.0
@@ -445,7 +445,7 @@ __metadata:
     "@types/node": 15.12.5
     "@typescript-eslint/eslint-plugin": 4.28.1
     "@typescript-eslint/parser": 4.28.1
-    "@withonevision/omnihive-core": 6.2.52
+    "@withonevision/omnihive-core": 6.2.54
     chai: 4.3.4
     dayjs: 1.10.5
     eslint: 7.29.0
@@ -700,8 +700,8 @@ __metadata:
   linkType: hard
 
 "@azure/ms-rest-js@npm:^2.0.4":
-  version: 2.5.2
-  resolution: "@azure/ms-rest-js@npm:2.5.2"
+  version: 2.5.3
+  resolution: "@azure/ms-rest-js@npm:2.5.3"
   dependencies:
     "@azure/core-auth": ^1.1.4
     abort-controller: ^3.0.0
@@ -712,7 +712,7 @@ __metadata:
     tunnel: 0.0.6
     uuid: ^8.3.2
     xml2js: ^0.4.19
-  checksum: 0a2583538764a806f6f2815d03b3291517442f346563bba33f9d9a2a5c1fb73ccb08264d59ca267733e88db536def27c1cdf46c606aed8332ee6322616527b4b
+  checksum: d5957812d9bcf81c67145628ce5d028335742e245d09c356529535f2a15d6bb5b35a58113df4a11a93793d733f69578eb0929dde3372dc7b8147e2391d3fb823
   languageName: node
   linkType: hard
 
@@ -1202,9 +1202,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/eslintrc@npm:^0.4.1":
-  version: 0.4.2
-  resolution: "@eslint/eslintrc@npm:0.4.2"
+"@elastic/elasticsearch@npm:7.13.0":
+  version: 7.13.0
+  resolution: "@elastic/elasticsearch@npm:7.13.0"
   dependencies:
     debug: ^4.3.1
     hpagent: ^0.1.1
@@ -1228,6 +1228,27 @@ __metadata:
     minimatch: ^3.0.4
     strip-json-comments: ^3.1.1
   checksum: 60b66ce4257bf5c36a920dea83a056102fef746e7afd7100a6fe245a126ff455f67f4948e75d28ed73090bff8f8556b6a996e74a124911ca703440bc245dbc23
+  languageName: node
+  linkType: hard
+
+"@fusionauth/typescript-client@npm:1.28.1":
+  version: 1.28.1
+  resolution: "@fusionauth/typescript-client@npm:1.28.1"
+  dependencies:
+    node-fetch: ^2.6.1
+  checksum: 70b936a7ea2c752a03846ae82a37fd4b8c71cb16bb6d92c5386894d4c0c0c6d68628f939fdfebc4c4e4f6dd7c015ec39d00ce5259d2801975f60bce2de72d000
+  languageName: node
+  linkType: hard
+
+"@googlemaps/google-maps-services-js@npm:3.1.16":
+  version: 3.1.16
+  resolution: "@googlemaps/google-maps-services-js@npm:3.1.16"
+  dependencies:
+    agentkeepalive: ^4.1.0
+    axios: ^0.21.1
+    query-string: ^6.11.0
+    retry-axios: ^2.2.1
+  checksum: 477facb089b9d45efbd13b53aa3a95b162ceca353252955de0ddefe78f881fffd1290c14c1f6e7a85877724544d57fda9ad84c0ed99b58c41980bdd27c073c50
   languageName: node
   linkType: hard
 
@@ -1267,6 +1288,22 @@ __metadata:
   peerDependencies:
     graphql: ^14.0.0 || ^15.0.0
   checksum: 8b8e674f344e825c27816ead8a66edca5aed2eac26b601bb028350837ae39fee3ca9241255b918b8199d60bff41884a4814f98df465a0a8a5db5b91428ce2aa9
+  languageName: node
+  linkType: hard
+
+"@hapi/hoek@npm:^9.0.0":
+  version: 9.2.0
+  resolution: "@hapi/hoek@npm:9.2.0"
+  checksum: c68d43f3fa7de4d53362c38ed5927e7872394bd80cd8d500a8b6c705da92ad9d37106df72d97a63417270fb186e2ad0b147bc31d61b9cdba614987bf8f1ba1ae
+  languageName: node
+  linkType: hard
+
+"@hapi/topo@npm:^5.0.0":
+  version: 5.1.0
+  resolution: "@hapi/topo@npm:5.1.0"
+  dependencies:
+    "@hapi/hoek": ^9.0.0
+  checksum: e37ce579b9d2f5ee86db584b7e4f1376b0f7c4fa5883a8f269e8077b02407eddfe709954a51beb9f5075696980c0da4565cc34b2eac97370ecf48859f26b654e
   languageName: node
   linkType: hard
 
@@ -1960,7 +1997,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/json-schema@npm:^7.0.3":
+"@types/json-schema@npm:^7.0.3, @types/json-schema@npm:^7.0.7":
   version: 7.0.8
   resolution: "@types/json-schema@npm:7.0.8"
   checksum: 435a3d18a88aeac7bc88c2cdd2c19466c62ce79303493edd72380cd4af9775c05f35d424d5e76ffe3f94575ebb535305c6cae928c5bfb9c39eafbfb6932520a1
@@ -2141,9 +2178,9 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*, @types/node@npm:>=10.0.0":
-  version: 16.3.0
-  resolution: "@types/node@npm:16.3.0"
-  checksum: aec069f8dfeb1a3d8246013f55312a8effcf152f81250a762880670e53c5f676e7f6338746ca7e0aae4ecede5847c69917795fc74e10d5065dfa1ce6179a0c6e
+  version: 16.3.2
+  resolution: "@types/node@npm:16.3.2"
+  checksum: 11896edc7022a40f8938e64f57e497b3110ca732bdef785f86f0a0a819609e9b78ad0c950dcaa59177bc299f2793489b605a3e713cdf7900a39031f0018e2134
   languageName: node
   linkType: hard
 
@@ -2561,7 +2598,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@withonevision/omnihive-client@workspace:src/packages/omnihive-client":
+"@withonevision/omnihive-client@6.2.54, @withonevision/omnihive-client@workspace:*, @withonevision/omnihive-client@workspace:src/packages/omnihive-client":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-client@workspace:src/packages/omnihive-client"
   dependencies:
@@ -2572,16 +2609,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@withonevision/omnihive-core@npm:6.2.52":
-  version: 6.2.52
-  resolution: "@withonevision/omnihive-core@npm:6.2.52"
-  dependencies:
-    graphql: 15.5.0
-  checksum: ae82c9075ace153427dd2083546bfed371e94f26c0fc219219b098cd769485e0d51cb448ac54323120fd964b0fdd7713dd0ae405c467f8f178d4cf16f352e799
-  languageName: node
-  linkType: hard
-
-"@withonevision/omnihive-core@workspace:*, @withonevision/omnihive-core@workspace:src/packages/omnihive-core":
+"@withonevision/omnihive-core@6.2.54, @withonevision/omnihive-core@workspace:*, @withonevision/omnihive-core@workspace:src/packages/omnihive-core":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-core@workspace:src/packages/omnihive-core"
   dependencies:
@@ -2787,22 +2815,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@withonevision/omnihive-worker-graphql-builder-v1@workspace:*, @withonevision/omnihive-worker-graphql-builder-v1@workspace:src/packages/omnihive-worker-graphql-builder-v1":
-  version: 0.0.0-use.local
-  resolution: "@withonevision/omnihive-worker-graphql-builder-v1@workspace:src/packages/omnihive-worker-graphql-builder-v1"
-  dependencies:
-    "@types/lodash": 4.14.170
-    "@types/pluralize": 0.0.29
-    "@withonevision/omnihive-core": "workspace:*"
-    chai: 4.3.4
-    graphql: 15.5.0
-    knex: 0.95.7
-    lodash: 4.17.21
-    pluralize: 8.0.0
-    typescript: 4.2.4
-  languageName: unknown
-  linkType: soft
-
 "@withonevision/omnihive-worker-graphql-builder-v2@workspace:*, @withonevision/omnihive-worker-graphql-builder-v2@workspace:src/packages/omnihive-worker-graphql-builder-v2":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-worker-graphql-builder-v2@workspace:src/packages/omnihive-worker-graphql-builder-v2"
@@ -2814,6 +2826,7 @@ __metadata:
     "@withonevision/omnihive-core": "workspace:*"
     chai: 4.3.4
     graphql: 15.5.0
+    json5: 2.2.0
     knex: 0.95.7
     lodash: 4.17.21
     pluralize: 8.0.0
@@ -2823,21 +2836,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@withonevision/omnihive-worker-knex-mssql@npm:6.2.52":
-  version: 6.2.52
-  resolution: "@withonevision/omnihive-worker-knex-mssql@npm:6.2.52"
-  dependencies:
-    "@withonevision/omnihive-core": 6.2.52
-    fs-extra: 10.0.0
-    knex: 0.95.7
-    mssql: 7.1.3
-    serialize-error: 8.1.0
-    tedious: 11.0.9
-  checksum: f516e8a393bf5ff5794c85e7ee005a3554711ab8406e09f3afef8449add0c8d943f53641dbce833e17b06999718fdcf01cee26dd96a21c5a5f3c07842646894b
-  languageName: node
-  linkType: hard
-
-"@withonevision/omnihive-worker-knex-mssql@workspace:src/packages/omnihive-worker-knex-mssql":
+"@withonevision/omnihive-worker-knex-mssql@6.2.54, @withonevision/omnihive-worker-knex-mssql@workspace:src/packages/omnihive-worker-knex-mssql":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-worker-knex-mssql@workspace:src/packages/omnihive-worker-knex-mssql"
   dependencies:
@@ -3179,7 +3178,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"agentkeepalive@npm:^4.1.3":
+"agentkeepalive@npm:^4.1.0, agentkeepalive@npm:^4.1.3":
   version: 4.1.4
   resolution: "agentkeepalive@npm:4.1.4"
   dependencies:
@@ -3213,14 +3212,14 @@ __metadata:
   linkType: hard
 
 "ajv@npm:^8.0.1":
-  version: 8.6.1
-  resolution: "ajv@npm:8.6.1"
+  version: 8.6.2
+  resolution: "ajv@npm:8.6.2"
   dependencies:
     fast-deep-equal: ^3.1.1
     json-schema-traverse: ^1.0.0
     require-from-string: ^2.0.2
     uri-js: ^4.2.2
-  checksum: 9abb66b4ced54f0e955313387183615028df1affc28859332d5d935258e391ead880ad5a4e5c59e3b82367486b3824faefdaf7b87cfd3a5b6629f14e8edc2fd7
+  checksum: 9969d6c0e6b601c4a1254d01acf1ccd419e5dabeb4651f2fbe7269d4ae5e30c281af758839a0cbf6f2bf4830600fa8bc909232af634b97c4ceb798f9a2b65cb4
   languageName: node
   linkType: hard
 
@@ -3312,7 +3311,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"anymatch@npm:~3.1.2":
+"anymatch@npm:~3.1.1, anymatch@npm:~3.1.2":
   version: 3.1.2
   resolution: "anymatch@npm:3.1.2"
   dependencies:
@@ -3672,6 +3671,13 @@ __metadata:
   version: 1.0.1
   resolution: "arrify@npm:1.0.1"
   checksum: f1d3bae819f49f51a09da5f5c5ce282e79ca69bbdb32db1d9f6c62b151ef801b74398d007cfe89686e2c5aeb62576a398b9068e5172b7f4e20157aa3284076d3
+  languageName: node
+  linkType: hard
+
+"asap@npm:^2.0.0":
+  version: 2.0.6
+  resolution: "asap@npm:2.0.6"
+  checksum: 3d314f8c598b625a98347bacdba609d4c889c616ca5d8ea65acaae8050ab8b7aa6630df2cfe9856c20b260b432adf2ee7a65a1021f268ef70408c70f809e3a39
   languageName: node
   linkType: hard
 
@@ -4217,9 +4223,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001219":
-  version: 1.0.30001243
-  resolution: "caniuse-lite@npm:1.0.30001243"
-  checksum: 0d6330d2279c9ec2b58cf5154ec80eeea6bca861825a791f037c644e36cf28a19db32a35a66ac989ee026b7d19ffc0eb3ad78fbc8512f7433b0caa1964de4999
+  version: 1.0.30001245
+  resolution: "caniuse-lite@npm:1.0.30001245"
+  checksum: 6b0dbbe1d2542eb6390eae5d2dda2b1762d38d4d50eefb86d959c5e49a009e7213e8f0227f526068fff6d2e4baa5cd64dc741ac77603e16882aa0e806cfe9d58
   languageName: node
   linkType: hard
 
@@ -4344,22 +4350,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chokidar@npm:3.5.2, chokidar@npm:^3.2.2":
-  version: 3.5.2
-  resolution: "chokidar@npm:3.5.2"
+"chokidar@npm:3.5.1":
+  version: 3.5.1
+  resolution: "chokidar@npm:3.5.1"
   dependencies:
-    anymatch: ~3.1.2
+    anymatch: ~3.1.1
     braces: ~3.0.2
-    fsevents: ~2.3.2
-    glob-parent: ~5.1.2
+    fsevents: ~2.3.1
+    glob-parent: ~5.1.0
     is-binary-path: ~2.1.0
     is-glob: ~4.0.1
     normalize-path: ~3.0.0
-    readdirp: ~3.6.0
+    readdirp: ~3.5.0
   dependenciesMeta:
     fsevents:
       optional: true
-  checksum: 52fbff3acebf06ec0125872110f6c8403e66cd3d613264c83405496e199554d99380342d9b3a7ffd7910c53c5865e242ed7dd72fcb2e883d8e3ad3f3883aee6c
+  checksum: 61b3f710f9e7dc69d76f638d8b0d37bad586497444165125ca8062f7192695f35403b5f622cbd7dfdd06805201ceaba40ff90e53ea2974df9a8087861192a99b
   languageName: node
   linkType: hard
 
@@ -5076,6 +5082,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"core-js@npm:3.6.5":
+  version: 3.6.5
+  resolution: "core-js@npm:3.6.5"
+  checksum: 9283348dd5be2f1d07feaf90e2336b3f00a2316e3d3c6d4f789c9a67bdd4d7b08ce1c88dca4e591340130056c6b412b0b74fae039f8e259206f1073f542e4e85
+  languageName: node
+  linkType: hard
+
 "core-util-is@npm:1.0.2, core-util-is@npm:~1.0.0":
   version: 1.0.2
   resolution: "core-util-is@npm:1.0.2"
@@ -5222,6 +5235,13 @@ __metadata:
   version: 1.10.5
   resolution: "dayjs@npm:1.10.5"
   checksum: 11b3a952cdb77959b07318804bd982d1d377581e4752ec478da82b494da1ebb9d82e0539481ab51f90a36e35a268a730034cb6f3cac1b45609755c909329c0a1
+  languageName: node
+  linkType: hard
+
+"dayjs@npm:^1.8.29":
+  version: 1.10.6
+  resolution: "dayjs@npm:1.10.6"
+  checksum: 474d21162c12d269d40e90cb3ce049bb2d987b8038c173224c8eb5805d6f38f07d11875779a81e282d8f889d3803c4bbb91d09b6ee08a1a44ae60ec26afd8f45
   languageName: node
   linkType: hard
 
@@ -5662,9 +5682,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.3.723":
-  version: 1.3.771
-  resolution: "electron-to-chromium@npm:1.3.771"
-  checksum: e914f6b68dfa1c488ef4b64613bba90422432ac488178283a22c6fec95c59e7b9172a4969a7b246bed40a8cc75b2caa1e6310ec180d9eb1290e44ffdfcf949f2
+  version: 1.3.778
+  resolution: "electron-to-chromium@npm:1.3.778"
+  checksum: 8cde358a18a15708415bb284fb50ad56432139214f18b61e3703f28c4aabb238a7320240911cc02c9b20916a43763e093d83ef422f5cebdf42177e5d4c6b6e31
   languageName: node
   linkType: hard
 
@@ -6880,7 +6900,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"fsevents@patch:fsevents@~2.3.2#builtin<compat/fsevents>":
+"fsevents@patch:fsevents@~2.3.1#builtin<compat/fsevents>, fsevents@patch:fsevents@~2.3.2#builtin<compat/fsevents>":
   version: 2.3.2
   resolution: "fsevents@patch:fsevents@npm%3A2.3.2#builtin<compat/fsevents>::version=2.3.2&hash=11e9ea"
   dependencies:
@@ -6889,7 +6909,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-fsevents@~2.3.2:
+"fsevents@~2.3.1, fsevents@~2.3.2":
   version: 2.3.2
   resolution: "fsevents@npm:2.3.2"
   dependencies:
@@ -7137,7 +7157,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"glob-parent@npm:^5.0.0, glob-parent@npm:^5.1.2, glob-parent@npm:~5.1.2":
+"glob-parent@npm:^5.0.0, glob-parent@npm:^5.1.2, glob-parent@npm:~5.1.0, glob-parent@npm:~5.1.2":
   version: 5.1.2
   resolution: "glob-parent@npm:5.1.2"
   dependencies:
@@ -7232,7 +7252,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"globby@npm:^11.0.1":
+"globby@npm:^11.0.1, globby@npm:^11.0.3":
   version: 11.0.4
   resolution: "globby@npm:11.0.4"
   dependencies:
@@ -7953,11 +7973,11 @@ fsevents@~2.3.2:
   linkType: hard
 
 "is-core-module@npm:^2.2.0":
-  version: 2.4.0
-  resolution: "is-core-module@npm:2.4.0"
+  version: 2.5.0
+  resolution: "is-core-module@npm:2.5.0"
   dependencies:
     has: ^1.0.3
-  checksum: caa2b30873ed14dff76e5351e3c55a677b890cf19cc4263e9894702eb4bd64f81ce78552daad878ba72adcdc9e62cad45ca57928fc8b4bdc84a7ff8acf934389
+  checksum: 25cbd8f2477855f446b339d24c56d7b3e3809c1653c8a748b090384d7728a0b18cf128bff613a8f512f8340dc91c1f43abe5fa774d077925012bbfeb109fe215
   languageName: node
   linkType: hard
 
@@ -8423,6 +8443,19 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
+"joi@npm:17.4.0":
+  version: 17.4.0
+  resolution: "joi@npm:17.4.0"
+  dependencies:
+    "@hapi/hoek": ^9.0.0
+    "@hapi/topo": ^5.0.0
+    "@sideway/address": ^4.1.0
+    "@sideway/formula": ^3.0.0
+    "@sideway/pinpoint": ^2.0.0
+  checksum: 2f6203d4513c063d457a935dab5e8060413479880d55af2c4fada987c7fe1bedff46d46eec36b14cf433ecc4df3b580fe1c0a0fed5b73a265b78011f97ff5c2d
+  languageName: node
+  linkType: hard
+
 "js-message@npm:1.0.7":
   version: 1.0.7
   resolution: "js-message@npm:1.0.7"
@@ -8548,7 +8581,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"json5@npm:^2.1.2":
+"json5@npm:2.2.0, json5@npm:^2.1.2":
   version: 2.2.0
   resolution: "json5@npm:2.2.0"
   dependencies:
@@ -9069,7 +9102,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.17.21, lodash@npm:^4.17.12, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.19, lodash@npm:^4.17.20, lodash@npm:^4.17.21":
+"lodash@npm:4.17.21, lodash@npm:^4.17.11, lodash@npm:^4.17.12, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.19, lodash@npm:^4.17.20, lodash@npm:^4.17.21":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: 4983720b9abca930a4a46f18db163d7dad8dd00dbed6db0cc7b499b33b717cce69f80928b27bbb1ff2cbd3b19d251ee90669a8b5ea466072ca81c2ebe91e7468
@@ -9536,8 +9569,8 @@ fsevents@~2.3.2:
   linkType: hard
 
 "minipass-fetch@npm:^1.3.2":
-  version: 1.3.3
-  resolution: "minipass-fetch@npm:1.3.3"
+  version: 1.3.4
+  resolution: "minipass-fetch@npm:1.3.4"
   dependencies:
     encoding: ^0.1.12
     minipass: ^3.1.0
@@ -9546,7 +9579,7 @@ fsevents@~2.3.2:
   dependenciesMeta:
     encoding:
       optional: true
-  checksum: cc93f86391795279b5681a2bbd5bb55cceabdae959c4ff0cb85e767427edb0d7e8bde49b6897afd386c2e47965ecc304b96bb7c2af0dbb9da7dfa67da140757e
+  checksum: c1a3d2b7a6082641601648ba309d1f878aaf6cb3f39f1468981dfe1fd30b96de8a0926128d4c2bff24aced21aff599f6fff8611a0084641d171063c6099d855d
   languageName: node
   linkType: hard
 
@@ -9649,6 +9682,42 @@ fsevents@~2.3.2:
   bin:
     mkdirp: bin/cmd.js
   checksum: 1aa3a6a2d7514f094a91329ec09994f5d32d2955a4985ecbb3d86f2aaeafc4aa11521f98d606144c1d49cd9835004d9a73342709b8c692c92e59eacf37412468
+  languageName: node
+  linkType: hard
+
+"mocha@npm:9.0.1":
+  version: 9.0.1
+  resolution: "mocha@npm:9.0.1"
+  dependencies:
+    "@ungap/promise-all-settled": 1.1.2
+    ansi-colors: 4.1.1
+    browser-stdout: 1.3.1
+    chokidar: 3.5.1
+    debug: 4.3.1
+    diff: 5.0.0
+    escape-string-regexp: 4.0.0
+    find-up: 5.0.0
+    glob: 7.1.7
+    growl: 1.10.5
+    he: 1.2.0
+    js-yaml: 4.1.0
+    log-symbols: 4.1.0
+    minimatch: 3.0.4
+    ms: 2.1.3
+    nanoid: 3.1.23
+    serialize-javascript: 5.0.1
+    strip-json-comments: 3.1.1
+    supports-color: 8.1.1
+    which: 2.0.2
+    wide-align: 1.1.3
+    workerpool: 6.1.4
+    yargs: 16.2.0
+    yargs-parser: 20.2.4
+    yargs-unparser: 2.0.0
+  bin:
+    _mocha: bin/_mocha
+    mocha: bin/mocha
+  checksum: f3a5b0aad457a61fca644fd3e7781ea1388d112974b2f6a8eb87bebfec30111fb282b11734dbf1ddcb0a0c520f663bc389f61f6f70680fe2b30fda65f01e67e0
   languageName: node
   linkType: hard
 
@@ -10321,9 +10390,9 @@ fsevents@~2.3.2:
   linkType: hard
 
 "object-inspect@npm:^1.10.3, object-inspect@npm:^1.9.0":
-  version: 1.10.3
-  resolution: "object-inspect@npm:1.10.3"
-  checksum: f5d21d86dbedf7224f5e2bee8235beb1e94a419443102ae0d6c17603ace26b930de584ece5695ae6c338ec996656477d5ca425b1f8770b4aa3340aa3d188aa9a
+  version: 1.11.0
+  resolution: "object-inspect@npm:1.11.0"
+  checksum: 7890688465619b0947d4370c82d7454cbca855012facb0e1083eb9c44f35718a3479f06887a0acf72b1f181930151a465e899bc16127f7d8c5fb2eee0c61c093
   languageName: node
   linkType: hard
 
@@ -10394,6 +10463,7 @@ fsevents@~2.3.2:
     "@12stonechurch/omnihive-worker-contacts": "workspace:*"
     "@12stonechurch/omnihive-worker-elastic": "workspace:*"
     "@12stonechurch/omnihive-worker-events": "workspace:*"
+    "@12stonechurch/omnihive-worker-graphql-builder-v1": "workspace:*"
     "@12stonechurch/omnihive-worker-groups": "workspace:*"
     "@12stonechurch/omnihive-worker-media": "workspace:*"
     "@12stonechurch/omnihive-worker-next": "workspace:*"
@@ -10413,6 +10483,7 @@ fsevents@~2.3.2:
     "@types/swagger-ui-express": 4.1.2
     "@types/uuid": 8.3.0
     "@types/yargs": 17.0.0
+    "@withonevision/omnihive-client": "workspace:*"
     "@withonevision/omnihive-core": "workspace:*"
     "@withonevision/omnihive-worker-config-json": "workspace:*"
     "@withonevision/omnihive-worker-config-mssql": "workspace:*"
@@ -10424,9 +10495,8 @@ fsevents@~2.3.2:
     "@withonevision/omnihive-worker-encryption-nodeforge": "workspace:*"
     "@withonevision/omnihive-worker-filesystem-fsextra": "workspace:*"
     "@withonevision/omnihive-worker-function-core": "workspace:*"
-    "@withonevision/omnihive-worker-graphql-builder-v1": "workspace:*"
     "@withonevision/omnihive-worker-graphql-builder-v2": "workspace:*"
-    "@withonevision/omnihive-worker-knex-mssql": 6.2.52
+    "@withonevision/omnihive-worker-knex-mssql": 6.2.54
     "@withonevision/omnihive-worker-log-core": "workspace:*"
     "@withonevision/omnihive-worker-server-v1": "workspace:*"
     "@withonevision/omnihive-worker-token-jsonwebtoken": "workspace:*"
@@ -11088,6 +11158,13 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
+"pop-iterate@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "pop-iterate@npm:1.0.1"
+  checksum: 0b3d04ed8fe83d795768fa344bb17d666b8a2a146d599d7a4f5161f89e509ecc4e0008f667480ff6a4363bd918f8a131f7c64a5130ce3b330beac49852072b9b
+  languageName: node
+  linkType: hard
+
 "posix-character-classes@npm:^0.1.0":
   version: 0.1.1
   resolution: "posix-character-classes@npm:0.1.1"
@@ -11184,6 +11261,15 @@ fsevents@~2.3.2:
   bin:
     prettier: bin-prettier.js
   checksum: 652640cc8b71bc5277cfb8bf6f161783ca588efcf683c3d630837b39da8d57fef35c9e00ae5855a8e3c75136c42274046c913cc2b2d2968558315f31c6a26981
+  languageName: node
+  linkType: hard
+
+"prettier@npm:2.3.2":
+  version: 2.3.2
+  resolution: "prettier@npm:2.3.2"
+  bin:
+    prettier: bin-prettier.js
+  checksum: 4fd89a7f6a12b13456d359fba2b1dd0fc0a17cf33f8f15953ab9f43b21ea9b09b5a2861d63b558ca0577274ce606d390e70628cf93e26d19d6cb7f19c9eebc31
   languageName: node
   linkType: hard
 
@@ -11388,6 +11474,30 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
+"query-string@npm:7.0.1":
+  version: 7.0.1
+  resolution: "query-string@npm:7.0.1"
+  dependencies:
+    decode-uri-component: ^0.2.0
+    filter-obj: ^1.1.0
+    split-on-first: ^1.0.0
+    strict-uri-encode: ^2.0.0
+  checksum: 0709d82a6dc332de978878b1bfe8de093b50527bcfcb2fd04e46f2d69c94bbad79e056a47e549b4ca5751cf624a03b27fb26ec3e29294a369e97be7d67279891
+  languageName: node
+  linkType: hard
+
+"query-string@npm:^6.11.0":
+  version: 6.14.1
+  resolution: "query-string@npm:6.14.1"
+  dependencies:
+    decode-uri-component: ^0.2.0
+    filter-obj: ^1.1.0
+    split-on-first: ^1.0.0
+    strict-uri-encode: ^2.0.0
+  checksum: 5d651ac420f5298baf00bb71228ffac32ed342c09836a7d2b1df3cdc7870313339cf6927827370c654cf73571bd639af497a0d9ef677a3a11b7396de2f761aa4
+  languageName: node
+  linkType: hard
+
 "querystringify@npm:^2.1.1":
   version: 2.2.0
   resolution: "querystringify@npm:2.2.0"
@@ -11553,6 +11663,15 @@ fsevents@~2.3.2:
     micromatch: ^3.1.10
     readable-stream: ^2.0.2
   checksum: 00b5209ee5278ba6faa2fbcabb817e8f64a498ff7fee8cfd30634a04140e673375582812c67c59e25ee3ee9979687b1c832f33e1bbacd8ac3340bab0645b8374
+  languageName: node
+  linkType: hard
+
+"readdirp@npm:~3.5.0":
+  version: 3.5.0
+  resolution: "readdirp@npm:3.5.0"
+  dependencies:
+    picomatch: ^2.2.1
+  checksum: a64fe5606937d9655252230003362d95da05dbfd3baecedb4bb8c1bc0df497d051a192f9b75345c944e58a0b362c68349be602d6dbf05d03770e510b35a9f80f
   languageName: node
   linkType: hard
 
@@ -12038,7 +12157,14 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"secure-json-parse@npm:^2.3.1":
+"scmp@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "scmp@npm:2.1.0"
+  checksum: 79d2f09df41a60761357af730030b5026935de3735dc3df50798e68a078966bd77959643f9943e8ca398fd02f064de8a5318a7ed4272b0ac6f5bc56bea0b2004
+  languageName: node
+  linkType: hard
+
+"secure-json-parse@npm:^2.3.1, secure-json-parse@npm:^2.4.0":
   version: 2.4.0
   resolution: "secure-json-parse@npm:2.4.0"
   checksum: bbf325b52d3eb399b23a337ef7185380424600b4d6c07e62e8d1ab9e9cc657258b897841e4da1ecca9c9d4a83e426756f74fff1685640b3fbe4f481f577517d4
@@ -12149,12 +12275,12 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"serialize-javascript@npm:6.0.0":
-  version: 6.0.0
-  resolution: "serialize-javascript@npm:6.0.0"
+"serialize-javascript@npm:5.0.1":
+  version: 5.0.1
+  resolution: "serialize-javascript@npm:5.0.1"
   dependencies:
     randombytes: ^2.1.0
-  checksum: e086a40bfcb9d341c37a4e52bc200d143b54397cf1bb486f38cd40cdbaac4b82437d981472df94dbcff6334269e0d82daffbd6b75dd50fe54a5a5da2273f2360
+  checksum: 97eef70a33c75e690b0c6aa2ffe622ecdfc888d3f181a5cf129e5778228dcd100febabc0f41ff793199ee79acd14cbbad0c69f1348a3893580fe424c4718889b
   languageName: node
   linkType: hard
 
@@ -12764,6 +12890,13 @@ fsevents@~2.3.2:
   version: 0.1.2
   resolution: "streamsearch@npm:0.1.2"
   checksum: f72befba95082d49be19cd4318112bc141f6cd7cbb201ee8079887f6f3cbcdf79c311977ce0eaa93d7d8c3e6b9727412f6177a87ced5b98d0fd4075723ad8eaf
+  languageName: node
+  linkType: hard
+
+"strict-uri-encode@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "strict-uri-encode@npm:2.0.0"
+  checksum: 775012e88b9d8dff939d514bf376d615a15e8228a5dd587a94ac3c71fce41aa3635cd808aa796e2c1cd33f3f2fe2fbf89b74ee18a504a1905efa1854311e04bb
   languageName: node
   linkType: hard
 
@@ -13906,7 +14039,7 @@ typescript@4.2.4:
   languageName: node
   linkType: hard
 
-"uuid@npm:8.3.2, uuid@npm:^8.0.0, uuid@npm:^8.3.0":
+"uuid@npm:8.3.2, uuid@npm:^8.0.0, uuid@npm:^8.3.0, uuid@npm:^8.3.2":
   version: 8.3.2
   resolution: "uuid@npm:8.3.2"
   bin:
@@ -13963,6 +14096,13 @@ typescript@4.2.4:
     core-util-is: 1.0.2
     extsprintf: ^1.2.0
   checksum: 38ea80312cb42e5e8b4ac562d108d675b2354a79f8f125d363671f692657461b9181fd26f4fc9acdca433f8afee099cb78058806e1303e6b15b8fb022affba94
+  languageName: node
+  linkType: hard
+
+"weak-map@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "weak-map@npm:1.0.5"
+  checksum: 8bfccacfbdc0a4249b7e962cd826d1b6cdc65677d37b74997142dac5dbdf6af07038068c72348d717ccc798aa268ee90ae6f6079b6d65ec70ec17ec949b3ca8d
   languageName: node
   linkType: hard
 
@@ -14067,10 +14207,10 @@ typescript@4.2.4:
   languageName: node
   linkType: hard
 
-"workerpool@npm:6.1.5":
-  version: 6.1.5
-  resolution: "workerpool@npm:6.1.5"
-  checksum: aaf220c463d32c146887d28b45f0291e803c8c41d77a559ff525347f178b3b53b3b029a240bb92529a72771093f7cf5afdc81a28396ecc2f2f3179ad31d03456
+"workerpool@npm:6.1.4":
+  version: 6.1.4
+  resolution: "workerpool@npm:6.1.4"
+  checksum: e5e708d634d7634dadca64a61ce7aa58642b1751f00ee24402d7af471175e699616781f62f556ddb15661e373a2636f5982a8abc50b279c6b65aa98134a5a3e2
   languageName: node
   linkType: hard
 
@@ -14159,8 +14299,8 @@ typescript@4.2.4:
   linkType: hard
 
 "ws@npm:^5.2.0 || ^6.0.0 || ^7.0.0":
-  version: 7.5.2
-  resolution: "ws@npm:7.5.2"
+  version: 7.5.3
+  resolution: "ws@npm:7.5.3"
   peerDependencies:
     bufferutil: ^4.0.1
     utf-8-validate: ^5.0.2
@@ -14169,7 +14309,7 @@ typescript@4.2.4:
       optional: true
     utf-8-validate:
       optional: true
-  checksum: 45eccd77921681f3cae0d646813b5c6aad40e11f90a57e7070a5ceed1ff27629d23034cb223bf77cc6de41a8a2591faa2635558bb5ba9e280edccbc088655770
+  checksum: 77ce9a21297a3a2a7a312f17bd7b98c14df11c151db12f1df814393c0e9c11e94592fc4b5b26e6d3da9de5006cbdb4bdfed0a7a2fb165fc5010d43af07b50d1c
   languageName: node
   linkType: hard
 

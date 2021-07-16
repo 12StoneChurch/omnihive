@@ -27,7 +27,7 @@
         "@12stonechurch/omnihive-worker-common": "workspace:*",
         "@sendgrid/client": "7.4.3",
         "@sendgrid/mail": "7.4.5",
-        "@withonevision/omnihive-core": "6.2.52",
+        "@withonevision/omnihive-core": "6.2.54",
         "dayjs": "1.10.5",
         "enquirer": "2.3.6",
         "listr2": "3.10.0",

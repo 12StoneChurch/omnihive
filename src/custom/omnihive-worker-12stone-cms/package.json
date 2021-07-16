@@ -26,8 +26,8 @@
     "dependencies": {
         "@12stonechurch/omnihive-worker-common": "workspace:*",
         "@12stonechurch/omnihive-worker-elastic": "workspace:*",
-        "@withonevision/omnihive-client": "6.2.52",
-        "@withonevision/omnihive-core": "6.2.52",
+        "@withonevision/omnihive-client": "6.2.54",
+        "@withonevision/omnihive-core": "6.2.54",
         "dayjs": "1.10.5",
         "enquirer": "2.3.6",
         "listr2": "3.10.0",

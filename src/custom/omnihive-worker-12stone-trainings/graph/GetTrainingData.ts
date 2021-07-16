@@ -50,6 +50,8 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
      */
     public execute = async (customArgs: any, _omniHiveContext: GraphContext): Promise<TrainingModule[]> => {
         try {
+            this.trainingModules = [];
+
             const userId: number = customArgs.userId;
 
             const trainingId: number = customArgs.trainingId;
@@ -60,32 +62,37 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
             await this.graphService.init(this.registeredWorkers, this.environmentVariables);
 
             this.rootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
-            this.dataUrl = this.rootUrl + "/server1/builder2/ministryplatform";
-            this.graphService.graphRootUrl = this.dataUrl;
+            this.dataUrl = this.rootUrl + this.metadata.dataSlug;
+            this.graphService.graphRootUrl = this.dataUrl ?? "";
 
-            await this.getTrainingModule(trainingId);
+            if (this.graphService.graphRootUrl.length > 0) {
+                await this.getTrainingModule(trainingId);
 
-            if (this.trainingModules) {
-                await this.getTrainingSubModules();
+                if (this.trainingModules) {
+                    await this.getTrainingSubModules();
 
-                if (this.trainingModules.some((x) => x.subModules.length > 0)) {
-                    await this.userProgress(userId);
+                    if (this.trainingModules.some((x) => x.subModules.length > 0)) {
+                        await this.userProgress(userId);
+                    }
+
+                    await this.getEventData();
+                    await this.getEventParticipantData(userId);
                 }
 
-                await this.getEventData();
-                await this.getEventParticipantData(userId);
+                return this.trainingModules;
+            } else {
+                throw new Error("GraphQL URL not specified");
             }
-
-            return this.trainingModules;
         } catch (err) {
             throw err;
         }
     };
 
     private getTrainingModule = async (trainingId: number) => {
-        const query: string = `{
+        try {
+            const query: string = `{
             data: dboTrainingModules(
-              where: {and: [{trainingId: {eq: ${trainingId}}}, {archived: {notEq: 1}}]}
+              where: {and: [{trainingId: {eq: ${trainingId}}}, {archived: {notEq: true}}]}
             ) {
               trainingModuleId
               title
@@ -94,12 +101,15 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
             }
           }`;
 
-        const results = (await this.graphService.runQuery(query)).data;
+            const results = (await this.graphService.runQuery(query)).data;
 
-        for (const item of results) {
-            item["progress"] = 0;
-            item["events"] = [];
-            this.trainingModules.push(item);
+            for (const item of results) {
+                item["progress"] = 0;
+                item["events"] = [];
+                this.trainingModules.push(item);
+            }
+        } catch (err) {
+            throw err;
         }
     };
 
@@ -111,7 +121,7 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
                         trainingModuleId: {
                             in: [${this.trainingModules.map((x) => x.trainingModuleId).join(",")}]}
                     }, 
-                    { archived: { notEq: 1 } }
+                    { archived: { notEq: true } }
                 ]}
             ) {
                 trainingSubmoduleId
@@ -130,7 +140,7 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
             const parent = this.trainingModules.find((x) => x.trainingModuleId === item.trainingModuleId);
 
             if (parent) {
-                if (parent.subModules) {
+                if (!parent.subModules) {
                     parent.subModules = [];
                 }
 
@@ -154,7 +164,7 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
                             trainingSubmoduleId: {
                                 in: [
                                     ${this.trainingModules
-                                        .map((x) => x.subModules.map((y: any) => y.trainingSubModuleId))
+                                        .map((x) => x.subModules.map((y: any) => y.trainingSubmoduleId))
                                         .flat(Infinity)
                                         .join(",")}
                                     ]

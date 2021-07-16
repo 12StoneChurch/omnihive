@@ -1,5 +1,5 @@
 import { serializeError } from "serialize-error";
-import { IDatabaseWorker } from "src/packages/omnihive-core/interfaces/IDatabaseWorker";
+import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 
 type AuditObject = {
     log: LogObject;

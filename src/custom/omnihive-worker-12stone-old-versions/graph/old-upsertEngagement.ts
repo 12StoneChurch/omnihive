@@ -1,7 +1,7 @@
 import axios from "axios";
-import { IGraphEndpointWorker } from "src/packages/omnihive-core/interfaces/IGraphEndpointWorker";
-import { GraphContext } from "src/packages/omnihive-core/models/GraphContext";
-import { HiveWorkerBase } from "src/packages/omnihive-core/models/HiveWorkerBase";
+import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
+import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 
 type UpsertEngagementArgs = {
     accountId: number;

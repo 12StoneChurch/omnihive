@@ -5,7 +5,7 @@ import { serializeError } from "serialize-error";
 import { GetEventsByIdList } from "../common/GetEventsByIdList";
 import { Event } from "../lib/models/Event";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
-import { GraphService } from "src/custom/omnihive-worker-12stone-common/services/GraphService";
+import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 
 /**
  * Args:

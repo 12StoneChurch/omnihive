@@ -4,8 +4,8 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
-import { HiveWorkerType } from "../../../packages/omnihive-core/enums/HiveWorkerType";
-import { IDatabaseWorker } from "../../../packages/omnihive-core/interfaces/IDatabaseWorker";
+import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
+import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 
 // import { EngagementModel } from "../lib/models/Engagement";
 // import { countQueryBuilder } from "../queries/countQueryBuilder";

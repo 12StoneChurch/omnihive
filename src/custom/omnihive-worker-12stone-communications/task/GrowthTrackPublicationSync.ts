@@ -6,7 +6,7 @@ import { addContactPublications } from "../common/addContactPublications";
 import { updateContactPublications } from "../common/updateContactPublications";
 import { init, runCustomSql, setGraphUrl } from "../lib/services/GraphService";
 
-export default class QueueAutomation extends HiveWorkerBase implements ITaskEndpointWorker {
+export default class GrowthTrackPublicationSync extends HiveWorkerBase implements ITaskEndpointWorker {
     private contacts: {
         contactId: number;
         modules: number[];

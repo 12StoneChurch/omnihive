@@ -62,7 +62,7 @@ export const addAuditLogEntry = async (auditObject: AuditObject, databaseWorker:
         logInsert.from("dp_Audit_Log");
         logInsert.insert(logObject, ["Audit_Item_ID"]);
 
-        const auditLogResults = await databaseWorker.executeQuery(logInsert.toString());
+        const auditLogResults = await databaseWorker.executeQuery(logInsert.toString(), true);
         const auditItemId = auditLogResults[0][0].Audit_Item_ID;
         if (auditObject.detail) {
             const detailObject: any = {
@@ -82,7 +82,7 @@ export const addAuditLogEntry = async (auditObject: AuditObject, databaseWorker:
             const detailInsert = databaseWorker.connection.queryBuilder();
             detailInsert.from("dp_Audit_Detail");
             detailInsert.insert(detailObject);
-            await databaseWorker.executeQuery(detailInsert.toString());
+            await databaseWorker.executeQuery(detailInsert.toString(), true);
         }
     } catch (err) {
         throw new Error(JSON.stringify(serializeError(err)));

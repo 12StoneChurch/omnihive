@@ -1,11 +1,11 @@
 import client from "@sendgrid/client";
 import dayjs from "dayjs";
 import { serializeError } from "serialize-error";
-import { addAuditLogEntry } from "src/custom/omnihive-worker-12stone-common/helpers/MpHelper";
-import { HiveWorkerType } from "src/packages/omnihive-core/enums/HiveWorkerType";
-import { IDatabaseWorker } from "src/packages/omnihive-core/interfaces/IDatabaseWorker";
-import { ITaskEndpointWorker } from "src/packages/omnihive-core/interfaces/ITaskEndpointWorker";
-import { HiveWorkerBase } from "src/packages/omnihive-core/models/HiveWorkerBase";
+import { addAuditLogEntry } from "@12stonechurch/omnihive-worker-common/helpers/MpHelper";
+import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
+import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
+import { ITaskEndpointWorker } from "@withonevision/omnihive-core/interfaces/ITaskEndpointWorker";
+import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 
 export default class SendGridUnsubSync extends HiveWorkerBase implements ITaskEndpointWorker {
     private databaseWorker: IDatabaseWorker | undefined;

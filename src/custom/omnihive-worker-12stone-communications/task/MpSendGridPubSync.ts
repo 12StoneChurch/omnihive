@@ -2,10 +2,10 @@ import client from "@sendgrid/client";
 import dayjs from "dayjs";
 import _ from "lodash";
 import { serializeError } from "serialize-error";
-import { HiveWorkerType } from "src/packages/omnihive-core/enums/HiveWorkerType";
-import { IDatabaseWorker } from "src/packages/omnihive-core/interfaces/IDatabaseWorker";
-import { ITaskEndpointWorker } from "src/packages/omnihive-core/interfaces/ITaskEndpointWorker";
-import { HiveWorkerBase } from "src/packages/omnihive-core/models/HiveWorkerBase";
+import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
+import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
+import { ITaskEndpointWorker } from "@withonevision/omnihive-core/interfaces/ITaskEndpointWorker";
+import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 
 export default class MpSendGridPubSync extends HiveWorkerBase implements ITaskEndpointWorker {
     // Globals

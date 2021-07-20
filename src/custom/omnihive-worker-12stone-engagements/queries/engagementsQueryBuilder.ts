@@ -5,7 +5,7 @@ interface Args {
     perPage?: number;
     contactId?: number;
     ownerId?: number;
-    statusId?: number;
+    statusId?: number[];
     congregationId?: number;
     typeId?: number;
 }
@@ -58,7 +58,7 @@ export const engagementsQueryBuilder = (connection: Knex<any | unknown>, customA
         builder.where("e.Congregation_ID", customArgs.congregationId);
     }
     if (customArgs?.statusId) {
-        builder.where("e.Engagement_Status_ID", customArgs.statusId);
+        builder.whereIn("e.Engagement_Status_ID", customArgs.statusId);
     }
     if (customArgs?.typeId) {
         builder.where("e.Engagement_Type_ID", customArgs.typeId);

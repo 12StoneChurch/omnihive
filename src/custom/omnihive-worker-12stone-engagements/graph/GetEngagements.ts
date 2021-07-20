@@ -1,11 +1,11 @@
+import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
+import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
-import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
-import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { EngagementModel } from "../lib/models/Engagement";
 import { countQueryBuilder } from "../queries/countQueryBuilder";
 import { engagementsQueryBuilder } from "../queries/engagementsQueryBuilder";
@@ -15,7 +15,7 @@ interface Args {
     perPage?: number;
     contactId?: number;
     ownerId?: number;
-    statusId?: number;
+    statusId?: number[];
     congregationId?: number;
     typeId?: number;
 }

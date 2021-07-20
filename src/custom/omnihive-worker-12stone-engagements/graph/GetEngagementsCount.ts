@@ -14,10 +14,10 @@ interface Args {
 }
 
 interface Statuses {
-    New?: number;
-    Open?: number;
-    Snoozed?: number;
-    Closed?: number;
+    New: number;
+    Open: number;
+    Snoozed: number;
+    Closed: number;
 }
 
 export default class GetEngagmentsCount extends HiveWorkerBase implements IGraphEndpointWorker {
@@ -40,7 +40,12 @@ export default class GetEngagmentsCount extends HiveWorkerBase implements IGraph
             const res = await worker?.executeQuery(countQuery.toString());
 
             const data = res && res[0];
-            const countObj: Statuses = {};
+            const countObj: Statuses = {
+                New: 0,
+                Open: 0,
+                Snoozed: 0,
+                Closed: 0,
+            };
             data?.forEach((item: { Name: "New" | "Open" | "Snoozed" | "Closed"; count: number }) => {
                 countObj[item.Name] = item.count;
             });

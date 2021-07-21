@@ -31,14 +31,16 @@ type EngagementUpsertModel = {
 };
 
 export default class UpsertEngagement extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: UpsertEngagementArgs, _omniHiveContext: GraphContext): Promise<boolean> => {
+    public execute = async (customArgs: UpsertEngagementArgs, _omniHiveContext: GraphContext): Promise<any> => {
         try {
-            return (
-                await axios.post(
-                    `${this.metadata.dataGraphRootUrl}/rest/system/engagements/upsert`,
-                    JSON.stringify(customArgs)
-                )
-            ).data;
+            return {
+                success: (
+                    await axios.post(
+                        `${this.metadata.dataGraphRootUrl}/rest/system/engagements/upsert`,
+                        JSON.stringify(customArgs)
+                    )
+                ).data,
+            };
         } catch (err) {
             throw err;
         }

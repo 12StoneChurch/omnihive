@@ -35,10 +35,7 @@ export default class UpsertEngagement extends HiveWorkerBase implements IGraphEn
         try {
             return {
                 success: (
-                    await axios.post(
-                        `${this.metadata.dataGraphRootUrl}/rest/system/engagements/upsert`,
-                        JSON.stringify(customArgs)
-                    )
+                    await axios.post(`${this.metadata.dataGraphRootUrl}/rest/system/engagements/upsert`, customArgs)
                 ).data,
             };
         } catch (err) {

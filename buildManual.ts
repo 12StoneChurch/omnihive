@@ -82,7 +82,7 @@ const build = async (): Promise<void> => {
         })
         .check((args) => {
             if (args.packageList.some((value) => value === "*")) {
-                return;
+                return true;
             }
 
             args.packageList.forEach((value) => {
@@ -95,6 +95,8 @@ const build = async (): Promise<void> => {
             if (args.publish === true && IsHelper.isNullOrUndefined(args.publishVersion)) {
                 throw new Error("If publish is set you must set a publish version");
             }
+
+            return true;
         });
 
     const responseArgs = await cmdLineArgs.argv;
@@ -243,7 +245,7 @@ const updateVersions = async () => {
     const replacePublishVersionOptions: ReplaceInFileConfig = {
         allowEmptyPaths: true,
         files: [path.join(`dist`, `**`, `package.json`)],
-        from: /"version": "\*"/g,
+        from: /"version": ".*"/g,
         to: `"version": "${args.publishVersion}"`,
     };
 

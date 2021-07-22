@@ -250,6 +250,15 @@ const updateVersions = async () => {
     };
 
     await replaceInFile.replaceInFile(replacePublishVersionOptions);
+
+    const replaceDependentVersionOptions: ReplaceInFileConfig = {
+        allowEmptyPaths: true,
+        files: [path.join(`dist`, `**`, `package.json`)],
+        from: /"workspace:\*"/g,
+        to: `"${args.publishVersion}"`,
+    };
+
+    await replaceInFile.replaceInFile(replaceDependentVersionOptions);
 };
 
 build();

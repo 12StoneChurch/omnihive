@@ -35,13 +35,36 @@ export default class UpsertEngagement extends HiveWorkerBase implements IGraphEn
                 // Throw an error if required arguments for a new engagement are not provided
                 if (
                     !customArgs?.contactId ||
-                    !customArgs?.ownerContactId ||
                     !customArgs.engagementStatusId ||
-                    !customArgs?.engagementTypeId
+                    !customArgs?.engagementTypeId ||
+                    !customArgs.congregationId
                 ) {
                     throw new Error(
-                        "New engagements require arguments for contactId, ownerContactId, engagementTypeId, and engagementStatusId"
+                        "New engagements require arguments for contactId, congregationId, engagementTypeId, and engagementStatusId."
                     );
+                }
+
+                // Define engagement owner if one is not passed in
+                if (!customArgs?.ownerContactId) {
+                    const ownerQuery = defaultOwnerQuery(connection, customArgs);
+                    const ownerRes = await worker?.executeQuery(ownerQuery.toString());
+
+                    if (ownerRes && ownerRes[0].length === 1) {
+                        // This condition should really only happen when there is no default owner for this engagement type
+                        // So it returns the default for the campus
+                        customArgs.ownerContactId = ownerRes[0][0].ownerId;
+                    } else {
+                        // If there is a default owner for campus and engagement type, then ownerRes returns 2 results.
+                        // They are the campus default and the campus+engagementType default
+                        // The owner variable returns the engagementType default
+                        const owner =
+                            ownerRes &&
+                            ownerRes[0].find((item) => {
+                                return item.engagementTypeId === customArgs.engagementTypeId;
+                            });
+
+                        customArgs.ownerContactId = owner.ownerId;
+                    }
                 }
 
                 // INSERT NEW ENGAGEMENT
@@ -64,7 +87,7 @@ export default class UpsertEngagement extends HiveWorkerBase implements IGraphEn
 }
 
 const insertEngagementQuery = (connection: Knex, data: UpsertEngagementWorkerArgs) => {
-    const { contactId, ownerContactId, description, congregationId, engagementTypeId, engagementStatusId } = data;
+    const { contactId, description, ownerContactId, congregationId, engagementTypeId, engagementStatusId } = data;
 
     const builder = connection.queryBuilder();
     builder
@@ -116,4 +139,18 @@ const updateEngagementQuery = (connection: Knex, data: UpsertEngagementWorkerArg
     builder.from("Engagements").update(updateObject).where("Engagement_ID", data.engagementId).returning("*");
 
     return builder;
+};
+
+const defaultOwnerQuery = (connection: Knex, data: UpsertEngagementWorkerArgs) => {
+    const query = connection.queryBuilder();
+
+    query
+        .select("Contact_ID as ownerId", "Engagement_Type_Id as engagementTypeId")
+        .from("Engagement_Default_Owners")
+        .where("Congregation_ID", data.congregationId)
+        .andWhere(function (q) {
+            q.where("Engagement_Type_ID", data.engagementTypeId).orWhere("Engagement_Type_ID", null);
+        });
+
+    return query;
 };

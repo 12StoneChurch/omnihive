@@ -49,11 +49,12 @@ export default class CreateEngagementLog extends HiveWorkerBase implements IGrap
             const selectData: InsertedEngagementLogDTO = selectRes && selectRes[0][0];
 
             const engagementLog: EngagementLogModel = {
-                id: selectData.Engagement_Log_ID,
+                engagementLogId: selectData.Engagement_Log_ID,
                 engagementId: selectData.Engagement_ID,
                 description: selectData.Description,
                 dateCreated: dayjs(selectData.Date_Created).toDate(),
                 type: { id: selectData.Engagement_Log_Type_ID, name: selectData.Engagement_Log_Type_Name },
+                source: "EngagementLog",
             };
 
             return engagementLog;

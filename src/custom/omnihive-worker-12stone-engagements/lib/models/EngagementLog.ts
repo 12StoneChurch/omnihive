@@ -1,5 +1,5 @@
 export interface EngagementLogModel {
-    id: number;
+    engagementLogId: number;
     engagementId: number;
     description?: string;
     type: {
@@ -7,4 +7,16 @@ export interface EngagementLogModel {
         name: string;
     };
     dateCreated: Date;
+    source: "EngagementLog";
 }
+
+export interface EngagementContactLogModel {
+    engagementContactLogId: number;
+    engagementId: number;
+    description?: string;
+    type?: undefined;
+    dateCreated: Date;
+    source: "EngagementContactLog";
+}
+
+export type EngagementLogOrEngagementContactLogModel = EngagementLogModel | EngagementContactLogModel;

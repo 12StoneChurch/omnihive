@@ -1,11 +1,11 @@
+import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
+import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
-import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
-import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { EngagementModel } from "./../lib/models/Engagement";
 
 // import { EngagementModel } from "../lib/models/Engagement";
@@ -15,7 +15,7 @@ interface Args {
     engagementId: number;
 }
 
-export default class GetAllEngagements extends HiveWorkerBase implements IGraphEndpointWorker {
+export default class GetEngagementById extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: Args, _omniHiveContext: GraphContext): Promise<{}> => {
         try {
             if (!customArgs?.engagementId) {
@@ -38,7 +38,7 @@ export default class GetAllEngagements extends HiveWorkerBase implements IGraphE
 
             const engagement: EngagementModel = {
                 engagementId: data.Engagement_ID,
-                description: data.description,
+                description: data.Description,
                 dateCreated: data.Date_Created,
                 contact: {
                     contactId: data.Contact_ID,

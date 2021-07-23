@@ -9,6 +9,7 @@ import { serializeError } from "serialize-error";
 import type { GraphContext } from "src/packages/omnihive-core/models/GraphContext";
 
 import { EngagementLogModel } from "../lib/models/EngagementLog";
+import { insertEngagementLogQuery, selectInsertedEngagementLogQuery } from "../queries/insertEngagementLog";
 
 interface Args {
     engagementId: number;
@@ -74,32 +75,3 @@ interface InsertedEngagementLogDTO {
     Engagement_Log_Type_Name: string;
     Domain_ID: number;
 }
-
-const selectInsertedEngagementLogQuery = (connection: Knex, id: number) => {
-    const builder = connection.queryBuilder();
-    builder
-        .select("el.*", "elt.Name as Engagement_Log_Type_Name")
-        .from({ el: "Engagement_Log" })
-        .innerJoin("Engagement_Log_Types as elt", "el.Engagement_Log_Type_ID", "elt.Engagement_Log_Type_ID")
-        .where({ Engagement_Log_ID: id });
-
-    return builder;
-};
-
-const insertEngagementLogQuery = (connection: Knex, data: Args) => {
-    const { engagementId, description, typeId } = data;
-
-    const builder = connection.queryBuilder();
-    builder
-        .insert({
-            Engagement_ID: engagementId,
-            Description: description,
-            Date_Created: dayjs().toISOString(),
-            Engagement_Log_Type_ID: typeId,
-            Domain_ID: 1,
-        })
-        .into("Engagement_Log")
-        .returning(["Engagement_Log_ID"]);
-
-    return builder;
-};

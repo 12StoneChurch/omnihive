@@ -13,7 +13,7 @@ export interface EngagementLogModel {
 export interface EngagementContactLogModel {
     engagementContactLogId: number;
     engagementId: number;
-    description?: string;
+    description: string;
     type?: undefined;
     dateCreated: Date;
     source: "EngagementContactLog";

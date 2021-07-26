@@ -105,7 +105,7 @@ export default class CreateEngagement extends HiveWorkerBase implements IGraphEn
                     trx.rollback;
                 }
 
-                return engagementData;
+                return engagementData[0];
             });
 
             return engagement;

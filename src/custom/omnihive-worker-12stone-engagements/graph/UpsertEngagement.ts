@@ -1,3 +1,4 @@
+// import CreateEngagementLog from "@12stonechurch/omnihive-worker-engagements/graph/CreateEngagementLog";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
@@ -6,6 +7,8 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import dayjs from "dayjs";
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
+
+import { createContactLogQuery } from "./../queries/createContactLog";
 
 interface UpsertEngagementWorkerArgs {
     engagementId?: number; // Required for update
@@ -71,6 +74,30 @@ export default class UpsertEngagement extends HiveWorkerBase implements IGraphEn
                 const insertQuery = insertEngagementQuery(connection, customArgs);
                 const res = await worker?.executeQuery(insertQuery.toString());
                 const engagement = res && res[0][0];
+                console.log(`engagement`, engagement);
+
+                // Get Owner Name, then add to contact log args
+                const ownerDataQuery = getOwnerData(connection, engagement.Owner_Contact_ID);
+                const ownerDataRes = await worker?.executeQuery(ownerDataQuery.toString());
+                console.log(`ownerDataRes[0][0]`, ownerDataRes && ownerDataRes[0][0]);
+                const ownerName =
+                    ownerDataRes &&
+                    (ownerDataRes[0][0]?.Nickname
+                        ? `${[ownerDataRes[0][0]?.Nickname]} ${ownerDataRes[0][0]?.Last_Name}`
+                        : `${[ownerDataRes[0][0]?.First_Name]} ${ownerDataRes[0][0]?.Last_Name}`);
+
+                const contactLogArgs = {
+                    contactId: customArgs.contactId,
+                    contactDate: engagement.Date_Created,
+                    notes: `${ownerName} created new engagement`,
+                    ownerUserId: ownerDataRes && ownerDataRes[0][0].User_ID, // Owner User Id becomes Made_By in contact log
+                    engagementId: engagement.Engagement_ID,
+                };
+                console.log(`contactLogArgs`, contactLogArgs);
+                const contactLogQuery = await createContactLogQuery(connection, contactLogArgs);
+                // const contactLogRes = await worker?.executeQuery(contactLogQuery.toString());
+                console.log(`contactLogRes`, contactLogQuery);
+
                 return engagement;
             } else {
                 // INSERT NEW ENGAGEMENT
@@ -153,4 +180,12 @@ const defaultOwnerQuery = (connection: Knex, data: UpsertEngagementWorkerArgs) =
         });
 
     return query;
+};
+
+const getOwnerData = (connection: Knex, ownerContactId: number) => {
+    return connection
+        .select("c.First_Name", "c.Nickname", "c.Last_Name", "u.User_ID")
+        .from("Contacts as c")
+        .leftJoin("dp_Users as u", "u.Contact_ID", "c.Contact_ID")
+        .where("c.Contact_ID", ownerContactId);
 };

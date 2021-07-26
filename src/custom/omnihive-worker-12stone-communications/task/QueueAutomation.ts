@@ -7,11 +7,14 @@ import { MailDataRequired } from "@sendgrid/mail";
 import { updateCommunicationMessageStatus } from "../common/updateCommunicationMessageStatus";
 import { getMessages } from "../common/getCommunicationMessages";
 import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
+import { init } from "../lib/services/GraphService";
 
 export default class QueueAutomation extends HiveWorkerBase implements ITaskEndpointWorker {
     private messages: any;
 
     public execute = async (): Promise<any> => {
+        await init(this.registeredWorkers, this.environmentVariables);
+
         const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
 
         if (IsHelper.isNullOrUndefined(webRootUrl)) {

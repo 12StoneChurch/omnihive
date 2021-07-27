@@ -1,12 +1,12 @@
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import type { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import type { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import dayjs from "dayjs";
 import Joi from "joi";
 import type { Knex } from "knex";
 import { serializeError } from "serialize-error";
-import type { GraphContext } from "src/packages/omnihive-core/models/GraphContext";
 
 import { EngagementLogModel } from "../lib/models/EngagementLog";
 import { insertEngagementLogQuery, selectInsertedEngagementLogQuery } from "../queries/insertEngagementLog";

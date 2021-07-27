@@ -7,7 +7,11 @@ import dayjs from "dayjs";
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
+import { getEngagementByIdQuery } from "./../queries/getEngagementById";
+import { getTwilioNumber } from "./../queries/getTwilioNumber";
+import { getPhoneByContactId } from "../queries/getPhoneByContactId";
 import { insertEngagementLogQuery } from "../queries/insertEngagementLog";
+import { sendText } from "../queries/sendText";
 
 interface Args {
     contactId: number;
@@ -63,20 +67,45 @@ export default class CreateEngagement extends HiveWorkerBase implements IGraphEn
             const engagement = await connection.transaction(async (trx: Knex.Transaction) => {
                 // INSERT ENGAGEMENT
                 const engagementRes = await insertEngagement(trx, customArgs);
-                const engagementData = engagementRes[0];
+                const engagementData = await getEngagementByIdQuery(
+                    connection,
+                    engagementRes[0].Engagement_ID
+                ).transacting(trx);
                 console.log(`engagement`, engagementData);
 
                 // CREATE ENGAGEMENT LOG
                 const logData = {
-                    engagementId: engagementData.Engagement_ID,
+                    engagementId: engagementData[0].Engagement_ID,
                     description: "Engagement created.",
                     typeId: 1, // Created
                 };
-                await insertEngagementLogQuery(connection, logData).transacting(trx);
 
-                // TODO: SEND NOTIFICATION TO OWNER
+                const data = await Promise.all([
+                    insertEngagementLogQuery(connection, logData).transacting(trx),
+                    getPhoneByContactId(connection, engagementData[0].Owner_Contact_ID).transacting(trx),
+                    getTwilioNumber(connection).transacting(trx),
+                ]);
 
-                return engagementData;
+                // SEND NOTIFICATION TO OWNER
+                const ownerPhone = data[1][0].Mobile_Phone;
+                const twilioNumber = data[2][0].Default_Number;
+
+                // Construct custom graph url
+                const graphUrl = this.getEnvironmentVariable("OH_WEB_ROOT_URL") + this.metadata.customUrl;
+
+                // Send Text to engagement owner about their new engagement
+                const textData = {
+                    body: `You've been assigned a new ${engagementData[0].Type} engagement`,
+                    from: twilioNumber,
+                    to: ownerPhone,
+                };
+                const textSent = await sendText(textData, graphUrl);
+
+                if (!textSent?.SendSms?.sid) {
+                    trx.rollback;
+                }
+
+                return engagementData[0];
             });
 
             return engagement;
@@ -117,11 +146,3 @@ const defaultOwnerQuery = (connection: Knex, data: Args) => {
 
     return query;
 };
-
-// const getOwnerData = async (trx: Knex.Transaction, ownerContactId: number) => {
-//     return await trx
-//         .select("c.First_Name", "c.Nickname", "c.Last_Name", "u.User_ID")
-//         .from("Contacts as c")
-//         .leftJoin("dp_Users as u", "u.Contact_ID", "c.Contact_ID")
-//         .where("c.Contact_ID", ownerContactId);
-// };

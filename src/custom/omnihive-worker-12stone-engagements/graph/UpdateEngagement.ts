@@ -69,7 +69,7 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
                     const data = await Promise.all([
                         insertEngagementLogQuery(connection, logArgs).transacting(trx),
                         getPhoneByContactId(connection, updatedEngagement[0].Owner_Contact_ID).transacting(trx),
-                        getTwilioNumber(connection).transacting(trx),
+                        getTwilioNumber(connection, this.metadata.environment).transacting(trx),
                     ]);
 
                     const ownerPhone = data[1][0].Mobile_Phone;

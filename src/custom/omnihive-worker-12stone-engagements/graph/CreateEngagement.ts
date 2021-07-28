@@ -83,7 +83,7 @@ export default class CreateEngagement extends HiveWorkerBase implements IGraphEn
                 const data = await Promise.all([
                     insertEngagementLogQuery(connection, logData).transacting(trx),
                     getPhoneByContactId(connection, engagementData[0].Owner_Contact_ID).transacting(trx),
-                    getTwilioNumber(connection).transacting(trx),
+                    getTwilioNumber(connection, this.metadata.environment).transacting(trx),
                 ]);
 
                 // SEND NOTIFICATION TO OWNER

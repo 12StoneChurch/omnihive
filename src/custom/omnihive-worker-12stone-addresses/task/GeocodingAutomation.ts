@@ -1,3 +1,5 @@
+/// <reference path="../../../types/globals.omnihive.d.ts" />
+
 import { ITaskEndpointWorker } from "@withonevision/omnihive-core/interfaces/ITaskEndpointWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
@@ -6,11 +8,20 @@ import { serializeError } from "serialize-error";
 import dayjs from "dayjs";
 import { AddressModel } from "@12stonechurch/omnihive-worker-common/models/AddressModel";
 import { updateAddress } from "../common/updateAddress";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 export default class GeocodingAutomation extends HiveWorkerBase implements ITaskEndpointWorker {
     public execute = async (): Promise<any> => {
         try {
-            const graphUrl = this.serverSettings.config.webRootUrl + this.config.metadata.dataUrl;
+            const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+            if (IsHelper.isNullOrUndefined(webRootUrl)) {
+                throw new Error("Web Root URL undefined");
+            }
+
+            const graphUrl = webRootUrl + this.metadata.dataUrl;
+
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
             GraphService.getSingleton().graphRootUrl = graphUrl;
 
             const query = `
@@ -29,7 +40,7 @@ export default class GeocodingAutomation extends HiveWorkerBase implements ITask
                 const geoResponse = await client.geocode({
                     params: {
                         address: `${address.AddressLine1} ${address.City}, ${address.StateRegion} ${address.PostalCode}`,
-                        key: this.config.metadata.googleApiKey,
+                        key: this.metadata.googleApiKey,
                     },
                 });
 

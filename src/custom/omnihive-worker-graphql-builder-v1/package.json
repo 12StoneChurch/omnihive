@@ -1,0 +1,39 @@
+{
+    "name": "@12stonechurch/omnihive-worker-graphql-builder-v1",
+    "version": "0.0.1",
+    "description": "OmniHive GraphQL Build Worker V1",
+    "license": "MIT",
+    "author": {
+        "name": "12Stone Church",
+        "url": "https://www.12stone.com",
+        "email": "itsupport@12stone.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/12StoneChurch/omnihive.git"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "keywords": [
+        "OmniHive",
+        "With One Vision",
+        "12Stone Church"
+    ],
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "@withonevision/omnihive-core": "6.2.54",
+        "graphql": "15.5.0",
+        "knex": "0.95.7",
+        "lodash": "4.17.21",
+        "pluralize": "8.0.0"
+    },
+    "devDependencies": {
+        "@types/lodash": "4.14.170",
+        "@types/pluralize": "0.0.29",
+        "chai": "4.3.4",
+        "typescript": "4.2.4"
+    }
+}

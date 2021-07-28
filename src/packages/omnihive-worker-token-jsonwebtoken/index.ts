@@ -1,6 +1,6 @@
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
-import { HiveWorker } from "@withonevision/omnihive-core/models/HiveWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import jwt from "jsonwebtoken";
 import { nanoid } from "nanoid";
@@ -10,31 +10,29 @@ export class JsonWebTokenWorkerMetadata {
     public tokenSecret: string = "";
     public audience: string = "";
     public expiresIn: number | string = "";
-    public hashAlgorithm: string = "";
     public verifyOn: boolean = true;
 }
 
 export default class JsonWebTokenWorker extends HiveWorkerBase implements ITokenWorker {
-    private metadata!: JsonWebTokenWorkerMetadata;
+    private typedMetadata!: JsonWebTokenWorkerMetadata;
     private token: string = "";
 
     constructor() {
         super();
     }
 
-    public async init(config: HiveWorker): Promise<void> {
-        await AwaitHelper.execute<void>(super.init(config));
+    public async init(name: string, metadata?: any): Promise<void> {
+        await AwaitHelper.execute(super.init(name, metadata));
 
         try {
-            this.metadata = this.checkObjectStructure<JsonWebTokenWorkerMetadata>(
+            this.typedMetadata = this.checkObjectStructure<JsonWebTokenWorkerMetadata>(
                 JsonWebTokenWorkerMetadata,
-                config.metadata
+                metadata
             );
         } catch {
-            this.metadata = {
+            this.typedMetadata = {
                 audience: uuidv4(),
                 expiresIn: "30m",
-                hashAlgorithm: "sha1",
                 tokenSecret: nanoid(64),
                 verifyOn: true,
             };
@@ -42,29 +40,31 @@ export default class JsonWebTokenWorker extends HiveWorkerBase implements IToken
     }
 
     public get = async (): Promise<string> => {
-        const jwtPayload = { omnihiveAccess: true, aud: this.metadata.audience };
+        const jwtPayload = { omnihiveAccess: true, aud: this.typedMetadata.audience };
 
         if (this.token !== "" && !this.expired(this.token)) {
             return this.token;
         }
 
-        this.token = jwt.sign(jwtPayload, this.metadata.tokenSecret, { expiresIn: this.metadata.expiresIn });
+        this.token = jwt.sign(jwtPayload, this.typedMetadata.tokenSecret, { expiresIn: this.typedMetadata.expiresIn });
         return this.token;
     };
 
     public expired = async (token: string): Promise<boolean> => {
-        return !(await this.verify(token));
+        return !(await AwaitHelper.execute(this.verify(token)));
     };
 
     public verify = async (accessToken: string): Promise<boolean> => {
-        if (this.config.metadata.verifyOn === false) {
+        if (!this.typedMetadata.verifyOn) {
             return true;
         }
 
         try {
-            const decoded = jwt.verify(accessToken, this.metadata.tokenSecret, { audience: this.metadata.audience });
+            const decoded = jwt.verify(accessToken, this.typedMetadata.tokenSecret, {
+                audience: this.typedMetadata.audience,
+            });
 
-            if (decoded) {
+            if (!IsHelper.isNullOrUndefined(decoded)) {
                 return true;
             } else {
                 return false;

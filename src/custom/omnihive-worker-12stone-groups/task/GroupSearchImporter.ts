@@ -8,6 +8,7 @@ import ElasticWorker from "@12stonechurch/omnihive-worker-elastic";
 import { OmniHiveClient } from "@withonevision/omnihive-client";
 import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
 import dayjs from "dayjs";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 export default class GroupSearchImporter extends HiveWorkerBase implements ITaskEndpointWorker {
     private graphUrl = "";
@@ -15,6 +16,14 @@ export default class GroupSearchImporter extends HiveWorkerBase implements ITask
 
     public execute = async (): Promise<any> => {
         try {
+            const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+            if (IsHelper.isNullOrUndefined(webRootUrl)) {
+                throw new Error("Web Root URL undefined");
+            }
+
+            await OmniHiveClient.getSingleton().init(this.registeredWorkers, this.environmentVariables);
+
             this.elasticWorker = this.getWorker(HiveWorkerType.Unknown, "ohElastic") as ElasticWorker | undefined;
             const tokenWorker = this.getWorker(HiveWorkerType.Token) as ITokenWorker | undefined;
 
@@ -22,9 +31,7 @@ export default class GroupSearchImporter extends HiveWorkerBase implements ITask
                 const accessToken = await tokenWorker.get();
                 OmniHiveClient.getSingleton().setAccessToken(accessToken);
 
-                await AwaitHelper.execute(this.elasticWorker.init(this.elasticWorker.config));
-
-                this.graphUrl = this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+                this.graphUrl = webRootUrl + "/server1/builder1/ministryplatform";
 
                 const query = `
                     query {

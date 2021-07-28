@@ -1,8 +1,8 @@
-import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 import { ICacheWorker } from "@withonevision/omnihive-core/interfaces/ICacheWorker";
-import { HiveWorker } from "@withonevision/omnihive-core/models/HiveWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import NodeCache from "node-cache";
+import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 
 export default class NodeCacheWorker extends HiveWorkerBase implements ICacheWorker {
     private nodeCache!: NodeCache;
@@ -11,8 +11,8 @@ export default class NodeCacheWorker extends HiveWorkerBase implements ICacheWor
         super();
     }
 
-    public async init(config: HiveWorker): Promise<void> {
-        await AwaitHelper.execute<void>(super.init(config));
+    public async init(name: string, metadata?: any): Promise<void> {
+        await AwaitHelper.execute(super.init(name, metadata));
         this.nodeCache = new NodeCache();
     }
 
@@ -23,7 +23,7 @@ export default class NodeCacheWorker extends HiveWorkerBase implements ICacheWor
     public get = async (key: string): Promise<string | undefined> => {
         const value: string | undefined = this.nodeCache.get<string | undefined>(key);
 
-        if (!value) {
+        if (IsHelper.isNullOrUndefined(value)) {
             return undefined;
         }
 

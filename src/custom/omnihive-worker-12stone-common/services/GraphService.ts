@@ -1,10 +1,10 @@
 /// <reference path="../../../types/globals.omnihive.d.ts" />
 
 import { OmniHiveClient } from "@withonevision/omnihive-client";
-import { ClientSettings } from "@withonevision/omnihive-core/models/ClientSettings";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { serializeError } from "serialize-error";
 import { RegisteredHiveWorker } from "@withonevision/omnihive-core/models/RegisteredHiveWorker";
+import { EnvironmentVariable } from "@withonevision/omnihive-core/models/EnvironmentVariable";
 
 export class GraphService {
     public graphRootUrl: string = "";
@@ -14,33 +14,20 @@ export class GraphService {
     public static getSingleton = (): GraphService => {
         if (!GraphService.singleton) {
             GraphService.singleton = new GraphService();
-
-            const clientSettings: ClientSettings = {
-                rootUrl: global.omnihive.serverSettings.config.webRootUrl,
-                tokenMetadata: {
-                    audience: global.omnihive.serverSettings.constants.ohTokenAudience,
-                    tokenSecret: global.omnihive.serverSettings.constants.ohTokenSecret,
-                    verifyOn: true,
-                    expiresIn: global.omnihive.serverSettings.constants.ohTokenExpiresIn,
-                    hashAlgorithm: global.omnihive.serverSettings.constants.ohTokenHashAlgorithm,
-                },
-            };
-
-            OmniHiveClient.getSingleton().init(clientSettings);
         }
 
         return GraphService.singleton;
     };
 
-    public init = async (workers: RegisteredHiveWorker[]) => {
+    public init = async (workers: RegisteredHiveWorker[], environmentVariables: EnvironmentVariable[]) => {
         try {
-            OmniHiveClient.getSingleton().registeredWorkers = workers;
+            await OmniHiveClient.getSingleton().init(workers, environmentVariables, true);
         } catch (err) {
             throw new Error(JSON.stringify(serializeError(err)));
         }
     };
 
-    public runQuery = async (query: string): Promise<any> => {
+    public runQuery = async (query: string, retry: boolean = false): Promise<any> => {
         try {
             if (!query) {
                 throw new Error("A query is required.");
@@ -51,18 +38,22 @@ export class GraphService {
             );
             return results;
         } catch (err) {
-            throw new Error(JSON.stringify(serializeError(err)));
+            if (err.message.includes("Connection is closed.") && !retry) {
+                await this.runQuery(query, true);
+            } else {
+                throw new Error(JSON.stringify(serializeError(err)));
+            }
         }
     };
 
-    public runCustomSql = async (query: string, encryptionWorker: string = ""): Promise<any> => {
+    public runCustomSql = async (query: string): Promise<any> => {
         try {
             if (!query) {
                 throw new Error("A query is required.");
             }
 
             const results = await AwaitHelper.execute(
-                OmniHiveClient.getSingleton().runCustomSql(this.graphRootUrl, query, encryptionWorker)
+                OmniHiveClient.getSingleton().runCustomSql(this.graphRootUrl, query)
             );
 
             return results;

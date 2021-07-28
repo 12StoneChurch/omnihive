@@ -1,110 +1,120 @@
 /// <reference path="../../../types/globals.omnihive.d.ts" />
 
+import { createAdapter } from "@socket.io/redis-adapter";
+import { Emitter } from "@socket.io/redis-emitter";
+import { AdminEventType } from "@withonevision/omnihive-core/enums/AdminEventType";
+import { AdminRoomType } from "@withonevision/omnihive-core/enums/AdminRoomType";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { OmniHiveLogLevel } from "@withonevision/omnihive-core/enums/OmniHiveLogLevel";
-import { ServerStatus } from "@withonevision/omnihive-core/enums/ServerStatus";
+import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 import { ObjectHelper } from "@withonevision/omnihive-core/helpers/ObjectHelper";
-import { StringHelper } from "@withonevision/omnihive-core/helpers/StringHelper";
+import { IConfigWorker } from "@withonevision/omnihive-core/interfaces/IConfigWorker";
 import { ILogWorker } from "@withonevision/omnihive-core/interfaces/ILogWorker";
 import { ITokenWorker } from "@withonevision/omnihive-core/interfaces/ITokenWorker";
-import { AdminEvent } from "@withonevision/omnihive-core/models/AdminEvent";
-import { AdminEventResponse } from "@withonevision/omnihive-core/models/AdminEventResponse";
-import { RegisteredUrl } from "@withonevision/omnihive-core/models/RegisteredUrl";
-import { ServerSettings } from "@withonevision/omnihive-core/models/ServerSettings";
-import Conf from "conf";
-import fse from "fs-extra";
-import WebSocket from "ws";
-import { ServerService } from "./ServerService";
+import { AdminRequest } from "@withonevision/omnihive-core/models/AdminRequest";
+import { AdminResponse } from "@withonevision/omnihive-core/models/AdminResponse";
+import { ServerConfig } from "@withonevision/omnihive-core/models/ServerConfig";
+import { EnvironmentVariable } from "@withonevision/omnihive-core/models/EnvironmentVariable";
+import ipc from "node-ipc";
+import redis from "redis";
+import * as socketio from "socket.io";
+import { v4 as uuidv4 } from "uuid";
+import { serializeError } from "serialize-error";
 
-interface ExtendedWebSocket extends WebSocket {
-    isAlive: boolean;
-}
+let ipcId: string = uuidv4();
+ipc.config.id = ipcId;
+ipc.config.retry = 1000;
+ipc.config.sync = true;
 
 export class AdminService {
+    private logWorker!: ILogWorker | undefined;
+    private ioEmitter!: Emitter | undefined;
+
+    private adminSocketPortNumber =
+        global.omnihive.getEnvironmentVariable<number>("OH_ADMIN_SOCKET_PORT_NUMBER") ?? 7205;
+    private adminWebPortNumber = global.omnihive.getEnvironmentVariable<number>("OH_ADMIN_WEB_PORT_NUMBER") ?? 7206;
+    private clusterConnectionString = global.omnihive.getEnvironmentVariable<string>(
+        "OH_CLUSTER_REDIS_CONNECTION_STRING"
+    );
+    private clusterEnabled = global.omnihive.getEnvironmentVariable<boolean>("OH_CLUSTER_ENABLE") ?? false;
+    private serverGroupId = global.omnihive.getEnvironmentVariable<string>("OH_ADMIN_SERVER_GROUP_ID") ?? "";
+
     public run = async () => {
-        const logWorker: ILogWorker | undefined = global.omnihive.getWorker<ILogWorker>(
-            HiveWorkerType.Log,
-            "ohreqLogWorker"
-        );
+        if (
+            IsHelper.isNullOrUndefinedOrEmptyStringOrWhitespace(this.serverGroupId) ||
+            IsHelper.isNullOrUndefined(this.adminSocketPortNumber) ||
+            IsHelper.isNullOrUndefined(this.adminWebPortNumber)
+        ) {
+            throw new Error("Server group ID or admin ports are undefined");
+        }
 
-        logWorker?.write(
+        // Initiate log worker
+        this.logWorker = global.omnihive.getWorker<ILogWorker>(HiveWorkerType.Log, "__ohBootLogWorker");
+
+        // Setup Socket Server
+
+        this.logWorker?.write(
             OmniHiveLogLevel.Info,
-            `Setting up admin server on port ${global.omnihive.serverSettings.config.adminPortNumber}...`
+            `Setting up admin socket server on port ${this.adminSocketPortNumber}...`
         );
 
-        global.omnihive.adminServer = new WebSocket.Server({
-            port: global.omnihive.serverSettings.config.adminPortNumber,
+        if (!IsHelper.isNullOrUndefined(global.omnihive.adminServer)) {
+            global.omnihive.adminServer.of(`/${this.serverGroupId}`).disconnectSockets(true);
+            global.omnihive.adminServer.close();
+        }
+
+        global.omnihive.adminServer = new socketio.Server(this.adminSocketPortNumber, {
+            cors: {
+                origin: "*",
+                methods: "*",
+            },
         });
 
-        global.omnihive.adminServer.on("close", () => {
-            clearInterval(global.omnihive.adminServerTimer);
+        const namespace: socketio.Namespace = global.omnihive.adminServer.of(this.serverGroupId);
+
+        // Enable Redis if necessary
+        if (this.clusterEnabled && !IsHelper.isNullOrUndefined(this.clusterConnectionString)) {
+            const pubClient = redis.createClient(this.clusterConnectionString);
+            const subClient = pubClient.duplicate();
+            const emitClient = pubClient.duplicate();
+
+            global.omnihive.adminServer.adapter(createAdapter(pubClient, subClient));
+            this.ioEmitter = new Emitter(emitClient);
+        }
+
+        // Admin Event : Server Reset
+        global.omnihive.adminServer.on(AdminEventType.ServerResetRequest, (message: AdminRequest) => {
+            if (!this.checkRequest(AdminEventType.ServerResetRequest, message)) {
+                return;
+            }
+
+            this.logWorker?.write(OmniHiveLogLevel.Info, "OmniHive Server Restarting...");
+
+            setTimeout(() => {
+                ipc.connectTo(global.omnihive.commandLineArgs.ipcServerId, () => {
+                    ipc.of[global.omnihive.commandLineArgs.ipcServerId].on("connect", () => {
+                        ipc.of[global.omnihive.commandLineArgs.ipcServerId].emit("omnihive.reboot");
+                    });
+                });
+            }, 2000);
         });
 
-        global.omnihive.adminServer.on("connection", (ws: WebSocket) => {
-            (ws as ExtendedWebSocket).isAlive = true;
+        // Admin Event : Connection
+        namespace.on(AdminEventType.Connection, (socket: socketio.Socket) => {
+            socket.join(`${this.serverGroupId}-${AdminRoomType.Command}`);
 
-            ws.on("message", (message: string) => {
-                if (!this.checkWsMessage("heartbeat-request", message)) {
-                    return;
-                }
-
-                (ws as ExtendedWebSocket).isAlive = true;
-
-                this.sendToSingleClient<{ alive: boolean }>(ws, "heartbeat-reponse", { alive: true });
+            // Socket disconnect clear memory
+            socket.on(AdminEventType.Disconnect, () => {
+                socket.removeAllListeners();
+                global.omnihive.adminServer?.of(this.serverGroupId).sockets.forEach((sck: socketio.Socket) => {
+                    if (socket.id === sck.id) sck.disconnect(true);
+                });
             });
 
-            ws.on("message", (message: string) => {
-                if (!this.checkWsMessage("heartbeat-response", message)) {
-                    return;
-                }
-
-                (ws as ExtendedWebSocket).isAlive = true;
-            });
-
-            ws.on("message", (message: string) => {
-                if (!this.checkWsMessage("config-request", message)) {
-                    return;
-                }
-
-                const request: AdminEvent = JSON.parse(message);
-
-                if (
-                    !request ||
-                    !request.adminPassword ||
-                    StringHelper.isNullOrWhiteSpace(request.adminPassword) ||
-                    request.adminPassword !== global.omnihive.serverSettings.config.adminPassword
-                ) {
-                    this.sendErrorToSingleClient(ws, "config-request-response", "Invalid Password");
-                    return;
-                }
-
-                const config = new Conf({ projectName: "omnihive", configName: "omnihive" });
-                const latestConf: string | undefined = config.get<string>(
-                    `latest-settings-${global.omnihive.instanceName}`
-                ) as string;
-                let serverSettings: ServerSettings = new ServerSettings();
-
-                try {
-                    serverSettings = ObjectHelper.createStrict<ServerSettings>(
-                        ServerSettings,
-                        JSON.parse(fse.readFileSync(latestConf, { encoding: "utf8" }))
-                    );
-                } catch {
-                    serverSettings = global.omnihive.serverSettings;
-                }
-
-                this.sendToSingleClient<{ config: ServerSettings }>(ws, "config-response", { config: serverSettings });
-            });
-
-            ws.on("message", (message: string) => {
-                if (!this.checkWsMessage("access-token-request", message)) {
-                    return;
-                }
-
-                const request: AdminEvent<{ serverLabel: string }> = JSON.parse(message);
-
-                if (!request.data) {
-                    this.sendErrorToSingleClient(ws, "access-token-response", "No Server Label Given");
+            // Admin Event : Access Token
+            socket.on(AdminEventType.AccessTokenRequest, (message: AdminRequest) => {
+                if (!this.checkRequest(AdminEventType.AccessTokenRequest, message, socket)) {
                     return;
                 }
 
@@ -112,8 +122,8 @@ export class AdminService {
                     HiveWorkerType.Token
                 );
 
-                if (!tokenWorker) {
-                    this.sendToSingleClient<{ hasWorker: boolean; token: string }>(ws, "access-token-response", {
+                if (IsHelper.isNullOrUndefined(tokenWorker)) {
+                    this.sendSuccessToSocket(AdminEventType.AccessTokenRequest, socket, {
                         hasWorker: false,
                         token: "",
                     });
@@ -122,221 +132,245 @@ export class AdminService {
                 }
 
                 tokenWorker.get().then((token: string) => {
-                    if (!request.data) {
-                        this.sendErrorToSingleClient(ws, "access-token-response", "No Server Label Given");
-                        return;
-                    }
-
-                    this.sendToSingleClient<{ serverLabel: string; hasWorker: boolean; token: string }>(
-                        ws,
-                        "access-token-response",
-                        {
-                            hasWorker: true,
-                            token,
-                            serverLabel: request.data.serverLabel,
-                        }
-                    );
+                    this.sendSuccessToSocket(AdminEventType.AccessTokenRequest, socket, {
+                        hasWorker: true,
+                        token,
+                    });
                 });
             });
 
-            ws.on("message", (message: string) => {
-                if (!this.checkWsMessage("config-save-request", message)) {
+            // Admin Event : Config
+            socket.on(AdminEventType.ConfigRequest, async (message: AdminRequest) => {
+                if (!this.checkRequest(AdminEventType.ConfigRequest, message, socket)) {
                     return;
                 }
 
-                const request: AdminEvent<{ config: ServerSettings }> = JSON.parse(message);
+                let serverConfig: ServerConfig = new ServerConfig();
 
-                if (
-                    !request ||
-                    !request.adminPassword ||
-                    StringHelper.isNullOrWhiteSpace(request.adminPassword) ||
-                    request.adminPassword !== global.omnihive.serverSettings.config.adminPassword ||
-                    !request.data?.config
-                ) {
-                    this.sendErrorToSingleClient(ws, "config-save-response", "Invalid Password");
+                const configWorker: IConfigWorker | undefined = global.omnihive.getWorker<IConfigWorker>(
+                    HiveWorkerType.Config
+                );
+
+                if (IsHelper.isNullOrUndefined(configWorker)) {
+                    this.sendErrorToSocket(AdminEventType.ConfigSaveRequest, socket, "No valid config worker found");
+                    return;
+                }
+
+                serverConfig = await AwaitHelper.execute(configWorker.get());
+
+                this.sendSuccessToSocket(AdminEventType.ConfigRequest, socket, {
+                    config: serverConfig,
+                    systemEnvironmentVariables: global.omnihive.serverConfig.environmentVariables.filter(
+                        (variable: EnvironmentVariable) => variable.isSystem
+                    ),
+                });
+            });
+
+            // Admin Event : Config Save
+            socket.on(AdminEventType.ConfigSaveRequest, async (message: AdminRequest<{ config: ServerConfig }>) => {
+                if (!this.checkRequest(AdminEventType.ConfigSaveRequest, message, socket)) {
                     return;
                 }
 
                 try {
-                    const settings: ServerSettings = request.data?.config as ServerSettings;
-                    const config = new Conf({ projectName: "omnihive", configName: "omnihive" });
-                    const latestConf: string | undefined = config.get<string>(
-                        `latest-settings-${global.omnihive.instanceName}`
-                    ) as string;
+                    if (IsHelper.isNullOrUndefined(message.data) || IsHelper.isNullOrUndefined(message.data.config)) {
+                        this.sendErrorToSocket(
+                            AdminEventType.ConfigSaveRequest,
+                            socket,
+                            "Invalid Configuration Submitted"
+                        );
+                    }
 
-                    fse.writeFileSync(latestConf, JSON.stringify(settings, null, `\t`));
-                    this.sendToSingleClient<{ verified: boolean }>(ws, "config-save-response", { verified: true });
-                } catch (e) {
-                    this.sendErrorToSingleClient(ws, "config-save-response", e);
-                    return;
-                }
-            });
-
-            ws.on("message", (message: string) => {
-                if (!this.checkWsMessage("refresh-request", message)) {
-                    return;
-                }
-
-                const request: AdminEvent<{ refresh?: boolean }> = JSON.parse(message);
-
-                if (
-                    !request ||
-                    !request.adminPassword ||
-                    StringHelper.isNullOrWhiteSpace(request.adminPassword) ||
-                    request.adminPassword !== global.omnihive.serverSettings.config.adminPassword ||
-                    !request.data?.refresh
-                ) {
-                    this.sendErrorToSingleClient(ws, "refresh-response", "Invalid Password");
-                    return;
-                }
-
-                const serverService: ServerService = new ServerService();
-                serverService.run(true);
-
-                this.sendToSingleClient<{ refresh: boolean }>(ws, "refresh-response", { refresh: true });
-            });
-
-            ws.on("message", (message: string) => {
-                if (!this.checkWsMessage("register-request", message)) {
-                    return;
-                }
-
-                const request: AdminEvent = JSON.parse(message);
-
-                if (
-                    !request ||
-                    !request.adminPassword ||
-                    StringHelper.isNullOrWhiteSpace(request.adminPassword) ||
-                    request.adminPassword !== global.omnihive.serverSettings.config.adminPassword
-                ) {
-                    logWorker?.write(
-                        OmniHiveLogLevel.Warn,
-                        `Admin client register error using password ${request.adminPassword}...`
+                    const settings: ServerConfig = ObjectHelper.createStrict<ServerConfig>(
+                        ServerConfig,
+                        message.data?.config
                     );
 
-                    this.sendErrorToSingleClient(ws, "register-response", "Invalid Password");
-                    return;
-                }
+                    const configWorker: IConfigWorker | undefined = global.omnihive.getWorker<IConfigWorker>(
+                        HiveWorkerType.Config
+                    );
 
-                this.sendToSingleClient<{ verified: boolean }>(ws, "register-response", { verified: true });
-            });
-
-            ws.on("message", (message: string) => {
-                if (!this.checkWsMessage("status-request", message)) {
-                    return;
-                }
-
-                const request: AdminEvent = JSON.parse(message);
-
-                if (
-                    !request ||
-                    !request.adminPassword ||
-                    StringHelper.isNullOrWhiteSpace(request.adminPassword) ||
-                    request.adminPassword !== global.omnihive.serverSettings.config.adminPassword
-                ) {
-                    this.sendErrorToSingleClient(ws, "status-response", "Invalid Password");
-                    return;
-                }
-
-                this.sendToSingleClient<{ serverStatus: ServerStatus; serverError: any | undefined }>(
-                    ws,
-                    "status-response",
-                    {
-                        serverStatus: global.omnihive.serverStatus,
-                        serverError: global.omnihive.serverError,
+                    if (IsHelper.isNullOrUndefined(configWorker)) {
+                        throw new Error("No config worker detected on server");
                     }
-                );
+
+                    await configWorker.set(settings);
+
+                    this.sendSuccessToSocket(AdminEventType.ConfigSaveRequest, socket, {
+                        verified: true,
+                    });
+                } catch (e) {
+                    this.sendErrorToSocket(AdminEventType.ConfigSaveRequest, socket, serializeError(e));
+                    return;
+                }
             });
 
-            ws.on("message", (message: string) => {
-                if (!this.checkWsMessage("urls-request", message)) {
+            // Admin Event : Server Register
+            socket.on(AdminEventType.RegisterRequest, (message: AdminRequest) => {
+                if (!this.checkRequest(AdminEventType.RegisterRequest, message, socket)) {
                     return;
                 }
 
-                const request: AdminEvent = JSON.parse(message);
+                this.sendSuccessToSocket(AdminEventType.RegisterRequest, socket, { verified: true });
+            });
 
-                if (
-                    !request ||
-                    !request.adminPassword ||
-                    StringHelper.isNullOrWhiteSpace(request.adminPassword) ||
-                    request.adminPassword !== global.omnihive.serverSettings.config.adminPassword
-                ) {
-                    this.sendErrorToSingleClient(ws, "urls-response", "Invalid Password");
+            // Admin Event : Server Reset : Namespace
+            socket.on(AdminEventType.ServerResetRequest, (message: AdminRequest) => {
+                if (!this.checkRequest(AdminEventType.ServerResetRequest, message, socket)) {
                     return;
                 }
 
-                this.sendToSingleClient<{ urls: RegisteredUrl[] }>(ws, "urls-response", {
+                this.sendSuccessToSocket(AdminEventType.ServerResetRequest, socket, { verified: true });
+                this.logWorker?.write(OmniHiveLogLevel.Info, "Broadcasting Restart...");
+
+                setTimeout(() => {
+                    if (!IsHelper.isNullOrUndefined(this.ioEmitter) && this.clusterEnabled) {
+                        this.ioEmitter.serverSideEmit(AdminEventType.ServerResetRequest, message);
+                        return;
+                    }
+
+                    ipc.connectTo(global.omnihive.commandLineArgs.ipcServerId, () => {
+                        ipc.of[global.omnihive.commandLineArgs.ipcServerId].on("connect", () => {
+                            ipc.of[global.omnihive.commandLineArgs.ipcServerId].emit("omnihive.reboot");
+                        });
+                    });
+                }, 2000);
+            });
+
+            // Admin Event : Status
+            socket.on(AdminEventType.StatusRequest, (message: AdminRequest) => {
+                if (!this.checkRequest(AdminEventType.StatusRequest, message, socket)) {
+                    return;
+                }
+
+                this.sendSuccessToSocket(AdminEventType.StatusRequest, socket, {
+                    serverStatus: global.omnihive.serverStatus,
+                    serverError: global.omnihive.serverError,
+                });
+            });
+
+            // Admin Event : Start Log
+            socket.on(AdminEventType.StartLogRequest, (message: AdminRequest) => {
+                if (!this.checkRequest(AdminEventType.StartLogRequest, message, socket)) {
+                    return;
+                }
+
+                socket.join(`${this.serverGroupId}-${AdminRoomType.Log}`);
+                this.sendSuccessToSocket(AdminEventType.StartLogRequest, socket, { verified: true });
+            });
+
+            // Admin Event : Stop Log
+            socket.on(AdminEventType.StopLogRequest, (message: AdminRequest) => {
+                if (!this.checkRequest(AdminEventType.StopLogRequest, message, socket)) {
+                    return;
+                }
+
+                socket.leave(`${this.serverGroupId}-${AdminRoomType.Log}`);
+                this.sendSuccessToSocket(AdminEventType.StopLogRequest, socket, { verified: true });
+            });
+
+            // Admin Event : URL Request
+            socket.on(AdminEventType.UrlListRequest, (message: AdminRequest) => {
+                if (!this.checkRequest(AdminEventType.UrlListRequest, message, socket)) {
+                    return;
+                }
+
+                this.sendSuccessToSocket(AdminEventType.UrlListRequest, socket, {
                     urls: global.omnihive.registeredUrls,
                 });
             });
         });
 
-        global.omnihive.adminServerTimer = setInterval(() => {
-            global.omnihive.adminServer.clients.forEach((ws: WebSocket) => {
-                if ((ws as ExtendedWebSocket).isAlive === false) {
-                    return ws.terminate();
-                }
-
-                (ws as ExtendedWebSocket).isAlive = false;
-                this.sendToSingleClient(ws, "heartbeat-request");
-            });
-        }, 20000);
-
-        logWorker?.write(
+        this.logWorker?.write(
             OmniHiveLogLevel.Info,
-            `Admin server listening on port ${global.omnihive.serverSettings.config.adminPortNumber}...`
+            `Admin socket server listening on port ${this.adminSocketPortNumber}...`
         );
     };
 
-    public sendToAllClients = <T>(event: string, data?: T) => {
-        let adminEventResponse: AdminEventResponse<T> = {
-            event,
-            data,
-            requestComplete: true,
-            requestError: undefined,
-        };
-
-        global.omnihive.adminServer.clients.forEach((ws: WebSocket) => {
-            ws.send(JSON.stringify(adminEventResponse));
-        });
-    };
-
-    private checkWsMessage = (eventName: string, message: string): boolean => {
-        if (StringHelper.isNullOrWhiteSpace(message)) {
+    private checkRequest = (adminEvent: AdminEventType, request: AdminRequest, socket?: socketio.Socket): boolean => {
+        if (
+            IsHelper.isEmptyStringOrWhitespace(request.serverGroupId) ||
+            request.serverGroupId !== global.omnihive.getEnvironmentVariable<string>("OH_ADMIN_SERVER_GROUP_ID")
+        ) {
             return false;
         }
 
-        try {
-            const response: AdminEventResponse = ObjectHelper.create(AdminEventResponse, JSON.parse(message));
-
-            if (response.event === eventName) {
-                return true;
-            }
-
-            return false;
-        } catch {
-            return false;
+        if (
+            !IsHelper.isEmptyStringOrWhitespace(request.adminPassword) &&
+            !IsHelper.isEmptyStringOrWhitespace(request.serverGroupId) &&
+            request.adminPassword === global.omnihive.getEnvironmentVariable<string>("OH_ADMIN_PASSWORD") &&
+            request.serverGroupId === global.omnihive.getEnvironmentVariable<string>("OH_ADMIN_SERVER_GROUP_ID")
+        ) {
+            return true;
         }
-    };
 
-    private sendErrorToSingleClient = (ws: WebSocket, event: string, error: string) => {
-        ws.send(
-            JSON.stringify({
-                event,
-                requestComplete: false,
-                requestError: error,
-            })
+        this.logWorker?.write(
+            OmniHiveLogLevel.Warn,
+            `Admin client register error using password ${request.adminPassword}...`
         );
+
+        if (!IsHelper.isNullOrUndefined(socket)) {
+            this.sendErrorToSocket(adminEvent, socket, "Invalid Admin Password");
+        }
+
+        return false;
     };
 
-    private sendToSingleClient = <T>(ws: WebSocket, event: string, data?: T) => {
-        let adminEventResponse: AdminEventResponse<T> = {
-            event,
-            data,
-            requestComplete: true,
-            requestError: undefined,
+    private getResponseEventNameFromRequest = (adminEvent: AdminEventType): AdminEventType => {
+        switch (adminEvent) {
+            case AdminEventType.AccessTokenRequest:
+                return AdminEventType.AccessTokenResponse;
+            case AdminEventType.ConfigRequest:
+                return AdminEventType.ConfigResponse;
+            case AdminEventType.ConfigSaveRequest:
+                return AdminEventType.ConfigSaveResponse;
+            case AdminEventType.RegisterRequest:
+                return AdminEventType.RegisterResponse;
+            case AdminEventType.ServerResetRequest:
+                return AdminEventType.ServerResetResponse;
+            case AdminEventType.StartLogRequest:
+                return AdminEventType.StartLogResponse;
+            case AdminEventType.StatusRequest:
+                return AdminEventType.StatusResponse;
+            case AdminEventType.StopLogRequest:
+                return AdminEventType.StopLogResponse;
+            case AdminEventType.UrlListRequest:
+                return AdminEventType.UrlListResponse;
+            default:
+                return AdminEventType.UnknownResponse;
+        }
+    };
+
+    private sendErrorToSocket = (adminEvent: AdminEventType, socket: socketio.Socket, errorMessage: string): void => {
+        const serverGroupId = global.omnihive.getEnvironmentVariable<string>("OH_ADMIN_SERVER_GROUP_ID");
+
+        if (IsHelper.isNullOrUndefined(serverGroupId)) {
+            throw new Error("Server group ID is undefined");
+        }
+
+        const adminResponse: AdminResponse = {
+            serverGroupId,
+            requestComplete: false,
+            requestError: errorMessage,
         };
 
-        ws.send(JSON.stringify(adminEventResponse));
+        socket.emit(this.getResponseEventNameFromRequest(adminEvent), adminResponse);
+    };
+
+    private sendSuccessToSocket = (adminEvent: AdminEventType, socket: socketio.Socket, message: any): void => {
+        const serverGroupId = global.omnihive.getEnvironmentVariable<string>("OH_ADMIN_SERVER_GROUP_ID");
+
+        if (IsHelper.isNullOrUndefined(serverGroupId)) {
+            throw new Error("Server group ID is undefined");
+        }
+
+        const adminResponse: AdminResponse = {
+            serverGroupId,
+            requestComplete: true,
+            requestError: undefined,
+            data: message,
+        };
+
+        socket.emit(this.getResponseEventNameFromRequest(adminEvent), adminResponse);
     };
 }

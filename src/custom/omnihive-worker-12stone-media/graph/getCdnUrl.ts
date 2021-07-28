@@ -2,6 +2,7 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { serializeError } from "serialize-error";
 import { IImageWorker } from "@12stonechurch/omnihive-worker-common/interfaces/IImageWorker";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 /**
  * Args:
@@ -9,7 +10,7 @@ import { IImageWorker } from "@12stonechurch/omnihive-worker-common/interfaces/I
  *  Transformations: cloudinary.TransformationOptions
  */
 export default class GetCdnUrl extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: any): Promise<any> => {
+    public execute = async (customArgs: any, _omniHiveContext: GraphContext): Promise<any> => {
         try {
             // Validate arguments
             if (!customArgs.UniqueName) {

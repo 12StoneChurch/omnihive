@@ -1,10 +1,8 @@
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 import { ICacheWorker } from "@withonevision/omnihive-core/interfaces/ICacheWorker";
-import { HiveWorker } from "@withonevision/omnihive-core/models/HiveWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import Redis from "ioredis";
-import { serializeError } from "serialize-error";
-
 export class RedisCacheWorkerMetadata {
     public connectionString: string = "";
 }
@@ -16,27 +14,27 @@ export default class RedisCacheWorker extends HiveWorkerBase implements ICacheWo
         super();
     }
 
-    public async init(config: HiveWorker): Promise<void> {
-        try {
-            await AwaitHelper.execute<void>(super.init(config));
-            const metadata: RedisCacheWorkerMetadata = this.checkObjectStructure<RedisCacheWorkerMetadata>(
-                RedisCacheWorkerMetadata,
-                config.metadata
-            );
-            this.redis = new Redis(metadata.connectionString);
-        } catch (err) {
-            throw new Error("Redis Init Error => " + JSON.stringify(serializeError(err)));
-        }
+    public async init(name: string, metadata?: any): Promise<void> {
+        await AwaitHelper.execute(super.init(name, metadata));
+        const typedMetadata: RedisCacheWorkerMetadata = this.checkObjectStructure<RedisCacheWorkerMetadata>(
+            RedisCacheWorkerMetadata,
+            metadata
+        );
+        this.redis = new Redis(typedMetadata.connectionString);
+
+        this.redis.on("error", () => {
+            this.redis.disconnect();
+        });
     }
 
     public exists = async (key: string): Promise<boolean> => {
-        return (await AwaitHelper.execute<number>(this.redis.exists(key))) === 1;
+        return (await AwaitHelper.execute(this.redis.exists(key))) === 1;
     };
 
     public get = async (key: string): Promise<string | undefined> => {
-        const value: string | null = await AwaitHelper.execute<string | null>(this.redis.get(key));
+        const value: string | null = await AwaitHelper.execute(this.redis.get(key));
 
-        if (!value) {
+        if (IsHelper.isNullOrUndefined(value)) {
             return undefined;
         }
 

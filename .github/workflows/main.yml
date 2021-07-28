@@ -16,11 +16,6 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
               run: |
-                  year=$(date +%Y)
-                  versionMinor=$(date +%m.%d%H%M)
-                  let versionMajor=$year-2020
-                  version=$versionMajor.$versionMinor
-
                   echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" >> ~/.npmrc
 
-                  yarn build:custom:publish -v $version
+                  yarn build:custom -p

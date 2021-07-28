@@ -5,22 +5,25 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import dayjs from "dayjs";
 import { serializeError } from "serialize-error";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 import { getMessageById } from "../common/GetMessaegById";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 export default class GetLatestMessage extends HiveWorkerBase implements IGraphEndpointWorker {
     private getLatestMessageId = async (): Promise<number | undefined> => {
         try {
             let latestSiteDocId: number = 0;
+
             const latestMessageQuery = `
-          query {
-              campaign: cmsCampaignSiteDocuments(campaignId: "= 8", startDate: "<= GETDATE()", endDate: "> GETDATE()") {
-                  id: siteDocumentId,
-                  viewOrder,
-                  startDate
-              }
-          }
-      `;
+                query {
+                    campaign: cmsCampaignSiteDocuments(campaignId: "= 8", startDate: "<= GetDate()", endDate: "> GetDate()") {
+                        id: siteDocumentId,
+                        viewOrder,
+                        startDate
+                    }
+                }
+            `;
 
             const response: any = await AwaitHelper.execute(GraphService.getSingleton().runQuery(latestMessageQuery));
 
@@ -55,10 +58,16 @@ export default class GetLatestMessage extends HiveWorkerBase implements IGraphEn
         }
     };
 
-    public execute = async (_customArgs: any): Promise<WatchContent | {}> => {
+    public execute = async (_customArgs: any, _omniHiveContext: GraphContext): Promise<WatchContent | {}> => {
         try {
-            GraphService.getSingleton().graphRootUrl =
-                this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+            const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+            if (IsHelper.isNullOrUndefined(webRootUrl)) {
+                throw new Error("Web Root URL undefined");
+            }
+
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
+            GraphService.getSingleton().graphRootUrl = webRootUrl + "/server1/builder1/ministryplatform";
 
             const latestSiteDocId = await this.getLatestMessageId();
 

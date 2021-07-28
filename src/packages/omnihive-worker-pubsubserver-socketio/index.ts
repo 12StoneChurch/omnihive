@@ -1,9 +1,8 @@
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 import { IPubSubServerWorker } from "@withonevision/omnihive-core/interfaces/IPubSubServerWorker";
-import { HiveWorker } from "@withonevision/omnihive-core/models/HiveWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { PubSubListener } from "@withonevision/omnihive-core/models/PubSubListener";
-import { serializeError } from "serialize-error";
 import * as socketio from "socket.io";
 
 export class SocketIoPubSubServerWorkerMetadata {
@@ -18,15 +17,13 @@ export default class SocketIoPubSubServerWorker extends HiveWorkerBase implement
         super();
     }
 
-    public async init(config: HiveWorker): Promise<void> {
-        await AwaitHelper.execute<void>(super.init(config));
-        const metadata: SocketIoPubSubServerWorkerMetadata = this.checkObjectStructure<SocketIoPubSubServerWorkerMetadata>(
-            SocketIoPubSubServerWorkerMetadata,
-            this.config.metadata
-        );
+    public async init(name: string, metadata?: any): Promise<void> {
+        await AwaitHelper.execute(super.init(name, metadata));
+        const typedMetadata: SocketIoPubSubServerWorkerMetadata =
+            this.checkObjectStructure<SocketIoPubSubServerWorkerMetadata>(SocketIoPubSubServerWorkerMetadata, metadata);
 
         this.ioServer = new socketio.Server();
-        this.ioServer.listen(metadata.port);
+        this.ioServer.listen(typedMetadata.port);
 
         this.ioServer.on("connection", (socket: socketio.Socket) => {
             socket.on("join-room", (room: string) => {
@@ -40,21 +37,17 @@ export default class SocketIoPubSubServerWorker extends HiveWorkerBase implement
     }
 
     public addListener = (channelName: string, eventName: string, callback?: Function): void => {
-        try {
-            this.removeListener(channelName, eventName);
+        this.removeListener(channelName, eventName);
 
-            if (!this.listeners.some((listener: PubSubListener) => listener.eventName === eventName)) {
-                this.ioServer.addListener(eventName, (packet: { room: string; data: any }) => {
-                    if (packet.room === channelName && callback && typeof callback === "function") {
-                        callback(packet.data);
-                    }
-                });
-            }
-
-            this.listeners.push({ channelName, eventName, callback });
-        } catch (err) {
-            throw new Error("PubSub Add Listener Error => " + JSON.stringify(serializeError(err)));
+        if (!this.listeners.some((listener: PubSubListener) => listener.eventName === eventName)) {
+            this.ioServer.addListener(eventName, (packet: { room: string; data: any }) => {
+                if (packet.room === channelName && callback && IsHelper.isFunction(callback)) {
+                    callback(packet.data);
+                }
+            });
         }
+
+        this.listeners.push({ channelName, eventName, callback });
     };
 
     public emit = async (channelName: string, eventName: string, message: any): Promise<void> => {
@@ -66,29 +59,22 @@ export default class SocketIoPubSubServerWorker extends HiveWorkerBase implement
     };
 
     public removeListener = (channelName: string, eventName: string): void => {
-        try {
-            if (
-                this.listeners.some(
-                    (listener: PubSubListener) =>
-                        listener.channelName == channelName && listener.eventName === eventName
-                )
-            ) {
-                const listener: PubSubListener | undefined = this.listeners.find(
-                    (listener: PubSubListener) =>
-                        listener.channelName == channelName && listener.eventName === eventName
-                );
+        if (
+            this.listeners.some(
+                (listener: PubSubListener) => listener.channelName == channelName && listener.eventName === eventName
+            )
+        ) {
+            const listener: PubSubListener | undefined = this.listeners.find(
+                (listener: PubSubListener) => listener.channelName == channelName && listener.eventName === eventName
+            );
 
-                this.listeners = this.listeners.filter(
-                    (listener: PubSubListener) =>
-                        listener.channelName == channelName && listener.eventName !== eventName
-                );
+            this.listeners = this.listeners.filter(
+                (listener: PubSubListener) => listener.channelName == channelName && listener.eventName !== eventName
+            );
 
-                if (listener && listener.callback) {
-                    this.ioServer.removeListener(eventName, listener.callback);
-                }
+            if (!IsHelper.isNullOrUndefined(listener) && !IsHelper.isNullOrUndefined(listener.callback)) {
+                this.ioServer.removeListener(eventName, listener.callback);
             }
-        } catch (err) {
-            throw new Error("PubSub Remove Listener Error => " + JSON.stringify(serializeError(err)));
         }
     };
 }

@@ -6,12 +6,22 @@ import { Listr } from "listr2";
 import { MailDataRequired } from "@sendgrid/mail";
 import { updateCommunicationMessageStatus } from "../common/updateCommunicationMessageStatus";
 import { getMessages } from "../common/getCommunicationMessages";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
+import { init } from "../lib/services/GraphService";
 
 export default class QueueAutomation extends HiveWorkerBase implements ITaskEndpointWorker {
     private messages: any;
 
     public execute = async (): Promise<any> => {
-        const graphUrl = `${this.serverSettings.config.webRootUrl}/${this.config.metadata.dataSlug}`;
+        await init(this.registeredWorkers, this.environmentVariables);
+
+        const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+        if (IsHelper.isNullOrUndefined(webRootUrl)) {
+            throw new Error("Web Root URL undefined");
+        }
+
+        const graphUrl = `${webRootUrl}/${this.metadata.dataSlug}`;
 
         const tasks = new Listr<any>([
             {
@@ -47,8 +57,14 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
     };
 
     private sendEmails = async (): Promise<void> => {
+        const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+        if (IsHelper.isNullOrUndefined(webRootUrl)) {
+            throw new Error("Web Root URL undefined");
+        }
+
         const emails: MailDataRequired[] = [];
-        const graphUrl = `${this.serverSettings.config.webRootUrl}/${this.config.metadata.dataSlug}`;
+        const graphUrl = `${webRootUrl}/${this.metadata.dataSlug}`;
         const sentEmailData = [];
 
         for (const message of this.messages.filter((message: any) => message.MessageTypeId === 1)) {
@@ -91,7 +107,7 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
         }
 
         try {
-            await sendEmails(emails, this.config.metadata);
+            await sendEmails(emails, this.metadata);
 
             for (const ids of sentEmailData) {
                 await updateCommunicationMessageStatus(graphUrl, ids.commId, ids.contactId, 3);
@@ -102,7 +118,13 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
     };
 
     private sendSms = async (): Promise<void> => {
-        const graphUrl = `${this.serverSettings.config.webRootUrl}/${this.config.metadata.dataSlug}`;
+        const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+        if (IsHelper.isNullOrUndefined(webRootUrl)) {
+            throw new Error("Web Root URL undefined");
+        }
+
+        const graphUrl = `${webRootUrl}/${this.metadata.dataSlug}`;
 
         for (const message of this.messages.filter((message: any) => message.MessageTypeId === 2)) {
             if (!message.ToAddress || !message.FromAddress || !message.Body) {
@@ -125,7 +147,7 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                 };
 
                 try {
-                    const result = await sendTwilioSms(text, this.config.metadata);
+                    const result = await sendTwilioSms(text, this.metadata);
 
                     await updateCommunicationMessageStatus(
                         graphUrl,

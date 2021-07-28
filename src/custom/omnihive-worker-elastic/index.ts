@@ -1,7 +1,6 @@
 import { Client } from "@elastic/elasticsearch";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { IHiveWorker } from "@withonevision/omnihive-core/interfaces/IHiveWorker";
-import { HiveWorker } from "@withonevision/omnihive-core/models/HiveWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { serializeError } from "serialize-error";
 
@@ -25,17 +24,17 @@ export default class ElasticWorker extends HiveWorkerBase {
         super();
     }
 
-    public async init(config: HiveWorker) {
+    public async init(name: string, metadata?: any) {
         try {
-            await AwaitHelper.execute<void>(super.init(config));
+            await AwaitHelper.execute<void>(super.init(name, metadata));
 
-            const metadata = this.checkObjectStructure<ElasticWorkerMetadata>(ElasticWorkerMetadata, config.metadata);
+            const typedMetadata = this.checkObjectStructure<ElasticWorkerMetadata>(ElasticWorkerMetadata, metadata);
 
             this.client = new Client({
-                node: metadata.url,
+                node: typedMetadata.url,
                 auth: {
-                    username: metadata.username,
-                    password: metadata.password,
+                    username: typedMetadata.username,
+                    password: typedMetadata.password,
                 },
                 maxRetries: 5,
                 requestTimeout: 60000,

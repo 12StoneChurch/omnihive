@@ -20,9 +20,10 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
         const tokenWorker = this.getWorker(HiveWorkerType.Token) as ITokenWorker | undefined;
 
         if (this.elasticWorker && tokenWorker) {
+            await OmniHiveClient.getSingleton().init(this.registeredWorkers, this.environmentVariables);
             const accessToken = await tokenWorker.get();
             OmniHiveClient.getSingleton().setAccessToken(accessToken);
-            this.graphUrl = this.config.metadata.mpGraphUrl;
+            this.graphUrl = this.metadata.mpGraphUrl;
 
             const documentDataIds: { typeIds: number[]; siteIds: number[] } = await AwaitHelper.execute<{
                 typeIds: number[];
@@ -96,8 +97,6 @@ export default class CmsSearchImporter extends HiveWorkerBase implements ITaskEn
     private importCmsDocs = async (siteId: number, typeId: number): Promise<any> => {
         try {
             if (this.elasticWorker) {
-                await AwaitHelper.execute(this.elasticWorker.init(this.elasticWorker.config));
-
                 const elasticIndex = `cms-${siteId}`;
                 await this.elasticWorker.validateIndex(elasticIndex);
                 await this.uploadTypeDocuments(typeId, siteId);

@@ -4,11 +4,13 @@ import { GraphService } from "@12stonechurch/omnihive-worker-common/services/Gra
 import { insertAddress } from "../common/InsertFunctions";
 import { updateContact, updateUser, updateHousehold, updateAddress } from "../common/UpdateFunctions";
 import { UpdateContactInfoArgs } from "../lib/models/UpdateModels";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 export default class UpdateContactInfo extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (data: UpdateContactInfoArgs) => {
+    public execute = async (data: UpdateContactInfoArgs, _omniHiveContext: GraphContext) => {
         try {
-            GraphService.getSingleton().graphRootUrl = this.config.metadata.mpGraphUrl;
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
+            GraphService.getSingleton().graphRootUrl = this.metadata.mpGraphUrl;
 
             const res: {
                 contact: boolean | undefined;

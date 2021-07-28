@@ -12,17 +12,15 @@ import { HiveWorkerMetadataDatabase } from "@withonevision/omnihive-core/models/
 import { ProcFunctionSchema } from "@withonevision/omnihive-core/models/ProcFunctionSchema";
 import { TableSchema } from "@withonevision/omnihive-core/models/TableSchema";
 import knex, { Knex } from "knex";
-import { serializeError } from "serialize-error";
 import fse from "fs-extra";
 import path from "path";
-import mysql from "mysql2";
-import { Pool } from "mysql2/promise";
+import mysql from "mysql";
 import orderBy from "lodash.orderby";
 import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 export default class MySqlDatabaseWorker extends HiveWorkerBase implements IDatabaseWorker {
     public connection!: Knex;
-    private connectionPool!: Pool;
+    private connectionPool!: mysql.Pool;
     private sqlConfig!: any;
     private typedMetadata!: HiveWorkerMetadataDatabase;
 
@@ -31,49 +29,45 @@ export default class MySqlDatabaseWorker extends HiveWorkerBase implements IData
     }
 
     public async init(name: string, metadata?: any): Promise<void> {
-        try {
-            await AwaitHelper.execute(super.init(name, metadata));
-            this.typedMetadata = this.checkObjectStructure<HiveWorkerMetadataDatabase>(
-                HiveWorkerMetadataDatabase,
-                metadata
-            );
+        await AwaitHelper.execute(super.init(name, metadata));
+        this.typedMetadata = this.checkObjectStructure<HiveWorkerMetadataDatabase>(
+            HiveWorkerMetadataDatabase,
+            metadata
+        );
 
-            this.sqlConfig = {
-                host: this.typedMetadata.serverAddress,
-                port: this.typedMetadata.serverPort,
-                database: this.typedMetadata.databaseName,
-                user: this.typedMetadata.userName,
-                password: this.typedMetadata.password,
-            };
+        this.sqlConfig = {
+            host: this.typedMetadata.serverAddress,
+            port: this.typedMetadata.serverPort,
+            database: this.typedMetadata.databaseName,
+            user: this.typedMetadata.userName,
+            password: this.typedMetadata.password,
+        };
 
-            if (this.typedMetadata.requireSsl) {
-                if (IsHelper.isEmptyStringOrWhitespace(this.typedMetadata.sslCertPath)) {
-                    this.sqlConfig.ssl = this.typedMetadata.requireSsl;
-                } else {
-                    this.sqlConfig.ssl = {
-                        ca: fse.readFileSync(this.typedMetadata.sslCertPath).toString(),
-                    };
-                }
+        if (this.typedMetadata.requireSsl) {
+            if (IsHelper.isEmptyStringOrWhitespace(this.typedMetadata.sslCertPath)) {
+                this.sqlConfig.ssl = this.typedMetadata.requireSsl;
+            } else {
+                this.sqlConfig.ssl = {
+                    ca: fse.readFileSync(this.typedMetadata.sslCertPath).toString(),
+                };
             }
-
-            this.connectionPool = mysql
-                .createPool({
-                    ...this.sqlConfig,
-                    connectionLimit: this.typedMetadata.connectionPoolLimit,
-                    multipleStatements: true,
-                })
-                .promise();
-
-            const connectionOptions: Knex.Config = {
-                connection: {},
-                pool: { min: 0, max: this.typedMetadata.connectionPoolLimit },
-            };
-            connectionOptions.client = "mysql2";
-            connectionOptions.connection = this.sqlConfig;
-            this.connection = knex(connectionOptions);
-        } catch (err) {
-            throw new Error("MySQL Init Error => " + JSON.stringify(serializeError(err)));
         }
+
+        this.connectionPool = mysql.createPool({
+            ...this.sqlConfig,
+            connectionLimit: this.typedMetadata.connectionPoolLimit,
+            multipleStatements: true,
+        });
+
+        await AwaitHelper.execute(this.executeQuery("select 1 as dummy"));
+
+        const connectionOptions: Knex.Config = {
+            connection: {},
+            pool: { min: 0, max: this.typedMetadata.connectionPoolLimit },
+        };
+        connectionOptions.client = "mysql";
+        connectionOptions.connection = this.sqlConfig;
+        this.connection = knex(connectionOptions);
     }
 
     public executeQuery = async (query: string, disableLog?: boolean): Promise<any[][]> => {
@@ -82,22 +76,41 @@ export default class MySqlDatabaseWorker extends HiveWorkerBase implements IData
             logWorker?.write(OmniHiveLogLevel.Info, query);
         }
 
-        const result: any = await AwaitHelper.execute(this.connectionPool.query(query));
+        return new Promise<any[][]>((resolve, reject) => {
+            this.connectionPool.query(query, (error, results, _fields) => {
+                let arrayResults: any[][] = [];
 
-        const returnResults: any[][] = [];
-        let currentResultIndex: number = 0;
+                if (!IsHelper.isNullOrUndefined(error)) {
+                    return reject(error);
+                }
 
-        if (!Array.isArray(result[0][0])) {
-            returnResults[currentResultIndex] = result[0];
-            return returnResults;
-        }
+                if (!IsHelper.isArray(results)) {
+                    arrayResults[0] = [];
+                    arrayResults[0][0] = results;
+                    return resolve(arrayResults);
+                }
 
-        for (let r of result[0]) {
-            returnResults[currentResultIndex] = r;
-            currentResultIndex++;
-        }
+                if (IsHelper.isArray(results) && !results.some((value) => IsHelper.isArray(value))) {
+                    arrayResults[0] = results;
+                    return resolve(arrayResults);
+                }
 
-        return returnResults;
+                let setCounter: number = 0;
+
+                for (let resultSet of results) {
+                    if (IsHelper.isArray(resultSet)) {
+                        arrayResults[setCounter] = resultSet;
+                    } else {
+                        arrayResults[setCounter] = [];
+                        arrayResults[setCounter][0] = resultSet;
+                    }
+
+                    setCounter++;
+                }
+
+                return resolve(arrayResults);
+            });
+        });
     };
 
     public executeProcedure = async (
@@ -114,7 +127,7 @@ export default class MySqlDatabaseWorker extends HiveWorkerBase implements IData
         orderBy(procFunctionSchema, ["parameterOrder"], ["asc"]).forEach(
             (schema: ProcFunctionSchema, index: number) => {
                 const arg: { name: string; value: any; isString: boolean } | undefined = args.find(
-                    (arg) => arg.name === schema.parameterName
+                    (arg) => arg.name.toLowerCase() === schema.parameterName.toLowerCase()
                 );
 
                 if (!IsHelper.isNullOrUndefined(arg)) {
@@ -144,68 +157,61 @@ export default class MySqlDatabaseWorker extends HiveWorkerBase implements IData
         let tableResult: any[][], procResult: any[][];
         const logWorker: ILogWorker | undefined = this.getWorker<ILogWorker | undefined>(HiveWorkerType.Log);
 
-        try {
-            const tableFilePath = global.omnihive.getFilePath(this.typedMetadata.getSchemaSqlFile);
+        const tableFilePath = global.omnihive.getFilePath(this.typedMetadata.getSchemaSqlFile);
 
+        if (
+            !IsHelper.isNullOrUndefined(this.typedMetadata.getSchemaSqlFile) &&
+            !IsHelper.isEmptyStringOrWhitespace(this.typedMetadata.getSchemaSqlFile) &&
+            fse.existsSync(tableFilePath)
+        ) {
+            tableResult = await AwaitHelper.execute(this.executeQuery(fse.readFileSync(tableFilePath, "utf8"), true));
+        } else {
             if (
                 !IsHelper.isNullOrUndefined(this.typedMetadata.getSchemaSqlFile) &&
-                !IsHelper.isEmptyStringOrWhitespace(this.typedMetadata.getSchemaSqlFile) &&
-                fse.existsSync(tableFilePath)
+                !IsHelper.isEmptyStringOrWhitespace(this.typedMetadata.getSchemaSqlFile)
             ) {
+                logWorker?.write(OmniHiveLogLevel.Warn, "Provided Schema SQL File is not found.");
+            }
+            if (fse.existsSync(path.join(__dirname, "scripts", "defaultTables.sql"))) {
                 tableResult = await AwaitHelper.execute(
-                    this.executeQuery(fse.readFileSync(tableFilePath, "utf8"), true)
+                    this.executeQuery(
+                        fse.readFileSync(path.join(__dirname, "scripts", "defaultTables.sql"), "utf8"),
+                        true
+                    )
                 );
             } else {
-                if (
-                    !IsHelper.isNullOrUndefined(this.typedMetadata.getSchemaSqlFile) &&
-                    !IsHelper.isEmptyStringOrWhitespace(this.typedMetadata.getSchemaSqlFile)
-                ) {
-                    logWorker?.write(OmniHiveLogLevel.Warn, "Provided Schema SQL File is not found.");
-                }
-                if (fse.existsSync(path.join(__dirname, "defaultTables.sql"))) {
-                    tableResult = await AwaitHelper.execute(
-                        this.executeQuery(fse.readFileSync(path.join(__dirname, "defaultTables.sql"), "utf8"), true)
-                    );
-                } else {
-                    throw new Error(`Cannot find a table executor for ${this.name}`);
-                }
+                throw new Error(`Cannot find a table executor for ${this.name}`);
             }
-        } catch (err) {
-            throw new Error("Schema SQL File Location not found: " + JSON.stringify(serializeError(err)));
         }
 
-        try {
-            const procFilePath = global.omnihive.getFilePath(this.typedMetadata.getProcFunctionSqlFile);
+        const procFilePath = global.omnihive.getFilePath(this.typedMetadata.getProcFunctionSqlFile);
 
+        if (
+            !IsHelper.isNullOrUndefined(this.typedMetadata.getProcFunctionSqlFile) &&
+            !IsHelper.isEmptyStringOrWhitespace(this.typedMetadata.getProcFunctionSqlFile) &&
+            fse.existsSync(procFilePath)
+        ) {
+            procResult = await AwaitHelper.execute(this.executeQuery(fse.readFileSync(procFilePath, "utf8"), true));
+        } else {
             if (
                 !IsHelper.isNullOrUndefined(this.typedMetadata.getProcFunctionSqlFile) &&
-                !IsHelper.isEmptyStringOrWhitespace(this.typedMetadata.getProcFunctionSqlFile) &&
-                fse.existsSync(procFilePath)
+                !IsHelper.isEmptyStringOrWhitespace(this.typedMetadata.getProcFunctionSqlFile)
             ) {
-                procResult = await AwaitHelper.execute(this.executeQuery(fse.readFileSync(procFilePath, "utf8"), true));
-            } else {
-                if (
-                    !IsHelper.isNullOrUndefined(this.typedMetadata.getProcFunctionSqlFile) &&
-                    !IsHelper.isEmptyStringOrWhitespace(this.typedMetadata.getProcFunctionSqlFile)
-                ) {
-                    logWorker?.write(OmniHiveLogLevel.Warn, "Provided Proc SQL File is not found.");
-                }
-                if (fse.existsSync(path.join(__dirname, "defaultProcFunctions.sql"))) {
-                    procResult = await AwaitHelper.execute(
-                        this.executeQuery(
-                            fse.readFileSync(path.join(__dirname, "defaultProcFunctions.sql"), "utf8"),
-                            true
-                        )
-                    );
-                } else {
-                    throw new Error(`Cannot find a proc executor for ${this.name}`);
-                }
+                logWorker?.write(OmniHiveLogLevel.Warn, "Provided Proc SQL File is not found.");
             }
-        } catch (err) {
-            throw new Error("Schema SQL File Location not found: " + JSON.stringify(serializeError(err)));
+            if (fse.existsSync(path.join(__dirname, "scripts", "defaultProcFunctions.sql"))) {
+                procResult = await AwaitHelper.execute(
+                    this.executeQuery(
+                        fse.readFileSync(path.join(__dirname, "scripts", "defaultProcFunctions.sql"), "utf8"),
+                        true
+                    )
+                );
+            } else {
+                throw new Error(`Cannot find a proc executor for ${this.name}`);
+            }
         }
 
-        tableResult[tableResult.length - 1].forEach((row) => {
+        tableResult[0].forEach((row) => {
             if (
                 !this.typedMetadata.ignoreSchema &&
                 !this.typedMetadata.schemas.includes("*") &&
@@ -232,7 +238,7 @@ export default class MySqlDatabaseWorker extends HiveWorkerBase implements IData
             result.tables.push(schemaRow);
         });
 
-        procResult[procResult.length - 1].forEach((row) => {
+        procResult[0].forEach((row) => {
             if (
                 !this.typedMetadata.ignoreSchema &&
                 !this.typedMetadata.schemas.includes("*") &&

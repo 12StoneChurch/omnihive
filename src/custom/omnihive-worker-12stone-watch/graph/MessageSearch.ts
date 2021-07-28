@@ -9,9 +9,14 @@ import { WatchContent } from "@12stonechurch/omnihive-worker-common/models/Watch
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 import { getMessageById } from "../common/GetMessaegById";
 import getPastMessages from "./GetPastMessages";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 export default class MessageSearch extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: any | undefined): Promise<PaginationModel<WatchContent> | {}> => {
+    public execute = async (
+        customArgs: any | undefined,
+        omniHiveContext: GraphContext
+    ): Promise<PaginationModel<WatchContent> | {}> => {
         try {
             const query = customArgs?.query ?? "";
             const page = customArgs?.page ?? 1;
@@ -24,7 +29,9 @@ export default class MessageSearch extends HiveWorkerBase implements IGraphEndpo
                     limit: limit,
                 };
 
-                return AwaitHelper.execute<PaginationModel<WatchContent>>(pastMessageFunction.execute(args));
+                return AwaitHelper.execute<PaginationModel<WatchContent>>(
+                    pastMessageFunction.execute(args, omniHiveContext)
+                );
             }
 
             const elasticWorker: ElasticWorker | undefined = this.getWorker(HiveWorkerType.Unknown, "ohElastic") as
@@ -126,9 +133,14 @@ export default class MessageSearch extends HiveWorkerBase implements IGraphEndpo
     }
 
     private async buildFinalData(doc: any): Promise<{ doc: WatchContent; score: number } | undefined> {
+        const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+        if (IsHelper.isNullOrUndefined(webRootUrl)) {
+            throw new Error("Web Root URL undefined");
+        }
+
         if (doc._source.DocumentTypeId === 2) {
-            GraphService.getSingleton().graphRootUrl =
-                this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+            GraphService.getSingleton().graphRootUrl = webRootUrl + "/server1/builder1/ministryplatform";
 
             const document = await AwaitHelper.execute<WatchContent | undefined>(
                 getMessageById(doc._source.SiteDocumentId)

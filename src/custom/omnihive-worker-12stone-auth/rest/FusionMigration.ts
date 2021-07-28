@@ -1,8 +1,10 @@
 import { IRestEndpointWorker } from "@withonevision/omnihive-core/interfaces/IRestEndpointWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { serializeError } from "serialize-error";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 import swaggerUi from "swagger-ui-express";
 import { GetMpUser } from "../common/GetMpUser";
+import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 
 class SignInArgs {
     loginId: string = "";
@@ -150,7 +152,15 @@ export default class FusionSignIn extends HiveWorkerBase implements IRestEndpoin
         const args: SignInArgs = this.validateArgs(body);
 
         try {
-            const user = await GetMpUser(args, this.config.metadata.data, this.serverSettings.config.webRootUrl);
+            const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+            if (IsHelper.isNullOrUndefined(webRootUrl)) {
+                throw new Error("Web Root URL undefined");
+            }
+
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
+
+            const user = await GetMpUser(args, this.metadata.data, webRootUrl);
 
             return { response: user, status: 200 };
         } catch (err) {

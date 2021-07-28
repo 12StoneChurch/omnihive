@@ -10,6 +10,8 @@ import { GraphService } from "@12stonechurch/omnihive-worker-common/services/Gra
 import { GetEventsByIdList } from "../common/GetEventsByIdList";
 import { Event } from "../lib/models/Event";
 import { PaginationModel } from "@12stonechurch/omnihive-worker-common/models/PaginationModel";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 /**
  * Args:
@@ -26,8 +28,16 @@ import { PaginationModel } from "@12stonechurch/omnihive-worker-common/models/Pa
  */
 
 export default class EventSearch extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: any): Promise<PaginationModel<Event>> => {
+    public execute = async (customArgs: any, _omniHiveContext: GraphContext): Promise<PaginationModel<Event>> => {
         try {
+            const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+            if (IsHelper.isNullOrUndefined(webRootUrl)) {
+                throw new Error("Web Root URL undefined");
+            }
+
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
+
             if (!customArgs) {
                 customArgs = {};
             }
@@ -51,8 +61,7 @@ export default class EventSearch extends HiveWorkerBase implements IGraphEndpoin
                 throw new Error("No search fields to search given.");
             }
 
-            GraphService.getSingleton().graphRootUrl =
-                this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+            GraphService.getSingleton().graphRootUrl = webRootUrl + "/server1/builder1/ministryplatform";
 
             // Get all events on filter conditions
             const storedProc = `
@@ -85,8 +94,8 @@ export default class EventSearch extends HiveWorkerBase implements IGraphEndpoin
                     throw new Error("Elastic Worker is not defined.");
                 }
 
-                const databaseRowLimit = (await this.getWorker(HiveWorkerType.Database, "dbMinistryPlatform"))?.config
-                    .metadata.rowLimit;
+                const databaseRowLimit = (await this.getWorker(HiveWorkerType.Database, "dbMinistryPlatform"))?.metadata
+                    .rowLimit;
 
                 searchResults = await AwaitHelper.execute(
                     Search(elasticWorker, query, searchFields, 1, databaseRowLimit)

@@ -4,6 +4,7 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import { serializeError } from "serialize-error";
 import { danyPost } from "@12stonechurch/omnihive-worker-common/helpers/DanyHelper";
 import { DanyService } from "@12stonechurch/omnihive-worker-common/services/DanyService";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 class CreateUserArgs {
     AddressLine1: string = "";
@@ -21,10 +22,10 @@ class CreateUserArgs {
 }
 
 export default class CreateUser extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: CreateUserArgs): Promise<any> => {
+    public execute = async (customArgs: CreateUserArgs, _omniHiveContext: GraphContext): Promise<any> => {
         try {
             // Get Metadata
-            DanyService.getSingleton().setMetaData(this.config.metadata);
+            DanyService.getSingleton().setMetaData(this.metadata);
 
             const result = await AwaitHelper.execute(danyPost("/Security/Register", customArgs));
 

@@ -1,6 +1,6 @@
 {
     "name": "@12stonechurch/omnihive-worker-graphql-builder-v1",
-    "version": "6.2.45",
+    "version": "0.0.1",
     "description": "OmniHive GraphQL Build Worker V1",
     "license": "MIT",
     "author": {
@@ -24,7 +24,7 @@
         "build": "tsc"
     },
     "dependencies": {
-        "@withonevision/omnihive-core": "6.2.52",
+        "@withonevision/omnihive-core": "6.2.54",
         "graphql": "15.5.0",
         "knex": "0.95.7",
         "lodash": "4.17.21",

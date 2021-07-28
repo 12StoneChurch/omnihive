@@ -16,14 +16,11 @@ import { AdminRequest } from "@withonevision/omnihive-core/models/AdminRequest";
 import { AdminResponse } from "@withonevision/omnihive-core/models/AdminResponse";
 import { ServerConfig } from "@withonevision/omnihive-core/models/ServerConfig";
 import { EnvironmentVariable } from "@withonevision/omnihive-core/models/EnvironmentVariable";
-import cors from "cors";
-import express from "express";
-import helmet from "helmet";
-import next from "next";
 import ipc from "node-ipc";
 import redis from "redis";
 import * as socketio from "socket.io";
 import { v4 as uuidv4 } from "uuid";
+import { serializeError } from "serialize-error";
 
 let ipcId: string = uuidv4();
 ipc.config.id = ipcId;
@@ -41,7 +38,6 @@ export class AdminService {
         "OH_CLUSTER_REDIS_CONNECTION_STRING"
     );
     private clusterEnabled = global.omnihive.getEnvironmentVariable<boolean>("OH_CLUSTER_ENABLE") ?? false;
-    private productionMode = global.omnihive.getEnvironmentVariable<boolean>("OH_PRODUCTION_MODE") ?? true;
     private serverGroupId = global.omnihive.getEnvironmentVariable<string>("OH_ADMIN_SERVER_GROUP_ID") ?? "";
 
     public run = async () => {
@@ -204,7 +200,7 @@ export class AdminService {
                         verified: true,
                     });
                 } catch (e) {
-                    this.sendErrorToSocket(AdminEventType.ConfigSaveRequest, socket, e);
+                    this.sendErrorToSocket(AdminEventType.ConfigSaveRequest, socket, serializeError(e));
                     return;
                 }
             });
@@ -289,47 +285,6 @@ export class AdminService {
             OmniHiveLogLevel.Info,
             `Admin socket server listening on port ${this.adminSocketPortNumber}...`
         );
-
-        // Setup Web Server
-
-        let adminServerPreparing: boolean = true;
-        const adminWeb = express();
-
-        adminWeb.use(helmet.dnsPrefetchControl());
-        adminWeb.use(helmet.expectCt());
-        adminWeb.use(helmet.frameguard());
-        adminWeb.use(helmet.hidePoweredBy());
-        adminWeb.use(helmet.hsts());
-        adminWeb.use(helmet.ieNoOpen());
-        adminWeb.use(helmet.noSniff());
-        adminWeb.use(helmet.permittedCrossDomainPolicies());
-        adminWeb.use(helmet.referrerPolicy());
-        adminWeb.use(helmet.xssFilter());
-
-        adminWeb.use(express.urlencoded({ extended: true }));
-        adminWeb.use(express.json());
-        adminWeb.use(cors());
-
-        const nextServer = next({ dev: !this.productionMode });
-        const handle = nextServer.getRequestHandler();
-        nextServer.prepare().then(() => {
-            adminServerPreparing = false;
-        });
-
-        adminWeb.all("*", (req: express.Request, res: express.Response) => {
-            if (adminServerPreparing) {
-                return res.status(200).json({ status: "OmniHive Admin Loading..." });
-            }
-            return handle(req, res);
-        });
-
-        adminWeb.listen(this.adminWebPortNumber, (err?: any) => {
-            if (err) throw err;
-            this.logWorker?.write(
-                OmniHiveLogLevel.Info,
-                `Admin web server listening on port ${this.adminWebPortNumber}...`
-            );
-        });
     };
 
     private checkRequest = (adminEvent: AdminEventType, request: AdminRequest, socket?: socketio.Socket): boolean => {

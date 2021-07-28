@@ -9,7 +9,7 @@ import { Listr } from "listr2";
 import execa from "execa";
 import replaceInFile, { ReplaceInFileConfig } from "replace-in-file";
 import tar from "tar";
-import { IsHelper } from "src/packages/omnihive-core/helpers/IsHelper";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 
 // Master build process
 const build = async (): Promise<void> => {
@@ -160,7 +160,6 @@ const setupTasks = (debug: boolean, distTag: string): Listr<any> => {
 
 // Listr task helpers
 const buildRepo = () => {
-    execa.commandSync("yarn run build:webAdmin", { cwd: path.join(`.`, `src`, `packages`, `omnihive`) });
     execa.commandSync("npx tsc -b --force", { cwd: path.join(`.`) });
 };
 
@@ -196,30 +195,21 @@ const getPublishFolders = () => {
 const getRequiredFiles = () => {
     return [
         path.join(`omnihive`, `.npmignore`),
-        path.join(`omnihive`, `next-env.d.ts`),
-        path.join(`omnihive`, `next.config.js`),
-        path.join(`omnihive`, `postcss.config.js`),
-        path.join(`omnihive`, `tailwind.config.js`),
-        path.join(`omnihive`, `pages`, `404.ejs`),
-        path.join(`omnihive`, `pages`, `500.ejs`),
-        path.join(`omnihive`, `pages`, `index.ejs`),
-        path.join(`omnihive`, `components`, `head.ejs`),
         path.join(`omnihive-worker-knex-mssql`, `.npmignore`),
-        path.join(`omnihive-worker-knex-mssql`, `defaultProcFunctions.sql`),
-        path.join(`omnihive-worker-knex-mssql`, `defaultTables.sql`),
         path.join(`omnihive-worker-knex-mysql`, `.npmignore`),
-        path.join(`omnihive-worker-knex-mysql`, `defaultProcFunctions.sql`),
-        path.join(`omnihive-worker-knex-mysql`, `defaultTables.sql`),
         path.join(`omnihive-worker-knex-postgres`, `.npmignore`),
-        path.join(`omnihive-worker-knex-postgres`, `defaultProcFunctions.sql`),
-        path.join(`omnihive-worker-knex-postgres`, `defaultTables.sql`),
         path.join(`omnihive-worker-knex-sqlite`, `.npmignore`),
-        path.join(`omnihive-worker-knex-sqlite`, `defaultTables.sql`),
     ];
 };
 
 const getRequiredFolders = () => {
-    return [path.join(`omnihive`, `.next`), path.join(`omnihive`, `public`)];
+    return [
+        path.join(`omnihive`, `app`),
+        path.join(`omnihive-worker-knex-mssql`, `scripts`),
+        path.join(`omnihive-worker-knex-mysql`, `scripts`),
+        path.join(`omnihive-worker-knex-postgres`, `scripts`),
+        path.join(`omnihive-worker-knex-sqlite`, `scripts`),
+    ];
 };
 
 const publish = (directory: string, distTag: string) => {

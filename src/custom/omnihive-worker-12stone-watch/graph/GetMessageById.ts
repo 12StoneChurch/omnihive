@@ -4,13 +4,15 @@ import { serializeError } from "serialize-error";
 import { WatchContent } from "@12stonechurch/omnihive-worker-common/models/WatchModels";
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 import { getMessageById } from "../common/GetMessaegById";
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 
 class GetMessageByIdArguemnts {
     id: number = 0;
 }
 
 export default class GetMessageById extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: any): Promise<WatchContent | {}> => {
+    public execute = async (customArgs: any, _omniHiveContext: GraphContext): Promise<WatchContent | {}> => {
         const args: GetMessageByIdArguemnts = this.checkObjectStructure<GetMessageByIdArguemnts>(
             GetMessageByIdArguemnts,
             customArgs
@@ -21,8 +23,14 @@ export default class GetMessageById extends HiveWorkerBase implements IGraphEndp
         }
 
         try {
-            GraphService.getSingleton().graphRootUrl =
-                this.serverSettings.config.webRootUrl + "/server1/builder1/ministryplatform";
+            const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+            if (IsHelper.isNullOrUndefined(webRootUrl)) {
+                throw new Error("Web Root URL undefined");
+            }
+
+            await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
+            GraphService.getSingleton().graphRootUrl = webRootUrl + "/server1/builder1/ministryplatform";
 
             const latestMessage = await getMessageById(args.id);
 

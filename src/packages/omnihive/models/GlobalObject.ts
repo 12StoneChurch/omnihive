@@ -19,19 +19,20 @@ import express from "express";
 import fse from "fs-extra";
 import { Server } from "http";
 import path from "path";
-import { serializeError } from "serialize-error";
 import socketIo from "socket.io";
+import { OmniHiveClient } from "@withonevision/omnihive-client";
 import { CommandLineArgs } from "./CommandLineArgs";
 
 export class GlobalObject {
     public adminServer: socketIo.Server | undefined = undefined;
     public appServer: express.Express | undefined = undefined;
-    public serverConfig: ServerConfig = new ServerConfig();
     public commandLineArgs: CommandLineArgs = new CommandLineArgs();
     public ohDirName: string = "";
     public registeredSchemas: ConnectionSchema[] = [];
     public registeredUrls: RegisteredUrl[] = [];
     public registeredWorkers: RegisteredHiveWorker[] = [];
+    public serverClient: OmniHiveClient = OmniHiveClient.getSingleton();
+    public serverConfig: ServerConfig = new ServerConfig();
     public serverError: any = {};
     public serverStatus: ServerStatus = ServerStatus.Unknown;
     public webServer: Server | undefined = undefined;
@@ -168,16 +169,12 @@ export class GlobalObject {
     }
 
     public async initWorkers(): Promise<void> {
-        try {
-            for (const hiveWorker of this.serverConfig.workers) {
-                await AwaitHelper.execute(this.pushWorker(hiveWorker));
-            }
+        for (const hiveWorker of this.serverConfig.workers) {
+            await AwaitHelper.execute(this.pushWorker(hiveWorker));
+        }
 
-            for (const hiveWorker of this.registeredWorkers) {
-                (hiveWorker.instance as IHiveWorker).registeredWorkers = this.registeredWorkers;
-            }
-        } catch (err) {
-            throw new Error("Worker Factory Init Error => " + JSON.stringify(serializeError(err)));
+        for (const hiveWorker of this.registeredWorkers) {
+            (hiveWorker.instance as IHiveWorker).registeredWorkers = this.registeredWorkers;
         }
     }
 

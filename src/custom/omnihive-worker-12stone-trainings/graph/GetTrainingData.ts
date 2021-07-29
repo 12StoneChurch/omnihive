@@ -189,7 +189,7 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
             );
 
             if (parent) {
-                const submodule = parent.subModules.find((x) => x.trainingSubmoduleId === item.trainingSubModuleId);
+                const submodule = parent.subModules.find((x) => x.trainingSubmoduleId === item.trainingSubmoduleId);
 
                 if (submodule) {
                     submodule["completed"] = true;

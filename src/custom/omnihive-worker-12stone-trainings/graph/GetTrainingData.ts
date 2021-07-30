@@ -237,8 +237,8 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
             {
                 data: dboContacts(where: {userAccount: {eq: ${userId}}}) {
                     contactId
-                    participantRecord_table(join: {type: inner, whereMode: specific}) {
-                        dboEventParticipants_table(
+                    participants: participantRecord_table(join: {type: inner, whereMode: specific}) {
+                        eventParticipants: dboEventParticipants_table(
                             join: {type: inner, whereMode: specific, from: participantId}
                             where: {and: [{participationStatusId: {eq: 3}}, {eventId: {in: [${this.trainingModules
                                 .map((x) => x.events.map((y: any) => y.id))
@@ -255,9 +255,13 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
 
         const results = (await this.graphService.runQuery(query)).data;
 
-        for (const item of results) {
-            if (!item.participantId) {
-                item.participantId = await this.createParticipantRecord(item.contactId);
+        for (const contact of results) {
+            for (const participant of contact.participants) {
+                for (const eventParticipant of participant.eventParticipants) {
+                    if (!eventParticipant.participantId) {
+                        eventParticipant.participantId = await this.createParticipantRecord(contact.contactId);
+                    }
+                }
             }
         }
     };

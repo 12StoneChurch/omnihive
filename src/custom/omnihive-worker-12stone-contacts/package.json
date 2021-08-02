@@ -26,7 +26,8 @@
     "dependencies": {
         "@12stonechurch/omnihive-worker-common": "workspace:*",
         "@withonevision/omnihive-core": "6.2.54",
-        "dayjs": "1.10.5"
+        "dayjs": "1.10.5",
+        "joi": "^17.4.2"
     },
     "devDependencies": {
         "@istanbuljs/nyc-config-typescript": "1.0.1",

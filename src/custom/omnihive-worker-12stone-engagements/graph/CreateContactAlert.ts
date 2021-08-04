@@ -18,7 +18,7 @@ interface Args {
 
 const argsSchema = Joi.object({
     contactId: Joi.number().integer().required(),
-    description: Joi.string().max(2000).required(),
+    description: Joi.string().min(1).max(2000).required(),
     createdByContactId: Joi.number().integer().default(1),
 });
 

@@ -68,26 +68,26 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
 
                     const data = await Promise.all([
                         insertEngagementLogQuery(connection, logArgs).transacting(trx),
-                        getPhoneByContactId(connection, updatedEngagement[0].Owner_Contact_ID).transacting(trx),
-                        getTwilioNumber(connection, this.metadata.environment).transacting(trx),
+                        getPhoneByContactId(connection, updatedEngagement[0].Owner_Contact_ID),
+                        getTwilioNumber(connection, this.metadata.environment),
                     ]);
 
                     const ownerPhone = data[1][0].Mobile_Phone;
                     const twilioNumber = data[2][0].Default_Number;
 
-                    // Construct custom graph url
-                    const graphUrl = this.getEnvironmentVariable("OH_WEB_ROOT_URL") + this.metadata.customUrl;
-
-                    // Send Text to engagement owner about their new engagement
-                    const textData = {
-                        body: `You've been assigned a new ${updatedEngagement[0].Type} engagement`,
-                        from: twilioNumber,
-                        to: ownerPhone,
-                    };
-                    const textSent = await sendText(textData, graphUrl);
-
-                    if (!textSent?.SendSms?.sid) {
-                        trx.rollback;
+                    if (ownerPhone && twilioNumber) {
+                        // Construct custom graph url
+                        const graphUrl = this.getEnvironmentVariable("OH_WEB_ROOT_URL") + this.metadata.customUrl;
+                        
+                        // Send Text to engagement owner about their new engagement
+                        const textData = {
+                            body: `You've been assigned a new ${updatedEngagement[0].Type} engagement`,
+                            from: twilioNumber,
+                            to: ownerPhone,
+                        };
+                        
+                        // Commits the transaction so that owner change is not rolled back even if text fails
+                        await sendText(textData, graphUrl).catch(() => trx.commit());
                     }
                 }
                 return updatedEngagement[0];
@@ -96,7 +96,7 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
             return updatedEngagement;
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
-            return err;
+            throw err;
         }
     };
 }

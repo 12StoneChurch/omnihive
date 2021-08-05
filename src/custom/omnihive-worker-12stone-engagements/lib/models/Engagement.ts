@@ -24,4 +24,5 @@ export interface EngagementModel {
         id: number;
         name: string;
     };
+    latestActivity?: Date;
 }

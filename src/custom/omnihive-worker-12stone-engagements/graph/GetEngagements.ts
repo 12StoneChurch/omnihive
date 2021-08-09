@@ -87,6 +87,7 @@ export default class GetEngagements extends HiveWorkerBase implements IGraphEndp
                     id: item.Engagement_Status_ID,
                     name: item.Status,
                 },
+                latestActivity: item.Latest_Activity,
             }));
 
             // nextPage and previousPage should return correctly even if given impossible args

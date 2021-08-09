@@ -24,4 +24,9 @@ export interface EngagementModel {
         id: number;
         name: string;
     };
+    latestActivity?: Date;
+    history?: {
+        contactLogCount: number;
+        engagementLogCount: number;
+    };
 }

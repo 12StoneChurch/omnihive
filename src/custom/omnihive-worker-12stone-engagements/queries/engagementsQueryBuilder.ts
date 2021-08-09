@@ -33,6 +33,11 @@ export const engagementsQueryBuilder = (connection: Knex<any | unknown>, customA
             "e.Engagement_Status_ID",
             "es.Name as Status"
         )
+        .select(
+            connection.raw(
+                "(select max(Date_Created) from Engagement_Log as el where el.Engagement_ID = e.Engagement_ID group by el.Engagement_ID) as Latest_Activity"
+            )
+        )
         .from({ e: "Engagements" })
         .innerJoin("contacts as c", "c.Contact_ID", "e.Contact_ID")
         .innerJoin("contacts as c2", "c2.Contact_ID", "e.Owner_Contact_ID")

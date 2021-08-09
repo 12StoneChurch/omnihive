@@ -47,13 +47,15 @@ export default class CreateEngagement extends HiveWorkerBase implements IGraphEn
             if (!customArgs?.ownerContactId) {
                 const ownerQuery = defaultOwnerQuery(connection, customArgs);
                 const ownerRes = await worker?.executeQuery(ownerQuery.toString());
+                console.log(`ownerRes`, ownerRes);
+                console.log(`ownerRes[0]`, ownerRes && ownerRes[0].length);
 
                 if (ownerRes && ownerRes[0].length === 1) {
                     // It returns default owner of the campus when no one is specified for the type
                     customArgs.ownerContactId = ownerRes[0][0].ownerId;
-                } else {
+                } else if (ownerRes && ownerRes[0].length > 1) {
                     // It returns the campus AND campus-type default owners.
-                    // So it needs to filter for the campus-type owner
+                    // So it needs to filter for the campus-type owner. It gets the first one it finds in the unlikely case that there's more than 1
                     const owner =
                         ownerRes &&
                         ownerRes[0].find((item) => {
@@ -61,6 +63,9 @@ export default class CreateEngagement extends HiveWorkerBase implements IGraphEn
                         });
 
                     customArgs.ownerContactId = owner.ownerId;
+                } else {
+                    // If for some reason there is no default campus owner, then Chris Huff is hard coded as the default owner so that he can get people assigned pronto.
+                    customArgs.ownerContactId = 71506;
                 }
             }
 
@@ -71,7 +76,6 @@ export default class CreateEngagement extends HiveWorkerBase implements IGraphEn
                     connection,
                     engagementRes[0].Engagement_ID
                 ).transacting(trx);
-                console.log(`engagement`, engagementData);
 
                 // CREATE ENGAGEMENT LOG
                 const logData = {
@@ -82,32 +86,30 @@ export default class CreateEngagement extends HiveWorkerBase implements IGraphEn
 
                 const data = await Promise.all([
                     insertEngagementLogQuery(connection, logData).transacting(trx),
-                    getPhoneByContactId(connection, engagementData[0].Owner_Contact_ID).transacting(trx),
-                    getTwilioNumber(connection, this.metadata.environment).transacting(trx),
+                    getPhoneByContactId(connection, engagementData[0].Owner_Contact_ID),
+                    getTwilioNumber(connection, this.metadata.environment),
                 ]);
 
                 // SEND NOTIFICATION TO OWNER
                 const ownerPhone = data[1][0].Mobile_Phone;
                 const twilioNumber = data[2][0].Default_Number;
 
-                // Construct custom graph url
-                const graphUrl = this.getEnvironmentVariable("OH_WEB_ROOT_URL") + this.metadata.customUrl;
+                if (ownerPhone && twilioNumber) {
+                    // Construct custom graph url
+                    const graphUrl = this.getEnvironmentVariable("OH_WEB_ROOT_URL") + this.metadata.customUrl;
 
-                // Send Text to engagement owner about their new engagement
-                const textData = {
-                    body: `You've been assigned a new ${engagementData[0].Type} engagement`,
-                    from: twilioNumber,
-                    to: ownerPhone,
-                };
-                const textSent = await sendText(textData, graphUrl);
-
-                if (!textSent?.SendSms?.sid) {
-                    trx.rollback;
+                    // Send Text to engagement owner about their new engagement
+                    const textData = {
+                        body: `You've been assigned a new ${engagementData[0].Type} engagement`,
+                        from: twilioNumber,
+                        to: ownerPhone,
+                    };
+                    await sendText(textData, graphUrl).catch(() => trx.commit());
                 }
 
                 return engagementData[0];
             });
-
+            console.log(`engagement`, engagement);
             return engagement;
         } catch (error) {
             console.log(JSON.stringify(serializeError(error)));
@@ -142,7 +144,8 @@ const defaultOwnerQuery = (connection: Knex, data: Args) => {
         .where("Congregation_ID", data.congregationId)
         .andWhere(function (q) {
             q.where("Engagement_Type_ID", data.engagementTypeId).orWhere("Engagement_Type_ID", null);
-        });
+        })
+        .orderBy("Engagement_Type_ID", "desc");
 
     return query;
 };

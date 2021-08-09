@@ -86,9 +86,10 @@ const selectAlerts = (connection: Knex, data: Args) => {
             "c.last_name as created_by_last_name",
         ])
         .from({ cl: "contact_log" })
-        .innerJoin("dp_users as u", "u.user_id", "cl.made_by")
-        .innerJoin("contacts as c", "c.contact_id", "u.contact_id")
-        .where({ "cl.contact_id": contactId, "cl.contact_log_type_id": 7 })
+        .join("dp_users as u", "u.user_id", "cl.made_by")
+        .join("contacts as c", "c.contact_id", "u.contact_id")
+        .join("contact_log_types as clt", "cl.contact_log_type_id", "clt.contact_log_type_id")
+        .where({ "cl.contact_id": contactId, "clt.contact_log_type": "Alert", "cl.archived": 0 })
         .orderBy("cl.contact_date", "asc");
 
     return builder;

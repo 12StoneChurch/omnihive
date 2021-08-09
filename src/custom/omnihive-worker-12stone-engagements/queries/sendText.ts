@@ -7,7 +7,8 @@ interface SendSmsArgs {
 }
 
 export const sendText = async (data: SendSmsArgs, graphUrl: string) => {
-    const textQuery = `
+  try {
+      const textQuery = `
       query {
         SendSms(customArgs: {
           body: "${data.body}"
@@ -17,6 +18,9 @@ export const sendText = async (data: SendSmsArgs, graphUrl: string) => {
       }
     `;
 
-    // const dataUrl = global.omnihive.registeredUrls;
-    return await global.omnihive.serverClient.graphClient(graphUrl, textQuery);
+      // const dataUrl = global.omnihive.registeredUrls;
+      return await global.omnihive.serverClient.graphClient(graphUrl, textQuery);
+  } catch (err) {
+      throw Error(err);
+  }
 };

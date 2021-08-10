@@ -311,6 +311,8 @@ export class CommonService {
                     }
                 });
 
+                removeCommand.append(" --network-timeout 100000");
+
                 const removeSpawn = childProcess.spawnSync(removeCommand.outputString(), {
                     shell: true,
                     cwd: global.omnihive.ohDirName,
@@ -357,6 +359,8 @@ export class CommonService {
                         addCommand.append(" ");
                     }
                 });
+
+                addCommand.append(" --network-timeout 100000");
 
                 const addSpawn = childProcess.spawnSync(addCommand.outputString(), {
                     shell: true,

@@ -4,6 +4,7 @@ import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDataba
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
+// import { custom } from "joi";
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
@@ -13,7 +14,7 @@ import { getPhoneByContactId } from "../queries/getPhoneByContactId";
 import { insertEngagementLogQuery } from "../queries/insertEngagementLog";
 import { sendText } from "../queries/sendText";
 
-interface UpdateEngagementWorkerArgs {
+export interface UpdateEngagementWorkerArgs {
     engagementId: number;
     contactId?: number;
     ownerContactId?: number;
@@ -78,14 +79,14 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
                     if (ownerPhone && twilioNumber) {
                         // Construct custom graph url
                         const graphUrl = this.getEnvironmentVariable("OH_WEB_ROOT_URL") + this.metadata.customUrl;
-                        
+
                         // Send Text to engagement owner about their new engagement
                         const textData = {
                             body: `You've been assigned a new ${updatedEngagement[0].Type} engagement`,
                             from: twilioNumber,
                             to: ownerPhone,
                         };
-                        
+
                         // Commits the transaction so that owner change is not rolled back even if text fails
                         await sendText(textData, graphUrl).catch(() => trx.commit());
                     }
@@ -134,9 +135,3 @@ const updateEngagementQuery = (connection: Knex, data: UpdateEngagementWorkerArg
 
     return builder;
 };
-
-// const getTwilioNumber = (connection: Knex) => {
-//     const builder = connection.queryBuilder();
-//     builder.select("Default_Number").from("Tenant_Twilio_Configurations").where("Twilio_Configuration_ID", 1);
-//     return builder;
-// };

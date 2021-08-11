@@ -1,3 +1,4 @@
+import { verifyToken } from "@12stonechurch/omnihive-worker-common/helpers/TokenHelper";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import type { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import type { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
@@ -29,6 +30,9 @@ export default class CreateEngagementLog extends HiveWorkerBase implements IGrap
         _omniHiveContext: GraphContext
     ): Promise<EngagementLogModel> => {
         try {
+            /* Verify auth token */
+            await verifyToken(_omniHiveContext);
+
             /* Get database connection */
             const worker = this.getWorker<IDatabaseWorker>(HiveWorkerType.Database, "dbMinistryPlatform");
             const connection = worker?.connection as Knex;

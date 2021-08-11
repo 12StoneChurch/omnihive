@@ -1,4 +1,5 @@
 /// <reference path="../../../types/globals.omnihive.d.ts" />
+import { verifyToken } from "@12stonechurch/omnihive-worker-common/helpers/TokenHelper";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
@@ -27,6 +28,9 @@ export interface UpdateEngagementWorkerArgs {
 export default class UpdateEngagement extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: UpdateEngagementWorkerArgs, _omniHiveContext: GraphContext): Promise<{}> => {
         try {
+            /* Verify auth token */
+            await verifyToken(_omniHiveContext);
+
             // Get the connection to the database
             const worker = await this.getWorker<IDatabaseWorker>(HiveWorkerType.Database, "dbMinistryPlatform");
 

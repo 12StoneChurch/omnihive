@@ -1,3 +1,4 @@
+import { verifyToken } from "@12stonechurch/omnihive-worker-common/helpers/TokenHelper";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
@@ -5,9 +6,6 @@ import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
-
-// import { EngagementModel } from "../lib/models/Engagement";
-// import { countQueryBuilder } from "../queries/countQueryBuilder";
 
 interface Args {
     ownerId: number;
@@ -23,6 +21,9 @@ interface Statuses {
 export default class GetEngagmentsCount extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: Args, _omniHiveContext: GraphContext): Promise<{}> => {
         try {
+            /* Verify auth token */
+            await verifyToken(_omniHiveContext);
+
             if (!customArgs?.ownerId) {
                 throw new Error("GetEngagementsCount requires a customArg of ownerId");
             }

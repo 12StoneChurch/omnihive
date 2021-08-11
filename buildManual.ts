@@ -1,14 +1,15 @@
+import path from "path";
+
+import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
+import axios from "axios";
 import chalk from "chalk";
+import execa from "execa";
 import figlet from "figlet";
 import fse from "fs-extra";
-import path from "path";
+import { Listr } from "listr2";
+import readPkgUp from "read-pkg-up";
 import replaceInFile, { ReplaceInFileConfig } from "replace-in-file";
 import yargs from "yargs";
-import axios from "axios";
-import { Listr } from "listr2";
-import execa from "execa";
-import { IsHelper } from "src/packages/omnihive-core/helpers/IsHelper";
-import readPkgUp from "read-pkg-up";
 
 interface IArgs {
     ohVersion: string;

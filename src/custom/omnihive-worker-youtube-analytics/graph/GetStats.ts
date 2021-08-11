@@ -1,7 +1,8 @@
-import { IGraphEndpointWorker } from "src/packages/omnihive-core/interfaces/IGraphEndpointWorker";
-import { HiveWorkerBase } from "src/packages/omnihive-core/models/HiveWorkerBase";
-import { google } from "googleapis";
 import fs from "fs";
+
+import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
+import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
+import { google } from "googleapis";
 
 export default class GetStats extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (_customArgs: any, _environmentVariables: any): Promise<any> => {

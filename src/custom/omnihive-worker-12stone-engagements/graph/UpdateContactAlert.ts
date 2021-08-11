@@ -82,7 +82,7 @@ const updateBuilder = (connection: Knex, args: Args) => {
     const data: Record<string, unknown> = {};
 
     if (args.description !== undefined) {
-        data.description = args.description;
+        data.notes = args.description;
     }
     if (args.archived !== undefined) {
         data.archived = args.archived ? 1 : 0;

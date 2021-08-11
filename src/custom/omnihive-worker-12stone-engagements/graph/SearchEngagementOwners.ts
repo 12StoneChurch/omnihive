@@ -1,4 +1,5 @@
 import { paginateItems } from "@12stonechurch/omnihive-worker-common/helpers/PaginateHelper";
+import { verifyToken } from "@12stonechurch/omnihive-worker-common/helpers/TokenHelper";
 import { PageModel } from "@12stonechurch/omnihive-worker-common/models/PageModel";
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
@@ -26,6 +27,9 @@ export default class SearchEngagementOwners extends HiveWorkerBase implements IG
         _omniHiveContext: GraphContext
     ): Promise<PageModel<EngagementOwnersSearchResult>> => {
         try {
+            /* Verify auth token */
+            await verifyToken(_omniHiveContext);
+
             /* Validate and clean custom arguments */
             const { value, error } = argsSchema.validate(customArgs);
 

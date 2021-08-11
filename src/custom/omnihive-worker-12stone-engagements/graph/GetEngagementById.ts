@@ -1,3 +1,4 @@
+import { verifyToken } from "@12stonechurch/omnihive-worker-common/helpers/TokenHelper";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
@@ -7,7 +8,7 @@ import { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
 import { EngagementModel } from "./../lib/models/Engagement";
-import { getEngagementByIdQuery } from '../queries/getEngagementById';
+import { getEngagementByIdQuery } from "../queries/getEngagementById";
 
 // import { EngagementModel } from "../lib/models/Engagement";
 // import { countQueryBuilder } from "../queries/countQueryBuilder";
@@ -19,6 +20,9 @@ interface Args {
 export default class GetEngagementById extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: Args, _omniHiveContext: GraphContext): Promise<{}> => {
         try {
+            /* Verify auth token */
+            await verifyToken(_omniHiveContext);
+
             if (!customArgs?.engagementId) {
                 throw new Error("GetAllEngagements requires a customArg of engagementId");
             }

@@ -11,7 +11,7 @@ import { serializeError } from "serialize-error";
 import { EngagementLogModel } from "../lib/models/EngagementLog";
 import { insertEngagementLogQuery, selectInsertedEngagementLogQuery } from "../queries/insertEngagementLog";
 
-interface Args {
+export interface CreateEngagementWorkerArgs {
     engagementId: number;
     description?: string;
     typeId: number;
@@ -24,7 +24,10 @@ const argsSchema = Joi.object({
 });
 
 export default class CreateEngagementLog extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: Args, _omniHiveContext: GraphContext): Promise<EngagementLogModel> => {
+    public execute = async (
+        customArgs: CreateEngagementWorkerArgs,
+        _omniHiveContext: GraphContext
+    ): Promise<EngagementLogModel> => {
         try {
             /* Get database connection */
             const worker = this.getWorker<IDatabaseWorker>(HiveWorkerType.Database, "dbMinistryPlatform");

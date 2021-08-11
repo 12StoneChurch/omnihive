@@ -1,4 +1,5 @@
 /// <reference path="../../../types/globals.omnihive.d.ts" />
+import { verifyToken } from "@12stonechurch/omnihive-worker-common/helpers/TokenHelper";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
@@ -26,6 +27,9 @@ interface UpdateEngagementWorkerArgs {
 export default class UpdateEngagement extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: UpdateEngagementWorkerArgs, _omniHiveContext: GraphContext): Promise<{}> => {
         try {
+            /* Verify auth token */
+            await verifyToken(_omniHiveContext);
+
             // Get the connection to the database
             const worker = await this.getWorker<IDatabaseWorker>(HiveWorkerType.Database, "dbMinistryPlatform");
 
@@ -78,14 +82,14 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
                     if (ownerPhone && twilioNumber) {
                         // Construct custom graph url
                         const graphUrl = this.getEnvironmentVariable("OH_WEB_ROOT_URL") + this.metadata.customUrl;
-                        
+
                         // Send Text to engagement owner about their new engagement
                         const textData = {
                             body: `You've been assigned a new ${updatedEngagement[0].Type} engagement`,
                             from: twilioNumber,
                             to: ownerPhone,
                         };
-                        
+
                         // Commits the transaction so that owner change is not rolled back even if text fails
                         await sendText(textData, graphUrl).catch(() => trx.commit());
                     }

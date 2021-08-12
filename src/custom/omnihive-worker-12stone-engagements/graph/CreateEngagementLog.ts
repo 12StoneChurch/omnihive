@@ -12,7 +12,7 @@ import { serializeError } from "serialize-error";
 import { EngagementLogModel } from "../lib/models/EngagementLog";
 import {
     insertEngagementLogQuery,
-    selectEngagementStatuses,
+    selectEngagementStatusesQuery,
     selectInsertedEngagementLogQuery,
     updateEngagementStatusQuery,
 } from "../queries/insertEngagementLog";
@@ -67,11 +67,12 @@ export default class CreateEngagementLog extends HiveWorkerBase implements IGrap
                 source: "EngagementLog",
             };
 
+            /* Update the engagement status to Open if it is New or Snoozed and the Engagement log is initiated because of a contact event */
             if (
                 ["Email Sent", "Text Sent", "Call Initiated"].includes(engagementLog.type.name) &&
                 ["New", "Snoozed"].includes(selectData.Engagement_Status_Name)
             ) {
-                const selectOpenStatusQuery = selectEngagementStatuses(connection);
+                const selectOpenStatusQuery = selectEngagementStatusesQuery(connection);
                 const selectOpenStatusRes = (await worker?.executeQuery(
                     selectOpenStatusQuery.toString()
                 )) as EngagementStatusesDTO[][];

@@ -77,6 +77,22 @@ export default class CreateEngagementContactLog extends HiveWorkerBase implement
                 source: "EngagementContactLog",
             };
 
+            /* Conditionally update the engagement status to Open if it is New or Snoozed */
+            const selectEngagementStatusQuery = selectEngagementStatus(connection, customArgs);
+            const selectEngagementStatusRes = await worker?.executeQuery(selectEngagementStatusQuery.toString());
+            const { Engagement_Status_Name: engagementStatus }: SelectEngagementStatusDTO =
+                selectEngagementStatusRes && selectEngagementStatusRes[0][0];
+
+            if (["New", "Snoozed"].includes(engagementStatus)) {
+                const selectOpenStatusQuery = selectEngagementOpenStatus(connection);
+                const selectOpenStatusRes = await worker?.executeQuery(selectOpenStatusQuery.toString());
+                const { Engagement_Status_ID: openStatusId }: EngagementStatusesDTO =
+                    selectOpenStatusRes && selectOpenStatusRes[0][0];
+
+                const updateStatusQuery = updateEngagementStatus(connection, customArgs, openStatusId);
+                await worker?.executeQuery(updateStatusQuery.toString());
+            }
+
             return engagementContactLog;
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
@@ -149,6 +165,46 @@ const insertEngagementContactLog = (connection: Knex, data: Args, contactLogId: 
         .insert({ Engagement_ID: engagementId, Contact_Log_ID: contactLogId, Domain_ID: 1 })
         .into("Engagement_Contact_Logs")
         .returning(["*"]);
+
+    return builder;
+};
+
+interface SelectEngagementStatusDTO {
+    Engagement_Status_Name: string;
+}
+
+const selectEngagementStatus = (connection: Knex, data: Args) => {
+    const { engagementId } = data;
+    const builder = connection.queryBuilder();
+
+    builder
+        .select("es.Name as Engagement_Status_Name")
+        .from({ e: "Engagements" })
+        .leftJoin({ es: "Engagement_Statuses" }, { "e.Engagement_Status_ID": "es.Engagement_Status_ID" })
+        .where({ "e.Engagement_ID": engagementId });
+
+    return builder;
+};
+
+interface EngagementStatusesDTO {
+    Engagement_Status_ID: number;
+    Name: string;
+}
+
+export const selectEngagementOpenStatus = (connection: Knex) => {
+    const builder = connection.queryBuilder();
+
+    builder.select("Engagement_Status_ID", "Name").from("Engagement_Statuses").where({ Name: "Open" });
+
+    return builder;
+};
+
+export const updateEngagementStatus = (connection: Knex, data: Args, statusId: number) => {
+    const { engagementId } = data;
+
+    const builder = connection.queryBuilder();
+
+    builder.update({ Engagement_Status_ID: statusId }).from("Engagements").where({ Engagement_ID: engagementId });
 
     return builder;
 };

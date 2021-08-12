@@ -38,7 +38,7 @@ export const insertEngagementLogQuery = (connection: Knex, data: Args) => {
     return builder;
 };
 
-export const selectEngagementStatuses = (connection: Knex) => {
+export const selectEngagementStatusesQuery = (connection: Knex) => {
     const builder = connection.queryBuilder();
 
     builder.select("Engagement_Status_ID", "Name").from("Engagement_Statuses").where({ Name: "Open" });

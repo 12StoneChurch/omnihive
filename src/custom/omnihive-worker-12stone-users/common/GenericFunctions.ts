@@ -1,4 +1,4 @@
-import { IDatabaseWorker } from "src/packages/omnihive-core/interfaces/IDatabaseWorker";
+import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 
 export async function getUserById(userId: number, databaseWorker: IDatabaseWorker) {
     return (

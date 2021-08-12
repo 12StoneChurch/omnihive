@@ -77,8 +77,8 @@ export default class SearchContacts extends HiveWorkerBase implements IGraphEndp
                     return {
                         id: dto.contact_id,
                         userId: dto.user_id ?? undefined,
-                        firstName: dto.first_name,
-                        lastName: dto.last_name,
+                        firstName: dto.first_name ?? undefined,
+                        lastName: dto.last_name ?? undefined,
                         email: dto.email_address,
                         phone: dto.mobile_phone ?? undefined,
                         photoUrl: photoUrl ?? undefined,
@@ -97,8 +97,8 @@ export default class SearchContacts extends HiveWorkerBase implements IGraphEndp
 interface ContactSearchResult {
     id: number;
     userId?: number;
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
     email: string;
     phone?: string;
     photoUrl?: string;
@@ -107,8 +107,8 @@ interface ContactSearchResult {
 interface ContactSearchDTO {
     contact_id: number;
     user_id: number | null;
-    first_name: string;
-    last_name: string;
+    first_name: string | null;
+    last_name: string | null;
     email_address: string;
     mobile_phone: string | null;
     photo_guid: string | null;
@@ -123,8 +123,6 @@ const selectBaseBuilder = (connection: Knex, args: Args) => {
         .leftJoin("dp_Users as u", { "c.User_Account": "u.User_ID" })
         .leftJoin("dp_Files as f", { "c.Contact_ID": "f.Record_ID", "f.Page_ID": 292 })
         .where({ "c.Company": 0 })
-        .and.whereNotNull("c.First_Name")
-        .and.whereNotNull("c.Last_Name")
         .and.where(function () {
             this.where("c.First_Name", "like", `%${args.query}%`)
                 .or.where("c.Last_Name", "like", `%${args.query}%`)

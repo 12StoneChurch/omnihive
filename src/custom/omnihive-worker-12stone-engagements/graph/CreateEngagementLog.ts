@@ -17,7 +17,7 @@ import {
     updateEngagementStatusQuery,
 } from "../queries/insertEngagementLog";
 
-interface Args {
+export interface CreateEngagementWorkerArgs {
     engagementId: number;
     description?: string;
     typeId: number;
@@ -30,7 +30,10 @@ const argsSchema = Joi.object({
 });
 
 export default class CreateEngagementLog extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: Args, _omniHiveContext: GraphContext): Promise<EngagementLogModel> => {
+    public execute = async (
+        customArgs: CreateEngagementWorkerArgs,
+        _omniHiveContext: GraphContext
+    ): Promise<EngagementLogModel> => {
         try {
             /* Verify auth token */
             await verifyToken(_omniHiveContext);

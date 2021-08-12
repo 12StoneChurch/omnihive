@@ -11,7 +11,7 @@ import { serializeError } from "serialize-error";
 
 import { EngagementContactLogModel } from "../lib/models/EngagementLog";
 
-interface Args {
+export interface EngagementContactLogWorkerArgs {
     engagementId: number;
     description: string;
     createdByContactId: number;
@@ -24,7 +24,10 @@ const argsSchema = Joi.object({
 });
 
 export default class CreateEngagementContactLog extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: Args, _omniHiveContext: GraphContext): Promise<EngagementContactLogModel> => {
+    public execute = async (
+        customArgs: EngagementContactLogWorkerArgs,
+        _omniHiveContext: GraphContext
+    ): Promise<EngagementContactLogModel> => {
         try {
             /* Verify auth token */
             await verifyToken(_omniHiveContext);
@@ -105,7 +108,7 @@ interface SelectContactIdDTO {
     Contact_ID: number;
 }
 
-const selectContactId = (connection: Knex, data: Args) => {
+const selectContactId = (connection: Knex, data: EngagementContactLogWorkerArgs) => {
     const { engagementId } = data;
 
     const builder = connection.queryBuilder();
@@ -117,7 +120,7 @@ interface SelectUserIdDTO {
     User_ID: number;
 }
 
-const selectUserId = (connection: Knex, data: Args) => {
+const selectUserId = (connection: Knex, data: EngagementContactLogWorkerArgs) => {
     const { createdByContactId } = data;
 
     const builder = connection.queryBuilder();
@@ -132,7 +135,12 @@ interface InsertContactLogDTO {
     Notes: string;
 }
 
-const insertContactLog = (connection: Knex, data: Args, contactId: number, userId: number) => {
+const insertContactLog = (
+    connection: Knex,
+    data: EngagementContactLogWorkerArgs,
+    contactId: number,
+    userId: number
+) => {
     const { description } = data;
 
     const builder = connection.queryBuilder();
@@ -157,7 +165,7 @@ interface InsertEngagementContactLogDTO {
     Contact_Log_ID: number;
 }
 
-const insertEngagementContactLog = (connection: Knex, data: Args, contactLogId: number) => {
+const insertEngagementContactLog = (connection: Knex, data: EngagementContactLogWorkerArgs, contactLogId: number) => {
     const { engagementId } = data;
 
     const builder = connection.queryBuilder();

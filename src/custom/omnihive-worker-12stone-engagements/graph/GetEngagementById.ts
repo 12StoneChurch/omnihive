@@ -45,6 +45,8 @@ export default class GetEngagementById extends HiveWorkerBase implements IGraphE
 
             const data = res && res[0][0];
 
+            console.log({ data });
+
             const engagement: EngagementModel = {
                 engagementId: data.Engagement_ID,
                 description: data.Description,
@@ -75,6 +77,7 @@ export default class GetEngagementById extends HiveWorkerBase implements IGraphE
                     contactLogCount: contactLogHistory[0].count,
                     engagementLogCount: engagementLogHistory[0].count,
                 },
+                latestActivity: data.Latest_Activity,
             };
 
             return engagement;

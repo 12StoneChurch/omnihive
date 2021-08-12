@@ -75,6 +75,7 @@ export default class GetEngagementById extends HiveWorkerBase implements IGraphE
                     contactLogCount: contactLogHistory[0].count,
                     engagementLogCount: engagementLogHistory[0].count,
                 },
+                latestActivity: data.Latest_Activity,
             };
 
             return engagement;

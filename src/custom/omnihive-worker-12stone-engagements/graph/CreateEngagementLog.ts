@@ -10,7 +10,12 @@ import type { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
 import { EngagementLogModel } from "../lib/models/EngagementLog";
-import { insertEngagementLogQuery, selectInsertedEngagementLogQuery } from "../queries/insertEngagementLog";
+import {
+    insertEngagementLogQuery,
+    selectEngagementStatusesQuery,
+    selectInsertedEngagementLogQuery,
+    updateEngagementStatusQuery,
+} from "../queries/insertEngagementLog";
 
 export interface CreateEngagementWorkerArgs {
     engagementId: number;
@@ -65,6 +70,23 @@ export default class CreateEngagementLog extends HiveWorkerBase implements IGrap
                 source: "EngagementLog",
             };
 
+            /* Update the engagement status to Open if it is New or Snoozed and the Engagement log is initiated because of a contact event */
+            if (
+                ["Email Sent", "Text Sent", "Call Initiated"].includes(engagementLog.type.name) &&
+                ["New", "Snoozed"].includes(selectData.Engagement_Status_Name)
+            ) {
+                const selectOpenStatusQuery = selectEngagementStatusesQuery(connection);
+                const selectOpenStatusRes = (await worker?.executeQuery(
+                    selectOpenStatusQuery.toString()
+                )) as EngagementStatusesDTO[][];
+
+                const engagementOpenStatus = selectOpenStatusRes && selectOpenStatusRes[0][0];
+                const openStatusId = engagementOpenStatus.Engagement_Status_ID;
+
+                const updateStatusQuery = updateEngagementStatusQuery(connection, customArgs, openStatusId);
+                await worker?.executeQuery(updateStatusQuery.toString());
+            }
+
             return engagementLog;
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
@@ -81,4 +103,10 @@ interface InsertedEngagementLogDTO {
     Engagement_Log_Type_ID: number;
     Engagement_Log_Type_Name: string;
     Domain_ID: number;
+    Engagement_Status_Name: string;
+}
+
+interface EngagementStatusesDTO {
+    Engagement_Status_ID: number;
+    Name: string;
 }

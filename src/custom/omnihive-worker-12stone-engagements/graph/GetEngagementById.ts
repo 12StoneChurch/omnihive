@@ -45,6 +45,8 @@ export default class GetEngagementById extends HiveWorkerBase implements IGraphE
 
             const data = res && res[0][0];
 
+            console.log({ data });
+
             const engagement: EngagementModel = {
                 engagementId: data.Engagement_ID,
                 description: data.Description,

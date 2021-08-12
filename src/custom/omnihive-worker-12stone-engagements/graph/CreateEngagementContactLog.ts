@@ -181,7 +181,7 @@ interface SelectEngagementStatusDTO {
     Engagement_Status_Name: string;
 }
 
-const selectEngagementStatus = (connection: Knex, data: Args) => {
+const selectEngagementStatus = (connection: Knex, data: EngagementContactLogWorkerArgs) => {
     const { engagementId } = data;
     const builder = connection.queryBuilder();
 
@@ -207,7 +207,7 @@ export const selectEngagementOpenStatus = (connection: Knex) => {
     return builder;
 };
 
-export const updateEngagementStatus = (connection: Knex, data: Args, statusId: number) => {
+export const updateEngagementStatus = (connection: Knex, data: EngagementContactLogWorkerArgs, statusId: number) => {
     const { engagementId } = data;
 
     const builder = connection.queryBuilder();

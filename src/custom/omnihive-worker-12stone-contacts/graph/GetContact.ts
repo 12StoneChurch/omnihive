@@ -159,7 +159,7 @@ const selectBuilder = (connection: Knex, args: Args) => {
         .leftJoin("household_positions as hp", { "c.household_position_id": "hp.household_position_id" })
         .leftJoin("addresses as a", { "h.address_id": "a.address_id" })
         .leftJoin("congregations as cong", { "h.congregation_id": "cong.congregation_id" })
-        .leftJoin("dp_files as f", { "c.contact_id": "f.record_id", "f.page_id": 292 })
+        .leftJoin("dp_files as f", { "c.contact_id": "f.record_id", "f.page_id": 292, "f.default_image": 1 })
         .where({ "c.contact_id": args.contactId })
         .andWhere({ "c.company": 0 });
 

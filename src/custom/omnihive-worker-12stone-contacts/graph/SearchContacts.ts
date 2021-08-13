@@ -124,7 +124,7 @@ const selectBaseBuilder = (connection: Knex, args: Args) => {
         .select(connection.raw("count(c.Contact_ID) as total"))
         .from({ c: "Contacts" })
         .leftJoin("dp_Users as u", { "c.User_Account": "u.User_ID" })
-        .leftJoin("dp_Files as f", { "c.Contact_ID": "f.Record_ID", "f.Page_ID": 292 })
+        .leftJoin("dp_Files as f", { "c.Contact_ID": "f.Record_ID", "f.Page_ID": 292, "f.default_image": 1 })
         .where({ "c.Company": 0 })
         .and.where(function () {
             this.where("c.First_Name", "like", `%${args.query}%`)

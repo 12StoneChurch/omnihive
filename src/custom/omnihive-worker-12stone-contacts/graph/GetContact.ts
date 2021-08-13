@@ -1,3 +1,4 @@
+import { verifyToken } from "@12stonechurch/omnihive-worker-common/helpers/TokenHelper";
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import type { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
@@ -21,6 +22,9 @@ const argsSchema = Joi.object({
 export default class GetContact extends HiveWorkerBase implements IGraphEndpointWorker {
     async execute(customArgs: Args, _omniHiveContext: GraphContext): Promise<ContactModel> {
         try {
+            /* Verify auth token */
+            await verifyToken(_omniHiveContext);
+
             /* validate and sanitize custom arguments */
             const { value, error } = argsSchema.validate(customArgs);
 

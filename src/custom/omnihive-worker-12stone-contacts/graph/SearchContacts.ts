@@ -1,4 +1,5 @@
 import { paginateItems } from "@12stonechurch/omnihive-worker-common/helpers/PaginateHelper";
+import { verifyToken } from "@12stonechurch/omnihive-worker-common/helpers/TokenHelper";
 import { PageModel } from "@12stonechurch/omnihive-worker-common/models/PageModel";
 import { GraphService } from "@12stonechurch/omnihive-worker-common/services/GraphService";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
@@ -9,7 +10,6 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import Joi from "joi";
 import type { Knex } from "knex";
 import { serializeError } from "serialize-error";
-
 interface Args {
     query: string;
     requireUserId: boolean;
@@ -27,6 +27,9 @@ const argsSchema = Joi.object({
 export default class SearchContacts extends HiveWorkerBase implements IGraphEndpointWorker {
     async execute(customArgs: Args, _omniHiveContext: GraphContext): Promise<PageModel<ContactSearchResult>> {
         try {
+            /* Verify auth token */
+            await verifyToken(_omniHiveContext);
+
             /* validate and clean custom arguments */
             const { value, error } = argsSchema.validate(customArgs);
 

@@ -4,7 +4,7 @@ export const paginateItems = <T>(items: T[], total_items: number, page: number, 
     const total_pages = Math.ceil(total_items / per_page);
 
     const next_page = (function () {
-        if (page + 1 < total_pages) return page + 1;
+        if (page + 1 <= total_pages) return page + 1;
         return undefined;
     })();
 

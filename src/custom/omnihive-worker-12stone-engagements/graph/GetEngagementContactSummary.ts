@@ -52,6 +52,18 @@ export default class GetEngagementContactSummary extends HiveWorkerBase implemen
 
             const dto = res && res[0][0];
 
+            let photoUrl: string | undefined = undefined;
+
+            if (dto.photo_guid) {
+                const {
+                    GetCdnUrl: { url },
+                } = await GraphService.getSingleton().runQuery(`
+                        	query{GetCdnUrl(customArgs:{UniqueName:"${dto.photo_guid}"})}
+                        `);
+
+                photoUrl = url;
+            }
+
             const summary: ContactSummaryResult = {
                 id: dto.contact_id,
                 firstName: dto.first_name,
@@ -65,17 +77,19 @@ export default class GetEngagementContactSummary extends HiveWorkerBase implemen
                         : undefined,
                 email: dto.email_address,
                 dateOfBirth: dto.date_of_birth ?? undefined,
-                gender: dto.gender_id ? { id: dto.gender_id, name: dto.gender_name } : undefined,
-                status: dto.participant_type_id
-                    ? {
-                          id: dto.participant_type_id,
-                          name: dto.participant_type_name,
-                      }
-                    : undefined,
+                gender: dto.gender_id && dto.gender_name ? { id: dto.gender_id, name: dto.gender_name } : undefined,
+                status:
+                    dto.participant_type_id && dto.participant_type_name
+                        ? {
+                              id: dto.participant_type_id,
+                              name: dto.participant_type_name,
+                          }
+                        : undefined,
                 campus: {
                     id: dto.campus_id,
                     name: dto.campus_name,
                 },
+                photoUrl: photoUrl ?? undefined,
                 engagements: dto.engagement_total,
                 alerts: dto.alert_total,
             };
@@ -110,6 +124,7 @@ interface ContactSummaryResult {
         id: number;
         name: string;
     };
+    photoUrl?: string;
     engagements: number;
     alerts: number;
 }
@@ -118,17 +133,18 @@ interface ContactSummaryDTO {
     contact_id: number;
     first_name: string;
     last_name: string;
-    mobile_phone: string;
-    home_phone: string;
+    mobile_phone: string | null;
+    home_phone: string | null;
     email_address: string;
-    date_of_birth: string;
-    gender_id: number;
-    gender_name: string;
+    date_of_birth: string | null;
+    gender_id: number | null;
+    gender_name: string | null;
     campus_id: number;
     campus_name: string;
-    participant_id: number;
-    participant_type_id: number;
-    participant_type_name: string;
+    participant_id: number | null;
+    participant_type_id: number | null;
+    participant_type_name: string | null;
+    photo_guid: number | null;
     engagement_total: number;
     alert_total: number;
 }
@@ -152,6 +168,7 @@ const selectBuilder = (connection: Knex, args: Args) => {
             "c.participant_record as participant_id",
             "p.participant_type_id as participant_type_id",
             "pt.participant_type as participant_type_name",
+            "f.unique_name as photo_guid",
             connection.raw("isnull(e.total, 0) as engagement_total"),
             connection.raw("isnull(cl.total, 0) as alert_total")
         )
@@ -161,6 +178,7 @@ const selectBuilder = (connection: Knex, args: Args) => {
         .leftJoin({ cong: "congregations" }, { "h.congregation_id": "cong.congregation_id" })
         .leftJoin({ p: "participants" }, { "c.participant_record": "p.participant_id" })
         .leftJoin({ pt: "participant_types" }, { "p.participant_type_id": "pt.participant_type_id" })
+        .leftJoin({ f: "dp_files" }, { "c.contact_id": "f.record_id", "f.page_id": 292, "f.default_image": 1 })
         .leftJoin(
             connection
                 .select(connection.raw("count(engagement_id) as total"), "contact_id")

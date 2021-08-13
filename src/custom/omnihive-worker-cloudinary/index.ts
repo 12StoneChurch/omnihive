@@ -34,6 +34,7 @@ export default class CloudinaryWorker extends HiveWorkerBase {
     public getMpImageUrl(uniqueName: string, customTransformations?: any): string {
         const path: string = `${this.typedMetadata.environment}/mpfiles/${uniqueName}`;
         const url = this.client.url(path, {
+            secure: true,
             transformation: {
                 format: "auto",
                 width: "auto",

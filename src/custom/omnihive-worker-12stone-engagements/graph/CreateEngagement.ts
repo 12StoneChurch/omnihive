@@ -104,7 +104,8 @@ export default class CreateEngagement extends HiveWorkerBase implements IGraphEn
 
                     // Send Text to engagement owner about their new engagement
                     const textData = {
-                        body: `You've been assigned a new ${engagementData[0].Type} engagement`,
+                        // body: `You've been assigned a new ${engagementData[0].Type} engagement. twelvestone://more/engagements/${engagementData[0].Engagement_ID}/${engagementData[0].Contact}`,
+                        body: `You've been assigned a new ${engagementData[0].Type} engagement.`,
                         from: twilioNumber,
                         to: ownerPhone,
                     };

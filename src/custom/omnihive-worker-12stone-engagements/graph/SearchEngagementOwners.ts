@@ -96,11 +96,11 @@ const selectBaseBuilder = (connection: Knex) => {
     const builder = connection.queryBuilder();
 
     builder
-        .select(connection.raw("count(c.contact_id) as total"))
+        .distinct(connection.raw("count(distinct c.contact_id) as total"))
         .from({ r: "dp_roles" })
         .innerJoin("dp_user_roles as ur", { "r.role_id": "ur.role_id" })
         .leftJoin("contacts as c", { "ur.user_id": "c.user_account" })
-        .where({ "r.role_name": "Engagements - User" });
+        .whereIn("r.role_name", ["Engagements - User", "Engagements - Team Leader", "Engagements - Administrator"]);
 
     return builder;
 };
@@ -110,7 +110,7 @@ const selectBuilder = (connection: Knex, args: Args) => {
 
     builder
         .clearSelect()
-        .select("c.contact_id as contact_id", "c.first_name as first_name", "c.last_name as last_name")
+        .distinct("c.contact_id as contact_id", "c.nickname as first_name", "c.last_name as last_name")
         .orderBy("c.last_name")
         .limit(args.perPage)
         .offset((args.page - 1) * args.perPage);

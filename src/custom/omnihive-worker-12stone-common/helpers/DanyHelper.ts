@@ -1,5 +1,4 @@
 import axios from "axios";
-import { serializeError } from "serialize-error";
 import { DanyService } from "../services/DanyService";
 
 export const danyPost = async (path: string, body: any, authToken: string = ""): Promise<any> => {
@@ -17,7 +16,8 @@ export const danyPost = async (path: string, body: any, authToken: string = ""):
             headers: headers,
         });
     } catch (err) {
-        console.log(JSON.stringify(serializeError(err)));
+        console.log(err.response.data.message);
+        throw new Error(err.response.data.message);
     }
 };
 
@@ -36,7 +36,8 @@ export const danyPut = async (path: string, body: any, authToken: string = ""): 
             headers: headers,
         });
     } catch (err) {
-        console.log(JSON.stringify(serializeError(err)));
+        console.log(err.response.data.message);
+        throw new Error(err.response.data.message);
     }
 };
 
@@ -55,7 +56,8 @@ export const danyGet = async (path: string, authToken: string = ""): Promise<any
             headers: headers,
         });
     } catch (err) {
-        console.log(JSON.stringify(serializeError(err)));
+        console.log(err.response.data.message);
+        throw new Error(err.response.data.message);
     }
 };
 
@@ -74,6 +76,7 @@ export const danyDelete = async (path: string, authToken: string = ""): Promise<
             headers: headers,
         });
     } catch (err) {
-        console.log(JSON.stringify(serializeError(err)));
+        console.log(err.response.data.message);
+        throw new Error(err.response.data.message);
     }
 };

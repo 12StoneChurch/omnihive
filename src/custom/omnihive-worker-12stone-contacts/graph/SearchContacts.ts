@@ -18,7 +18,7 @@ interface Args {
 }
 
 const argsSchema = Joi.object({
-    query: Joi.string().required(),
+    query: Joi.string().lowercase().required(),
     requireUserId: Joi.bool().default(false),
     page: Joi.number().min(1).default(1),
     perPage: Joi.number().min(1).default(10),

@@ -12,18 +12,20 @@ import type { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
 interface Args {
+    query?: string;
     page: number;
     perPage: number;
 }
 
 const argsSchema = Joi.object({
+    query: Joi.string().allow("").lowercase().optional(),
     page: Joi.number().min(1).default(1),
     perPage: Joi.number().min(1).default(10),
 });
 
 export default class SearchEngagementOwners extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (
-        customArgs: Args,
+        customArgs: Args = { page: 1, perPage: 10 },
         _omniHiveContext: GraphContext
     ): Promise<PageModel<EngagementOwnersSearchResult>> => {
         try {
@@ -53,7 +55,7 @@ export default class SearchEngagementOwners extends HiveWorkerBase implements IG
             const worker = this.getWorker<IDatabaseWorker>(HiveWorkerType.Database, "dbMinistryPlatform");
             const connection = worker?.connection as Knex;
 
-            const selectTotalQuery = selectBaseBuilder(connection).toString();
+            const selectTotalQuery = selectBaseBuilder(connection, customArgs).toString();
             const [[totalData]] = (await worker?.executeQuery(selectTotalQuery)) as { total: number }[][];
 
             const totalContacts = totalData.total;
@@ -61,11 +63,49 @@ export default class SearchEngagementOwners extends HiveWorkerBase implements IG
             const selectQuery = selectBuilder(connection, customArgs).toString();
             const [data] = (await worker?.executeQuery(selectQuery)) as EngagementOwnersSearchDTO[][];
 
-            const contacts: EngagementOwnersSearchResult[] = data.map((dto) => ({
-                id: dto.contact_id,
-                firstName: dto.first_name,
-                lastName: dto.last_name,
-            }));
+            const contacts: EngagementOwnersSearchResult[] = await Promise.all(
+                data.map(async (dto) => {
+                    let role: string;
+
+                    switch (dto.role) {
+                        case 3:
+                            role = "Admin";
+                            break;
+                        case 2:
+                            role = "Leader";
+                            break;
+                        case 1:
+                            role = "User";
+                            break;
+                        default:
+                            throw new Error("User does not have sufficient permissions.");
+                    }
+
+                    let photoUrl: string | undefined = undefined;
+
+                    if (dto.photo_guid) {
+                        const {
+                            GetCdnUrl: { url },
+                        } = await GraphService.getSingleton().runQuery(
+                            `query{GetCdnUrl(customArgs:{UniqueName:"${dto.photo_guid}"})}`
+                        );
+
+                        photoUrl = url;
+                    }
+
+                    return {
+                        id: dto.contact_id,
+                        firstName: dto.first_name,
+                        lastName: dto.last_name,
+                        campus: {
+                            id: dto.campus_id,
+                            name: dto.campus_name,
+                        },
+                        photoUrl,
+                        role,
+                    };
+                })
+            );
 
             return paginateItems<EngagementOwnersSearchResult>(
                 contacts,
@@ -84,15 +124,25 @@ interface EngagementOwnersSearchResult {
     id: number;
     firstName: string;
     lastName: string;
+    campus: {
+        id: number;
+        name: string;
+    };
+    photoUrl?: string;
+    role: string;
 }
 
 interface EngagementOwnersSearchDTO {
     contact_id: number;
     first_name: string;
     last_name: string;
+    campus_id: number;
+    campus_name: string;
+    photo_guid: string | null;
+    role: number;
 }
 
-const selectBaseBuilder = (connection: Knex) => {
+const selectBaseBuilder = (connection: Knex, args: Args) => {
     const builder = connection.queryBuilder();
 
     builder
@@ -100,17 +150,54 @@ const selectBaseBuilder = (connection: Knex) => {
         .from({ r: "dp_roles" })
         .innerJoin("dp_user_roles as ur", { "r.role_id": "ur.role_id" })
         .leftJoin("contacts as c", { "ur.user_id": "c.user_account" })
-        .whereIn("r.role_name", ["Engagements - User", "Engagements - Team Leader", "Engagements - Administrator"]);
-
+        .leftJoin("households as h", { "c.household_id": "h.household_id" })
+        .leftJoin("congregations as cong", { "h.congregation_id": "cong.congregation_id" })
+        .leftJoin("dp_files as f", { "c.contact_id": "f.record_id", "f.page_id": 292, "f.default_image": 1 })
+        .whereIn("r.role_name", ["Engagements - User", "Engagements - Team Leader", "Engagements - Administrator"])
+        .modify(function () {
+            /* If query provided, filter on search terms */
+            if (args.query) {
+                this.and.where((q) =>
+                    q
+                        .where("c.first_name", "like", `%${args.query}`)
+                        .or.where("c.last_name", "like", `%${args.query}`)
+                        .or.where("c.nickname", "like", `%${args.query}%`)
+                        .or.where("c.display_name", "like", `%${args.query}%`)
+                        .or.where("c.email_address", "like", `%${args.query}%`)
+                        .or.where("c.mobile_phone", "like", `%${args.query}%`)
+                        .or.where(connection.raw("c.first_name + ' ' + c.last_name"), "like", `%${args.query}%`)
+                        .or.where(connection.raw("c.nickname + ' ' + c.last_name"), "like", `%${args.query}%`)
+                );
+            }
+        });
     return builder;
 };
 
 const selectBuilder = (connection: Knex, args: Args) => {
-    const builder = selectBaseBuilder(connection);
+    const builder = selectBaseBuilder(connection, args);
 
     builder
         .clearSelect()
-        .distinct("c.contact_id as contact_id", "c.nickname as first_name", "c.last_name as last_name")
+        .distinct(
+            "c.contact_id as contact_id",
+            "c.nickname as first_name",
+            "c.last_name as last_name",
+            "h.congregation_id as campus_id",
+            "cong.congregation_name as campus_name",
+            "f.unique_name as photo_guid",
+            connection.raw(`max(case when r.role_name = 'Engagements - Administrator' then 3
+                                     when r.role_name = 'Engagements - Team Leader' then 2
+                                     when r.role_name = 'Engagements - User' then 1
+                                     else 0 end) as role`)
+        )
+        .groupBy(
+            "c.contact_id",
+            "c.nickname",
+            "c.last_name",
+            "h.congregation_id",
+            "cong.congregation_name",
+            "f.unique_name"
+        )
         .orderBy("c.last_name")
         .limit(args.perPage)
         .offset((args.page - 1) * args.perPage);

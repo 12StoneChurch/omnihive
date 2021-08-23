@@ -5,7 +5,7 @@ import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDataba
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
-// import { custom } from "joi";
+import dayjs from "dayjs";
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
@@ -23,12 +23,13 @@ export interface UpdateEngagementWorkerArgs {
     congregationId?: number;
     engagementTypeId?: number;
     engagementStatusId?: number;
+    engagementSnoozedUntil?: string;
 }
 
 export default class UpdateEngagement extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: UpdateEngagementWorkerArgs, _omniHiveContext: GraphContext): Promise<{}> => {
         try {
-            /* Verify auth token */
+            // Verify auth token
             await verifyToken(_omniHiveContext);
 
             // Get the connection to the database
@@ -131,6 +132,11 @@ const updateEngagementQuery = (connection: Knex, data: UpdateEngagementWorkerArg
     }
     if (data.engagementStatusId) {
         updateObject.Engagement_Status_ID = data.engagementStatusId;
+    }
+    if (data.engagementStatusId === 3) {
+        updateObject.Snoozed_Until = data.engagementSnoozedUntil
+            ? dayjs(data.engagementSnoozedUntil).toDate()
+            : dayjs().add(7, "days").toDate();
     }
 
     const builder = connection.queryBuilder();

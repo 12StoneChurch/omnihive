@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
+import { getDashboardUrl } from "./../lib/helpers/getDashboardUrl";
 import { getEngagementByIdQuery } from "./../queries/getEngagementById";
 import { getTwilioNumber } from "./../queries/getTwilioNumber";
 import { getPhoneByContactId } from "../queries/getPhoneByContactId";
@@ -82,13 +83,10 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
                     const twilioNumber = data[2][0].Default_Number;
 
                     if (ownerPhone && twilioNumber) {
-                        const webRoot = this.getEnvironmentVariable("OH_WEB_ROOT_URL");
                         // Construct custom graph url
-                        const graphUrl = webRoot + this.metadata.customUrl;
+                        const graphUrl = this.getEnvironmentVariable("OH_WEB_ROOT_URL") + this.metadata.customUrl;
 
-                        const rootUrl = webRoot?.toString().includes("localhost")
-                            ? "https://mydev.12stone.church"
-                            : webRoot;
+                        const rootUrl = getDashboardUrl(this.getEnvironmentVariable("OH_WEB_ROOT_URL"));
 
                         // Send Text to engagement owner about their new engagement
                         const textData = {

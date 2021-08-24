@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
+import { getDashboardUrl } from "../lib/helpers/getDashboardUrl";
 import { getPhoneByContactId } from "../queries/getPhoneByContactId";
 import { getTwilioNumber } from "../queries/getTwilioNumber";
 import { insertEngagementLogQuery } from "../queries/insertEngagementLog";
@@ -17,6 +18,7 @@ export default class CheckExpiredSnoozedEngagements extends HiveWorkerBase imple
             const worker = this.getWorker<IDatabaseWorker>(HiveWorkerType.Database, "dbMinistryPlatform");
             const connection = worker?.connection as Knex;
             const graphUrl = this.getEnvironmentVariable("OH_WEB_ROOT_URL") + this.metadata.customUrl;
+            const rootUrl = getDashboardUrl(this.getEnvironmentVariable("OH_WEB_ROOT_URL"));
 
             /* get all snoozed engagements */
             const selectSnoozedEngagementsQuery = selectSnoozedEngagements(connection);
@@ -51,16 +53,14 @@ export default class CheckExpiredSnoozedEngagements extends HiveWorkerBase imple
 
                 /* message owner */
                 try {
-                    console.log({ contactId: dto.owner_contact_id });
                     const ownerPhone = (await getPhoneByContactId(connection, dto.owner_contact_id))[0].Mobile_Phone;
-                    console.log({ ownerPhone });
+
                     const twilioNumber = (await getTwilioNumber(connection, this.metadata.environment))[0]
                         .Default_Number;
-                    console.log({ twilioNumber });
 
                     if (ownerPhone && twilioNumber) {
                         const textData = {
-                            body: `A snoozed \\\"${dto.type}\\\" engagement for ${dto.first_name} ${dto.last_name} has been re-opened`,
+                            body: `A snoozed \\\"${dto.type}\\\" engagement for ${dto.first_name} ${dto.last_name} has been re-opened. ${rootUrl}/more/engagements/${dto.engagement_id}/${dto.contact_id}`,
                             from: twilioNumber,
                             to: ownerPhone,
                         };
@@ -81,6 +81,7 @@ export default class CheckExpiredSnoozedEngagements extends HiveWorkerBase imple
 
 interface SnoozedEngagementsDto {
     engagement_id: number;
+    contact_id: number;
     owner_contact_id: number;
     snoozed_until: Date;
     type: string;
@@ -94,6 +95,7 @@ const selectSnoozedEngagements = (connection: Knex) => {
     builder
         .select(
             "e.engagement_id as engagement_id",
+            "e.contact_id as contact_id",
             "e.owner_contact_id as owner_contact_id",
             "e.snoozed_until as snoozed_until",
             "et.name as type",

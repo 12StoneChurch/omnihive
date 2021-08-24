@@ -23,7 +23,7 @@ export const getEngagementByIdQuery = (connection: Knex, engagementId: number) =
         )
         .select(
             connection.raw(
-                "(select max(Date_Created) from Engagement_Log as el where el.Engagement_ID = e.Engagement_ID group by el.Engagement_ID) as Latest_Activity"
+                "(select max(v) from (values (el_sub.Latest_Activity), (ecl_sub.Latest_Activity)) as value(v)) as Latest_Activity"
             )
         )
         .from({ e: "Engagements" })
@@ -32,7 +32,26 @@ export const getEngagementByIdQuery = (connection: Knex, engagementId: number) =
         .innerJoin("congregations as cong", "cong.Congregation_ID", "e.Congregation_ID")
         .innerJoin("Engagement_Types as et", "et.Engagement_Type_ID", "e.Engagement_Type_ID")
         .innerJoin("Engagement_Statuses as es", "es.Engagement_Status_ID", "e.Engagement_Status_ID")
-        .where({ Engagement_ID: engagementId });
+        .leftJoin(
+            connection
+                .select("el.Engagement_Id", connection.raw("max(el.Date_Created) as Latest_Activity"))
+                .from({ el: "Engagement_Log" })
+                .groupBy(["el.Engagement_ID"])
+                .as("el_sub"),
+            "el_sub.Engagement_ID",
+            "e.Engagement_ID"
+        )
+        .leftJoin(
+            connection
+                .select("ecl.Engagement_Id", connection.raw("max(cl.Contact_Date) as Latest_Activity"))
+                .from({ cl: "Contact_Log" })
+                .innerJoin("Engagement_Contact_Logs as ecl", "cl.Contact_Log_ID", "ecl.Contact_Log_ID")
+                .groupBy(["ecl.Engagement_ID"])
+                .as("ecl_sub"),
+            "el_sub.Engagement_ID",
+            "e.Engagement_ID"
+        )
+        .where({ "e.Engagement_ID": engagementId });
 
     return builder;
 };

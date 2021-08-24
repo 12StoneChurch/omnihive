@@ -72,46 +72,6 @@ export default class CheckExpiredSnoozedEngagements extends HiveWorkerBase imple
                     console.log(JSON.stringify(serializeError(err)));
                 }
             }
-
-            // const updateEngagementIds = expiredSnoozedEngagements.map((dto) => dto.engagement_id);
-
-            // const updateSnoozedEngagementsQuery = updateSnoozedEngagements(connection, updateEngagementIds);
-            // await worker?.executeQuery(updateSnoozedEngagementsQuery.toString());
-
-            // const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
-            // if (IsHelper.isNullOrUndefined(webRootUrl)) {
-            //     throw new Error("Web Root URL undefined");
-            // }
-            // await OmniHiveClient.getSingleton().init(this.registeredWorkers, this.environmentVariables);
-            // this.elasticWorker = this.getWorker(HiveWorkerType.Unknown, "ohElastic") as ElasticWorker | undefined;
-            // const tokenWorker = this.getWorker(HiveWorkerType.Token) as ITokenWorker | undefined;
-            // if (this.elasticWorker && tokenWorker) {
-            //     const accessToken = await tokenWorker.get();
-            //     OmniHiveClient.getSingleton().setAccessToken(accessToken);
-            //     this.graphUrl = webRootUrl + "/server1/builder1/ministryplatform";
-            //     const query = `
-            //         query {
-            //             data: storedProcedures {
-            //                 rows: service_Custom_12Stone_Group_Search
-            //               }
-            //         }
-            //     `;
-            //     const results = (
-            //         await AwaitHelper.execute(OmniHiveClient.getSingleton().graphClient(this.graphUrl, query))
-            //     ).data[0].rows[0];
-            //     const idKey = "GroupId";
-            //     const ids = results.map((x: any) => x[idKey].toString());
-            //     console.log(chalk.yellow(`(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Group upsert started`));
-            //     await AwaitHelper.execute(this.elasticWorker.upsert(`groups`, idKey, results));
-            //     console.log(chalk.greenBright(`(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Group upsert complete`));
-            //     console.log(chalk.yellow(`(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Removing unused keys`));
-            //     await AwaitHelper.execute(this.elasticWorker.removeUnused("groups", ids, idKey));
-            //     console.log(chalk.greenBright(`(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Unused keys removed`));
-            //     console.log(chalk.greenBright(`(${dayjs().format("YYYY-MM-DD HH:mm:ss")}) Group import complete`));
-            // } else {
-            //     throw new Error("Failed to find an elastic worker");
-            // }
-            // return;
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
             throw err;

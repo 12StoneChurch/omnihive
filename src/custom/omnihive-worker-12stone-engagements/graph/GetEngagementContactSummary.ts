@@ -155,7 +155,7 @@ const selectBuilder = (connection: Knex, args: Args) => {
     builder
         .select(
             "c.contact_id as contact_id",
-            "c.first_name as first_name",
+            "c.nickname as first_name",
             "c.last_name as last_name",
             "c.mobile_phone as mobile_phone",
             "h.home_phone as home_phone",

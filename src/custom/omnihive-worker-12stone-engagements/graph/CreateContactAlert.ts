@@ -129,7 +129,10 @@ const selectCreatedByContact = (connection: Knex, data: Args) => {
     const { contactId } = data;
 
     const builder = connection.queryBuilder();
-    builder.select(["c.First_Name", "c.Last_Name"]).from({ c: "Contacts" }).where({ Contact_ID: contactId });
+    builder
+        .select(["c.Nickname as First_Name", "c.Last_Name"])
+        .from({ c: "Contacts" })
+        .where({ Contact_ID: contactId });
 
     return builder;
 };

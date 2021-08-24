@@ -18,7 +18,7 @@ interface Args {
 }
 
 const argsSchema = Joi.object({
-    query: Joi.string().required(),
+    query: Joi.string().lowercase().required(),
     requireUserId: Joi.bool().default(false),
     page: Joi.number().min(1).default(1),
     perPage: Joi.number().min(1).default(10),
@@ -153,7 +153,7 @@ const selectBuilder = (connection: Knex, args: Args) => {
         .select(
             "c.Contact_ID as contact_id",
             "u.User_ID as user_id",
-            "c.First_Name as first_name",
+            "c.Nickname as first_name",
             "c.Last_Name as last_name",
             "c.Email_Address as email_address",
             "c.Mobile_Phone as mobile_phone",

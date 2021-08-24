@@ -117,7 +117,7 @@ const selectContactLogBuilder = (connection: Knex, contact_log_id: number) => {
             "cl.notes as description",
             "cl.contact_date as date_created",
             "c.contact_id as created_by_contact_id",
-            "c.first_name as created_by_first_name",
+            "c.nickname as created_by_first_name",
             "c.last_name as created_by_last_name",
         ])
         .from({ cl: "contact_log" })

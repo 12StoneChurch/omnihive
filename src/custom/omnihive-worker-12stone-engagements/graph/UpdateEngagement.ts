@@ -81,12 +81,17 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
                     const twilioNumber = data[2][0].Default_Number;
 
                     if (ownerPhone && twilioNumber) {
+                        const webRoot = this.getEnvironmentVariable("OH_WEB_ROOT_URL");
                         // Construct custom graph url
-                        const graphUrl = this.getEnvironmentVariable("OH_WEB_ROOT_URL") + this.metadata.customUrl;
+                        const graphUrl = webRoot + this.metadata.customUrl;
+
+                        const rootUrl = webRoot?.toString().includes("localhost")
+                            ? "https://mydev.12stone.church"
+                            : webRoot;
 
                         // Send Text to engagement owner about their new engagement
                         const textData = {
-                            body: `You've been assigned a new ${updatedEngagement[0].Type} engagement`,
+                            body: `You've been assigned a new ${updatedEngagement[0].Type} engagement. ${rootUrl}/more/engagements/${updatedEngagement[0].Engagement_ID}/${updatedEngagement[0].Contact_ID}`,
                             from: twilioNumber,
                             to: ownerPhone,
                         };

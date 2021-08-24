@@ -48,7 +48,7 @@ export const getEngagementByIdQuery = (connection: Knex, engagementId: number) =
                 .innerJoin("Engagement_Contact_Logs as ecl", "cl.Contact_Log_ID", "ecl.Contact_Log_ID")
                 .groupBy(["ecl.Engagement_ID"])
                 .as("ecl_sub"),
-            "el_sub.Engagement_ID",
+            "ecl_sub.Engagement_ID",
             "e.Engagement_ID"
         )
         .where({ "e.Engagement_ID": engagementId });

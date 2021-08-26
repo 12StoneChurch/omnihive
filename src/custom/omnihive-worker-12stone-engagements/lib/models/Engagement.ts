@@ -19,6 +19,7 @@ export interface EngagementModel {
     type: {
         id: number;
         name: string;
+        description?: string;
     };
     status: {
         id: number;

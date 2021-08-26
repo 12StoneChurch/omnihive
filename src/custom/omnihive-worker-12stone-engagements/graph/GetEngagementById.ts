@@ -68,6 +68,7 @@ export default class GetEngagementById extends HiveWorkerBase implements IGraphE
                 type: {
                     id: data.Engagement_Type_ID,
                     name: data.Type,
+                    description: data.Type_Description ?? undefined,
                 },
                 status: {
                     id: data.Engagement_Status_ID,

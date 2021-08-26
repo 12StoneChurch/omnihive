@@ -18,6 +18,7 @@ export const getEngagementByIdQuery = (connection: Knex, engagementId: number) =
             "cong.Congregation_Name as Campus",
             "e.Engagement_Type_ID",
             "et.Name as Type",
+            "et.Description as Type_Description",
             "e.Engagement_Status_ID",
             "es.Name as Status"
         )

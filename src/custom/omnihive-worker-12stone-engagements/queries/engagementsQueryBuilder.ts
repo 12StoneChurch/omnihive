@@ -15,6 +15,7 @@ export const engagementsQueryBuilder = (connection: Knex<any | unknown>, customA
     const perPage = customArgs?.perPage && customArgs.perPage >= 1 ? customArgs.perPage : 20;
 
     const builder = connection.queryBuilder();
+
     builder
         .select(
             "e.Engagement_ID",
@@ -63,7 +64,8 @@ export const engagementsQueryBuilder = (connection: Knex<any | unknown>, customA
             "ecl_sub.Engagement_ID",
             "e.Engagement_ID"
         )
-        .orderBy("e.Date_Created", "asc")
+        .orderBy("e.Engagement_Status_ID", "asc")
+        .orderByRaw("(select max(v) from (values (el_sub.Latest_Activity), (ecl_sub.Latest_Activity)) as value(v))")
         .limit(perPage);
 
     // Adds offset for pagination

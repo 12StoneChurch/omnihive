@@ -13,7 +13,7 @@ export const selectInsertedEngagementLogQuery = (connection: Knex, id: number) =
         .select("el.*", "elt.Name as Engagement_Log_Type_Name", "es.Name as Engagement_Status_Name")
         .from({ el: "Engagement_Log" })
         .innerJoin("Engagement_Log_Types as elt", "el.Engagement_Log_Type_ID", "elt.Engagement_Log_Type_ID")
-        .leftJoin("Engagements as e", "el.Engagement_ID", "el.Engagement_ID")
+        .leftJoin("Engagements as e", "el.Engagement_ID", "e.Engagement_ID")
         .leftJoin("Engagement_Statuses as es", "e.Engagement_Status_ID", "es.Engagement_Status_ID")
         .where({ Engagement_Log_ID: id });
 

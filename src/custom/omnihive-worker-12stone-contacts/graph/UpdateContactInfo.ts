@@ -12,7 +12,6 @@ export default class UpdateContactInfo extends HiveWorkerBase implements IGraphE
             await GraphService.getSingleton().init(this.registeredWorkers, this.environmentVariables);
             GraphService.getSingleton().graphRootUrl = this.metadata.mpGraphUrl;
             GraphService.getSingleton().accessToken = omniHiveContext.access;
-            console.log(omniHiveContext);
 
             const res: {
                 contact: boolean | undefined;

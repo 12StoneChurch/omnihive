@@ -7,6 +7,7 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
+import { checkForExistingContactPublication } from "./../queries/checkForExistingContactPublication";
 import { createEngagement } from "./../queries/createEngagement";
 import { startTraining } from "./../queries/startTraining";
 
@@ -32,22 +33,33 @@ export default class StartGrowthTrack extends HiveWorkerBase implements IGraphEn
             // PAGE ARGS
             const { contactId, trainingId } = customArgs;
 
-            const data = await startTraining(connection, trainingId, contactId);
+            const existingContactPublication = await checkForExistingContactPublication(
+                connection,
+                trainingId,
+                contactId
+            );
 
-            // Create engagement if the user doesn't have any training data yet
-            if (!data.pastParticipation) {
-                const graphUrl = this.getEnvironmentVariable("OH_WEB_ROOT_URL") + this.metadata.customUrl;
+            // Only run startGrowth track if contact does not have an existing contact_publication for it
+            if (existingContactPublication.length <= 0) {
+                const data = await startTraining(connection, trainingId, contactId);
 
-                const engagementData = {
-                    contactId: contactId,
-                    congregationId: data.campusId,
-                    engagementTypeId: 8,
-                };
+                // Create engagement if the user doesn't have any training data yet
+                if (!data.pastParticipation) {
+                    const graphUrl = this.getEnvironmentVariable("OH_WEB_ROOT_URL") + this.metadata.customUrl;
 
-                await createEngagement(engagementData, graphUrl);
+                    const engagementData = {
+                        contactId: contactId,
+                        congregationId: data.campusId,
+                        engagementTypeId: 8,
+                    };
+
+                    await createEngagement(engagementData, graphUrl);
+                }
+
+                return data;
+            } else {
+                throw Error(`Contact_ID ${contactId} already has a contact_publication for Growth Track.`);
             }
-
-            return data;
         } catch (err) {
             console.log(JSON.stringify(serializeError(err)));
             return err;

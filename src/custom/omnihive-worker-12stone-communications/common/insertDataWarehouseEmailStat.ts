@@ -1,9 +1,8 @@
 import dayjs from "dayjs";
 import { runGraphQuery, setGraphUrl } from "../lib/services/GraphService";
 
-export const insertCommunicationStat = async (
+export const insertDataWarehouseEmailStat = async (
     url: string,
-    commId: number,
     contactId: number,
     typeId: number,
     eventId?: string,
@@ -11,16 +10,14 @@ export const insertCommunicationStat = async (
 ) => {
     const query = `
         mutation {
-            data: insert_dboCommunicationManagerStatisticsDetails(insert: [{
-                communication: ${commId},
-                contactId: ${contactId},
-                statisticsType: ${typeId},
+            data: insert_dboEmailStatisticDetails(insert: [{
+                mpContactId: ${contactId}
+                typeId: ${typeId}
                 ${eventId ? `providerEventId: "${eventId}",` : ""}
                 ${timestamp ? `providerTimestamp: "${dayjs(timestamp).format("YYYY-MM-DDTHH:mm:ss")}",` : ""}
-                domainId: 1
-              }]) {
-                  id: communicationManagerStatisticsDetailId
-              }
+            }]) {
+                emailStatisticDetailId
+            }
         }
     `;
 

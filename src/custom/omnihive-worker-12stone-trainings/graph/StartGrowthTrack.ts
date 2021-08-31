@@ -21,8 +21,8 @@ export default class StartGrowthTrack extends HiveWorkerBase implements IGraphEn
             /* Verify auth token */
             await verifyToken(_omniHiveContext);
 
-            if (!customArgs?.contactId) {
-                throw new Error("GetAllEngagements requires a customArg of engagementId");
+            if (!customArgs?.contactId || !customArgs?.trainingId) {
+                throw new Error("StartGrowthTrack requires customArgs of contactId & trainingId");
             }
             // Get the connection to the database
             const worker = await this.getWorker<IDatabaseWorker>(HiveWorkerType.Database, "dbMinistryPlatform");

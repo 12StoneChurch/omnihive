@@ -59,7 +59,7 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
                     const logArgs = {
                         engagementId: customArgs.engagementId,
                         description: `Status changed to ${updatedEngagement[0].Status}`,
-                        typeId: 3,
+                        typeId: 2,
                     };
                     await insertEngagementLogQuery(connection, logArgs).transacting(trx);
                 }
@@ -70,7 +70,7 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
                     const logArgs = {
                         engagementId: customArgs.engagementId,
                         description: `Owner changed to ${updatedEngagement[0].Owner_First_Name} ${updatedEngagement[0].Owner_Last_Name}`,
-                        typeId: 4,
+                        typeId: 3,
                     };
 
                     const data = await Promise.all([

@@ -46,7 +46,7 @@ export default class CheckExpiredSnoozedEngagements extends HiveWorkerBase imple
                 const logArgs = {
                     engagementId: dto.engagement_id,
                     description: `Status changed to Open`,
-                    typeId: 3,
+                    typeId: 2,
                 };
 
                 await worker?.executeQuery(insertEngagementLogQuery(connection, logArgs).toString());

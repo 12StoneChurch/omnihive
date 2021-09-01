@@ -11,6 +11,7 @@ type TrainingModule = {
     displayOrder: number;
     progress: number;
     events: EventData[];
+    digitalEventId: number;
 };
 
 type TrainingSubModule = {
@@ -28,7 +29,6 @@ type TrainingSubModule = {
 
 type EventData = {
     id: number;
-    digital: boolean;
     eventParticipantId: number;
 };
 
@@ -210,12 +210,13 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
                   trainingModuleId
                   digitalEvent
                   eventParticipantData: dboEventParticipants_table(
-                    join: {type: inner, from: eventId, whereMode: specific}
+                    join: {type: left, from: eventId, whereMode: specific}
+                    where: { participationStatusId: { eq: 3 } }
                   ) {
                     eventParticipantId
-                    participantData: participantId_table(join: {type: inner, whereMode: specific}) {
+                    participantData: participantId_table(join: {type: left, whereMode: specific}) {
                       contactData: contactId_table(
-                        join: {type: inner, whereMode: specific}
+                        join: {type: left, whereMode: global}
                         where: {userAccount: {eq: ${userId}}}
                       ) {
                         contactId
@@ -233,11 +234,16 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
             const parent = this.trainingModules.find((x) => x.trainingModuleId === item.trainingModuleId);
 
             if (parent && parent.events) {
-                parent.events.push({
-                    id: item.eventId,
-                    digital: item.digitalEvent,
-                    eventParticipantId: item.eventParticipantData[0].eventParticipantId,
-                });
+                if (item.eventParticipantData?.[0]?.eventParticipantId) {
+                    parent.events.push({
+                        id: item.eventId,
+                        eventParticipantId: item.eventParticipantData[0].eventParticipantId,
+                    });
+                }
+
+                if (!parent.digitalEventId && item.digitalEvent) {
+                    parent.digitalEventId = item.eventId;
+                }
             }
         }
     };

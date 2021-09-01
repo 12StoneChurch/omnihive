@@ -73,6 +73,7 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
                     }
 
                     await this.getEventData(userId);
+                    await this.getDigitalEvents();
                 }
 
                 return this.trainingModules;
@@ -208,7 +209,6 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
                     .join(",")}]}}) {
                   eventId
                   trainingModuleId
-                  digitalEvent
                   eventParticipantData: dboEventParticipants_table(
                     join: {type: left, from: eventId, whereMode: specific}
                     where: { participationStatusId: { eq: 3 } }
@@ -240,10 +240,29 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
                         eventParticipantId: item.eventParticipantData[0].eventParticipantId,
                     });
                 }
+            }
+        }
+    };
 
-                if (!parent.digitalEventId && item.digitalEvent) {
-                    parent.digitalEventId = item.eventId;
+    private getDigitalEvents = async () => {
+        const query = `
+            {
+                data: dboEvents(where: {and: [{trainingModuleId: {in: [${this.trainingModules
+                    .map((x) => x.trainingModuleId)
+                    .join(",")}]}}, { digitalEvent: { eq: true } }] }) {
+                    eventId
+                    trainingModuleId
                 }
+            }
+        `;
+
+        const results = (await this.graphService.runQuery(query)).data;
+
+        for (const item of results) {
+            const parent = this.trainingModules.find((x) => x.trainingModuleId === item.trainingModuleId);
+
+            if (parent && !parent.digitalEventId) {
+                parent.digitalEventId = item.eventId;
             }
         }
     };

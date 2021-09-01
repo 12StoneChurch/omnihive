@@ -7,6 +7,8 @@ import { updateCommunicationMessageStatus } from "../common/updateCommunicationM
 import { insertCommunicationStat } from "../common/insertCommunicationStat";
 import { init, runGraphQuery, setGraphUrl } from "../lib/services/GraphService";
 import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
+import { insertDataWarehouseEmailStat } from "../common/insertDataWarehouseEmailStat";
+import { getContactIdByEmail } from "../common/getContactIdByEmail";
 
 type StatData = {
     commId: number;
@@ -129,24 +131,11 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
 
     public execute = async (_headers: any, _url: string, body: any): Promise<any> => {
         try {
-            const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
-
-            if (IsHelper.isNullOrUndefined(webRootUrl)) {
-                throw new Error("Web Root URL undefined");
-            }
-
             await init(this.registeredWorkers, this.environmentVariables);
-
-            this.dataUrl = `${webRootUrl}/${this.metadata.data.dataSlug}`;
-            setGraphUrl(this.dataUrl);
 
             const orderedBody = body.sort((a: any, b: any) => a.timestamp - b.timestamp);
 
             for (const item of orderedBody) {
-                if (!item.CommunicationId || !item.ContactId) {
-                    continue;
-                }
-
                 this.currentCommMgrMsgId = await this.validateCommunication(item.CommunicationId);
 
                 const { status, statType } = this.getStatusValues(item);
@@ -234,6 +223,15 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
     };
 
     private setStatisticData = async (body: any, statTypeId: number) => {
+        const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+        if (IsHelper.isNullOrUndefined(webRootUrl)) {
+            throw new Error("Web Root URL undefined");
+        }
+
+        this.dataUrl = `${webRootUrl}/${this.metadata.data.dataSlug}`;
+        setGraphUrl(this.dataUrl);
+
         if (this.currentCommMgrMsgId > 0) {
             const statData: StatData = {
                 commId: body.CommunicationId,
@@ -252,20 +250,53 @@ export default class SupportSearch extends HiveWorkerBase implements IRestEndpoi
                 statData.sgTimestampId
             );
         }
+
+        if (!body.ContactId) {
+            const contactIdResults = await getContactIdByEmail(this.dataUrl, body.email);
+
+            if (contactIdResults.data.length > 1) {
+                throw new Error("More than one user exists with that email address.");
+            } else if (contactIdResults.data.length <= 0) {
+                throw new Error("No contacts exist with that email address");
+            }
+
+            body.ContactId = contactIdResults.data[0].id;
+        }
+
+        this.dataUrl = `${webRootUrl}/${this.metadata.data.dataWarehouseSlug}`;
+        setGraphUrl(this.dataUrl);
+
+        const statData: StatData = {
+            commId: 0,
+            contactId: body.ContactId,
+            eventTypeId: statTypeId,
+            sgEventId: body.sg_event_id,
+            sgTimestampId: dayjs.unix(body.timestamp).toDate(),
+        };
+
+        return await insertDataWarehouseEmailStat(
+            this.dataUrl,
+            statData.contactId,
+            statData.eventTypeId,
+            statData.sgEventId,
+            statData.sgTimestampId
+        );
     };
 
     private validateCommunication = async (id: number): Promise<number> => {
-        const query: string = `
+        if (id) {
+            const query: string = `
             query {
-                data: communicationManagerMessages(communicationId:"= ${id}") {
+                data: dboCommunicationManagerMessages(where: { communicationId: { eq: ${id} } }) {
                   id: communicationManagerMessageId
                 }
             }`;
 
-        const results = await runGraphQuery(query);
+            const results = await runGraphQuery(query);
 
-        if (results.data?.length > 0) {
-            return results.data[0].id;
+            if (results.data?.length > 0) {
+                return results.data[0].id;
+            }
         }
 
         return 0;

@@ -8,6 +8,7 @@ import { EnvironmentVariable } from "@withonevision/omnihive-core/models/Environ
 
 export class GraphService {
     public graphRootUrl: string = "";
+    public accessToken?: string = "";
 
     private static singleton: GraphService;
 
@@ -33,6 +34,10 @@ export class GraphService {
                 throw new Error("A query is required.");
             }
 
+            if (this.accessToken) {
+                OmniHiveClient.getSingleton().setAccessToken(this.accessToken);
+            }
+
             const results = await AwaitHelper.execute(
                 OmniHiveClient.getSingleton().graphClient(this.graphRootUrl, query)
             );
@@ -50,6 +55,10 @@ export class GraphService {
         try {
             if (!query) {
                 throw new Error("A query is required.");
+            }
+
+            if (this.accessToken) {
+                OmniHiveClient.getSingleton().setAccessToken(this.accessToken);
             }
 
             const results = await AwaitHelper.execute(

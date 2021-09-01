@@ -2,9 +2,6 @@ import { GraphService } from "@12stonechurch/omnihive-worker-common/services/Gra
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
-import { addAuditLogEntry } from "@12stonechurch/omnihive-worker-common/helpers/MpHelper";
-import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
-import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 
 type TrainingModule = {
     trainingModuleId: number;
@@ -14,6 +11,7 @@ type TrainingModule = {
     displayOrder: number;
     progress: number;
     events: EventData[];
+    digitalEventId: number;
 };
 
 type TrainingSubModule = {
@@ -31,7 +29,6 @@ type TrainingSubModule = {
 
 type EventData = {
     id: number;
-    digital: boolean;
     eventParticipantId: number;
 };
 
@@ -75,8 +72,7 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
                         await this.userProgress(userId);
                     }
 
-                    await this.getEventData();
-                    await this.getEventParticipantData(userId);
+                    await this.getEventData(userId);
                 }
 
                 return this.trainingModules;
@@ -204,17 +200,32 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
         }
     };
 
-    private getEventData = async () => {
+    private getEventData = async (userId: number) => {
         const query = `
             {
-                data: dboEvents(where: {trainingModuleId:{in: [${this.trainingModules
+                data: dboEvents(where: {trainingModuleId: {in: [${this.trainingModules
                     .map((x) => x.trainingModuleId)
                     .join(",")}]}}) {
-                    eventId
-                    trainingModuleId
-                    digitalEvent
+                  eventId
+                  trainingModuleId
+                  digitalEvent
+                  eventParticipantData: dboEventParticipants_table(
+                    join: {type: left, from: eventId, whereMode: specific}
+                    where: { participationStatusId: { eq: 3 } }
+                  ) {
+                    eventParticipantId
+                    participantData: participantId_table(join: {type: left, whereMode: specific}) {
+                      contactData: contactId_table(
+                        join: {type: left, whereMode: global}
+                        where: {userAccount: {eq: ${userId}}}
+                      ) {
+                        contactId
+                      }
+                    }
+                  }
                 }
-            }
+              }
+              
         `;
 
         const results = (await this.graphService.runQuery(query)).data;
@@ -223,128 +234,17 @@ export default class GetTrainingData extends HiveWorkerBase implements IGraphEnd
             const parent = this.trainingModules.find((x) => x.trainingModuleId === item.trainingModuleId);
 
             if (parent && parent.events) {
-                parent.events.push({
-                    id: item.eventId,
-                    digital: item.digital,
-                    eventParticipantId: 0,
-                });
+                if (item.eventParticipantData?.[0]?.eventParticipantId) {
+                    parent.events.push({
+                        id: item.eventId,
+                        eventParticipantId: item.eventParticipantData[0].eventParticipantId,
+                    });
+                }
+
+                if (!parent.digitalEventId && item.digitalEvent) {
+                    parent.digitalEventId = item.eventId;
+                }
             }
         }
-    };
-
-    private getEventParticipantData = async (userId: number) => {
-        const query = `
-            {
-                data: dboContacts(where: {userAccount: {eq: ${userId}}}) {
-                    contactId
-                    participantRecord
-                    participants: participantRecord_table(join: {type: left, whereMode: specific}) {
-                        eventParticipants: dboEventParticipants_table(
-                            join: {type: left, whereMode: specific, from: participantId}
-                            where: {and: [{participationStatusId: {eq: 3}}, {eventId: {in: [${this.trainingModules
-                                .map((x) => x.events.map((y: any) => y.id))
-                                .flat(Infinity)
-                                .join(",")}]}}]}) {
-                                participantId
-                                eventParticipantId
-                                eventId
-                        }
-                    }
-                }
-            }
-          `;
-
-        const results = (await this.graphService.runQuery(query)).data;
-
-        for (const contact of results) {
-            if (!contact.participantRecord) {
-                contact.participantRecord = await this.createParticipantRecord(contact.contactId);
-            }
-        }
-    };
-
-    private createParticipantRecord = async (contactId: number) => {
-        const participantMutation = `
-            mutation {
-                data: insert_dboParticipants(insert: {
-                    contactId: ${contactId}
-                    participantTypeId: 10
-                    participantStartDate: { raw: "GetDate()" }
-                    _2_inGroupLife: false
-                    _2_isLeading: false
-                    _2_isServing: false
-                    domainId:1
-                    }
-                ) {
-                    participantId
-                }
-            }`;
-
-        const participantId = (await this.graphService.runQuery(participantMutation)).data[0].participantId;
-
-        await this.addParticipantAuditLog(participantId);
-
-        const contactMutation = `
-            mutation {
-                update_dboContacts(
-                    updateTo: { participantRecord: 123455 }
-                    where: { contactId: { eq: 12345 } }
-                ) {
-                    contactId
-                }
-            }
-        `;
-
-        const returnedContactId = (await this.graphService.runQuery(contactMutation)).data[0].contactId;
-
-        await this.addContactAuditLog(returnedContactId, participantId);
-
-        return participantId;
-    };
-
-    private addParticipantAuditLog = async (id: number) => {
-        const auditObject = {
-            log: {
-                tableName: "Participants",
-                recordId: id,
-                description: "Created",
-                username: "***Default Contact",
-                userId: 5690,
-                datetime: new Date(),
-            },
-        };
-
-        await addAuditLogEntry(
-            auditObject,
-            this.getWorker(HiveWorkerType.Database, "dbMinistryPlatform") as IDatabaseWorker
-        );
-    };
-
-    private addContactAuditLog = async (id: number, participantId: number) => {
-        const auditObject = {
-            log: {
-                tableName: "Contacts",
-                recordId: id,
-                description: "Updated",
-                username: "***Default Contact",
-                userId: 5690,
-                datetime: new Date(),
-            },
-            detail: {
-                field: {
-                    name: "Participant_Record",
-                    label: "Participant Record",
-                },
-                value: {
-                    new: participantId,
-                    previous: "",
-                },
-            },
-        };
-
-        await addAuditLogEntry(
-            auditObject,
-            this.getWorker(HiveWorkerType.Database, "dbMinistryPlatform") as IDatabaseWorker
-        );
     };
 }

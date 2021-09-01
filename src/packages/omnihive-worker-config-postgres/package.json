@@ -1,6 +1,6 @@
 {
     "name": "@withonevision/omnihive-worker-config-postgres",
-    "version": "6.2.59",
+    "version": "6.2.61",
     "description": "OmniHive Postgres Config Worker",
     "license": "MIT",
     "author": {
@@ -32,6 +32,6 @@
         "@types/fs-extra": "9.0.11",
         "@types/pg": "8.6.0",
         "chai": "4.3.4",
-        "typescript": "4.2.4"
+        "typescript": "4.3.5"
     }
 }

@@ -11,6 +11,7 @@ import j from "joi";
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
+import { AttendanceFormId } from "../common/constants";
 import { AttendanceRecord } from "../models/AttendanceRecord";
 
 export interface Args {
@@ -45,7 +46,18 @@ export default class SubmitGroupAttendance extends HiveWorkerBase implements IGr
                 argsSchema,
             });
 
-            const formId = 168;
+            let formId: number;
+
+            switch (this.metadata.environment) {
+                case "production":
+                    formId = AttendanceFormId.PROD;
+                    break;
+                case "beta":
+                    formId = AttendanceFormId.BETA;
+                    break;
+                default:
+                    formId = AttendanceFormId.DEV;
+            }
 
             const eventId = await addAttendanceEvent(knex, { ...args });
             await addEventGroup(knex, { eventId, ...args });

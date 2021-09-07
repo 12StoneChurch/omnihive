@@ -11,6 +11,8 @@ import j from "joi";
 import { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
+import { AttendanceRecord } from "../models/AttendanceRecord";
+
 export interface Args {
     contactId: number;
     groupId: number;
@@ -34,7 +36,7 @@ const argsSchema = j.object({
 });
 
 export default class SubmitGroupAttendance extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (rawArgs: unknown, context: GraphContext): Promise<any | Error> => {
+    public execute = async (rawArgs: unknown, context: GraphContext): Promise<AttendanceRecord | Error> => {
         try {
             const { args, knex, customGraph } = await getExecuteContext<Args>({
                 worker: this,
@@ -44,8 +46,9 @@ export default class SubmitGroupAttendance extends HiveWorkerBase implements IGr
             });
 
             const formId = 168;
+
             const eventId = await addAttendanceEvent(knex, { ...args });
-            const eventGroupId = await addEventGroup(knex, { eventId, ...args });
+            await addEventGroup(knex, { eventId, ...args });
             const participantIds = await addEventParticipants(knex, {
                 eventId,
                 participantIds: args.participants,
@@ -67,10 +70,23 @@ export default class SubmitGroupAttendance extends HiveWorkerBase implements IGr
                 childCount: args.childCount,
             });
 
-            return { eventId, eventGroupId, contact };
+            return {
+                groupId: args.groupId,
+                eventId,
+                date: args.date,
+                participants: participantIds,
+                anonCount: args.anonCount,
+                childCount: args.childCount,
+                feedback: args.feedback,
+            };
         } catch (err) {
-            console.log(JSON.stringify(serializeError(err)));
-            return err;
+            if (err instanceof Error) {
+                console.log(JSON.stringify(serializeError(err)));
+                return err;
+            } else {
+                console.log("An unknown error occurred.");
+                return new Error("An unknown error occurred.");
+            }
         }
     };
 }

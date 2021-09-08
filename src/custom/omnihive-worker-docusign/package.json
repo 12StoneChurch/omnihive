@@ -1,0 +1,38 @@
+{
+    "name": "@12stonechurch/omnihive-worker-docusign",
+    "version": "0.0.1",
+    "description": "OmniHive Elastic Search Worker",
+    "license": "MIT",
+    "author": {
+        "name": "12Stone Church",
+        "url": "https://www.12stone.com",
+        "email": "itsupport@12stone.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/12StoneChurch/omnihive.git"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "keywords": [
+        "OmniHive",
+        "With One Vision",
+        "12Stone Church"
+    ],
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "@withonevision/omnihive-core": "6.2.54",
+        "axios": "0.21.4",
+        "docusign-esign": "4.14.0",
+        "jsonwebtoken": "8.5.1",
+        "serialize-error": "8.1.0"
+    },
+    "devDependencies": {
+        "@types/docusign-esign": "5.5.1",
+        "chai": "4.3.4",
+        "typescript": "4.2.4"
+    }
+}

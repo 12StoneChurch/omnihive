@@ -1,9 +1,9 @@
+import { errorHelper } from "@12stonechurch/omnihive-worker-common/helpers/ErrorHelper";
 import { getExecuteContext } from "@12stonechurch/omnihive-worker-common/helpers/ExecuteHelper";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import j from "joi";
-import { serializeError } from "serialize-error";
 
 import { countLeaderGroups } from "../queries/countLeaderGroups";
 import { getContact } from "../queries/getContact";
@@ -36,13 +36,7 @@ export default class GetGroupLeaderRole extends HiveWorkerBase implements IGraph
 
             return { isLeader: false };
         } catch (err) {
-            if (err instanceof Error) {
-                console.log(JSON.stringify(serializeError(err)));
-                return err;
-            } else {
-                console.log("An unknown error occurred.");
-                return new Error("An unknown error occurred.");
-            }
+            return errorHelper(err);
         }
     };
 }

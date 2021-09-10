@@ -1,12 +1,14 @@
 import dayjs from "dayjs";
 import { Knex } from "knex";
 
+type InsertGroupParticipantsDTO = number[];
+
 interface GroupParticipantAdder {
     (knex: Knex, opts: { groupId: number; participantId: number }): Promise<number>;
 }
 
 export const addGroupParticipant: GroupParticipantAdder = async (knex, { groupId, participantId }) => {
-    const [groupParticipantId] = await knex
+    const [groupParticipantId] = (await knex
         .insert({
             group_id: groupId,
             participant_id: participantId,
@@ -15,7 +17,7 @@ export const addGroupParticipant: GroupParticipantAdder = async (knex, { groupId
             start_date: dayjs().toISOString(),
         })
         .into("group_participants")
-        .returning<number[]>(["group_participant_id"]);
+        .returning(["group_participant_id"])) as InsertGroupParticipantsDTO;
 
     return groupParticipantId;
 };

@@ -1,12 +1,14 @@
 import dayjs from "dayjs";
 import { Knex } from "knex";
 
+type InsertEventsDTO = number[];
+
 interface AttendanceEventAdder {
     (knex: Knex, opts: { groupId: number; date: string }): Promise<number>;
 }
 
 export const addAttendanceEvent: AttendanceEventAdder = async (knex, { groupId, date }) => {
-    const [eventId] = await knex
+    const [eventId] = (await knex
         .insert({
             event_title: `Meeting Attendance - Group ${groupId} - ${dayjs(date).format("YYYY-MM-DD")}`,
             event_type_id: 39,
@@ -18,7 +20,7 @@ export const addAttendanceEvent: AttendanceEventAdder = async (knex, { groupId, 
             domain_id: 1,
         })
         .into("events")
-        .returning<number[]>("event_id");
+        .returning("event_id")) as InsertEventsDTO;
 
     return eventId;
 };

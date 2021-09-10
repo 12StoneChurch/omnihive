@@ -14,6 +14,7 @@ export interface BaseGroupSummary {
         name: string;
     };
     time?: string;
+    imgUrl?: string;
     totalParticipants: number;
 }
 

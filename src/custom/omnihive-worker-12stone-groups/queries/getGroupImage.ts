@@ -1,4 +1,4 @@
-import { danyGet } from "src/custom/omnihive-worker-12stone-common/helpers/DanyHelper";
+import { danyGet } from "@12stonechurch/omnihive-worker-common/helpers/DanyHelper";
 
 interface GroupImageGetter {
     (opts: { groupId: number }): Promise<string | undefined>;

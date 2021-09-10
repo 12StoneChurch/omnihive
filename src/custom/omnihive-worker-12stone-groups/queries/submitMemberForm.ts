@@ -14,5 +14,5 @@ export const submitMemberForm: MemberFormSubmitter = async ({ formId, firstName,
         Phone: phone || "",
     });
 
-    return ContactId; // lol
+    return ContactId;
 };

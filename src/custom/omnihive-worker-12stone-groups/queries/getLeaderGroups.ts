@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { Knex } from "knex";
 
-import { BaseGroupSummary, MeetingDay } from "../models/GroupSummary";
+import { BaseGroupSummary, MeetingDay } from "../models/Group";
 
 type SelectGroupParticipantsDTO = {
     group_id: number;
@@ -47,7 +47,10 @@ export const getLeaderGroups: LeaderGroupsGetter = async (knex, { participantId,
     return result.map<BaseGroupSummary>((row) => ({
         groupId: row.group_id,
         name: row.group_name,
-        day: row.meeting_day_id && row.meeting_day ? { id: row.meeting_day_id, name: row.meeting_day } : undefined,
+        day:
+            row.meeting_day_id && row.meeting_day
+                ? { meetingDayId: row.meeting_day_id, name: row.meeting_day }
+                : undefined,
         time: row.meeting_time ? dayjs(row.meeting_time).toISOString() : undefined,
         totalParticipants: row.total_participants,
     }));

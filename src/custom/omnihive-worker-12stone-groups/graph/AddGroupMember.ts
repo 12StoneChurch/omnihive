@@ -56,12 +56,12 @@ export default class AddGroupMember extends HiveWorkerBase implements IGraphEndp
             }
 
             DanyService.getSingleton().setMetaData(this.metadata);
-            const contactId = await submitMemberForm({ formId, ...args });
-
-            const contact = await getContact(customGraph, { contactId });
 
             await knex.transaction(async (trx) => {
                 let participantId: number;
+
+                const contactId = await submitMemberForm({ formId, ...args });
+                const contact = await getContact(customGraph, { contactId });
 
                 if (!contact.participantId) {
                     participantId = await addParticipantRecord(trx, { contactId: contact.id });

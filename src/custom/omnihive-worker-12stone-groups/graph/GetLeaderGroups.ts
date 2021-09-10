@@ -8,7 +8,7 @@ import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import j from "joi";
 
-import { GroupSummary } from "../models/GroupSummary";
+import { GroupSummary } from "../models/Group";
 import { countLeaderGroups } from "../queries/countLeaderGroups";
 import { getContact } from "../queries/getContact";
 import { getGroupImage } from "../queries/getGroupImage";
@@ -37,28 +37,32 @@ export default class GetLeaderGroups extends HiveWorkerBase implements IGraphEnd
                 argsSchema,
             });
 
-            const { participantId } = await getContact(customGraph, { ...args });
+            const { groups, groupsCount } = await knex.transaction(async (trx) => {
+                const { participantId } = await getContact(customGraph, { ...args });
 
-            if (!participantId) {
-                throw new Error("Contact participantId could not be found.");
-            }
+                if (!participantId) {
+                    throw new Error("Contact participantId could not be found.");
+                }
 
-            const groups = await getLeaderGroups(knex, { participantId, ...args });
-            const groupsCount = await countLeaderGroups(knex, { participantId });
+                const groups = await getLeaderGroups(trx, { participantId, ...args });
+                const groupsCount = await countLeaderGroups(trx, { participantId });
 
-            DanyService.getSingleton().setMetaData(this.metadata);
+                DanyService.getSingleton().setMetaData(this.metadata);
 
-            const mappedGroups = await Promise.all(
-                groups.map<Promise<GroupSummary>>(async (group) => {
-                    return {
-                        ...group,
-                        leaders: await getGroupLeaders(knex, { groupId: group.groupId }),
-                        imgUrl: await getGroupImage({ groupId: group.groupId }),
-                    };
-                })
-            );
+                const mappedGroups = await Promise.all(
+                    groups.map<Promise<GroupSummary>>(async (group) => {
+                        return {
+                            ...group,
+                            imgUrl: await getGroupImage({ groupId: group.groupId }),
+                            leaders: await getGroupLeaders(trx, { groupId: group.groupId }),
+                        };
+                    })
+                );
 
-            return paginateItems<GroupSummary>(mappedGroups, groupsCount, args.page, args.perPage);
+                return { groups: mappedGroups, groupsCount };
+            });
+
+            return paginateItems<GroupSummary>(groups, groupsCount, args.page, args.perPage);
         } catch (err) {
             return errorHelper(err);
         }

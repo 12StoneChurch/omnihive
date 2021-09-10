@@ -1,6 +1,6 @@
 import { Knex } from "knex";
 
-import { GroupLeaderSummary } from "../models/GroupSummary";
+import { GroupLeaderSummary } from "../models/Group";
 
 type SelectGroupParticipantsDTO = {
     contact_id: number;

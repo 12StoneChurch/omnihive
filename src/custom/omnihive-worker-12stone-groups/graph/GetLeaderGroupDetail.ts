@@ -19,7 +19,7 @@ const argsSchema = j.object({
     groupId: j.number().integer().positive().required(),
 });
 
-export default class GetLeaderGroup extends HiveWorkerBase implements IGraphEndpointWorker {
+export default class GetLeaderGroupDetail extends HiveWorkerBase implements IGraphEndpointWorker {
     execute = async (rawArgs: unknown, context: GraphContext): Promise<GroupDetail | Error> => {
         try {
             const { args, knex } = await getExecuteContext<Args>({

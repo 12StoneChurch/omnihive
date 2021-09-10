@@ -24,6 +24,7 @@ export interface GroupSummary extends BaseGroupSummary {
 }
 
 export interface BaseGroupDetail extends BaseGroupSummary {
+    lastMeetingDate?: string;
     status: {
         statusId: number;
         name: GroupStatus;

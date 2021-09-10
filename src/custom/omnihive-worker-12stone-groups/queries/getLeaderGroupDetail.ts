@@ -1,7 +1,28 @@
 import dayjs from "dayjs";
+import weekday from "dayjs/plugin/weekday";
 import { Knex } from "knex";
 
 import { BaseGroupDetail, GroupStatus, MeetingDay } from "../models/Group";
+
+dayjs.extend(weekday);
+
+const getLastMeetingDate = (meetingDay: number) => {
+    const convertedMeetingDay = meetingDay - 1; // database stores meeting days as Sunday = 1
+    // dayjs uses Sunday = 0 like a normal person
+
+    const date = dayjs().startOf("day");
+    const day = date.get("day");
+
+    if (day === convertedMeetingDay) {
+        return date.toDate();
+    }
+
+    if (date.set("day", convertedMeetingDay).isAfter(date, "day")) {
+        return date.set("day", convertedMeetingDay).subtract(1, "week").toDate();
+    }
+
+    return date.set("day", convertedMeetingDay).toDate();
+};
 
 interface SelectGroupsDTO {
     group_id: number;
@@ -67,6 +88,7 @@ export const getLeaderGroupDetail: LeaderGroupDetailGetter = async (knex, { grou
                   }
                 : undefined,
         time: result.meeting_time ? dayjs(result.meeting_time).toISOString() : undefined,
+        lastMeetingDate: result.meeting_day_id ? getLastMeetingDate(result.meeting_day_id).toISOString() : undefined,
         status: { statusId: result.group_status_id, name: result.group_status },
         coach:
             result.coach_contact_id && result.coach_nickname && result.coach_last_name

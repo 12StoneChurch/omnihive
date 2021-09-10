@@ -33,8 +33,8 @@ const argsSchema = j.object({
     date: j.string().default(dayjs().toISOString()),
     meetingOccurred: j.bool().default(false),
     participants: j.array().items(j.number().integer().positive()).default([]),
-    anonCount: j.number().integer().positive().default(0),
-    childCount: j.number().integer().positive().default(0),
+    anonCount: j.number().integer().min(0).default(0),
+    childCount: j.number().integer().min(0).default(0),
     feedback: j.string().optional(),
 });
 

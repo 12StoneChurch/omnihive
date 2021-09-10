@@ -1,4 +1,4 @@
-import { danyPost } from "src/custom/omnihive-worker-12stone-common/helpers/DanyHelper";
+import { danyPost } from "@12stonechurch/omnihive-worker-common/helpers/DanyHelper";
 
 interface MemberFormSubmitter {
     (opts: { formId: number; firstName: string; lastName: string; email: string; phone?: string }): Promise<number>;

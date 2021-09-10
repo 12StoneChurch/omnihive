@@ -1,12 +1,12 @@
+import { errorHelper } from "@12stonechurch/omnihive-worker-common/helpers/ErrorHelper";
 import { getExecuteContext } from "@12stonechurch/omnihive-worker-common/helpers/ExecuteHelper";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import dayjs from "dayjs";
 import j from "joi";
-import { serializeError } from "serialize-error";
 
-import { getAttendanceRecordsByDate } from "../queries/getAttendanceRecordsByDate";
+import { getAttendanceRecordExists } from "../queries/getAttendanceRecordExists";
 
 interface Args {
     groupId: number;
@@ -23,17 +23,11 @@ export default class CheckGroupAttendanceDate extends HiveWorkerBase implements 
         try {
             const { args, knex } = await getExecuteContext<Args>({ worker: this, context, rawArgs, argsSchema });
 
-            const attendanceRecords = await getAttendanceRecordsByDate(knex, { ...args });
+            const exists = await getAttendanceRecordExists(knex, { ...args });
 
-            return { isValid: !attendanceRecords.length };
+            return { isValid: !exists };
         } catch (err) {
-            if (err instanceof Error) {
-                console.log(JSON.stringify(serializeError(err)));
-                return err;
-            } else {
-                console.log("An unknown error occurred.");
-                return new Error("An unknown error occurred.");
-            }
+            return errorHelper(err);
         }
     };
 }

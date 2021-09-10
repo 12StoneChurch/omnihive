@@ -1,3 +1,4 @@
+import { errorHelper } from "@12stonechurch/omnihive-worker-common/helpers/ErrorHelper";
 import { getExecuteContext } from "@12stonechurch/omnihive-worker-common/helpers/ExecuteHelper";
 import { DanyService } from "@12stonechurch/omnihive-worker-common/services/DanyService";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
@@ -5,14 +6,13 @@ import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import dayjs from "dayjs";
 import j from "joi";
-import { serializeError } from "serialize-error";
 
 import { AttendanceFormId } from "../common/constants";
 import { AttendanceRecord } from "../models/AttendanceRecord";
 import { addAttendanceEvent } from "../queries/addAttendanceEvent";
 import { addEventGroup } from "../queries/addEventGroup";
 import { addEventParticipants } from "../queries/addEventParticipants";
-import { getAttendanceRecordsByDate } from "../queries/getAttendanceRecordsByDate";
+import { getAttendanceRecordExists } from "../queries/getAttendanceRecordExists";
 import { getContact } from "../queries/getContact";
 import { submitAttendanceForm } from "../queries/submitAttendanceForm";
 
@@ -65,53 +65,49 @@ export default class SubmitGroupAttendance extends HiveWorkerBase implements IGr
                     throw new Error(`Unknown metadata.environment value: ${this.metadata.environment}`);
             }
 
-            // check for existing attendance record
-            const existingRecords = await getAttendanceRecordsByDate(knex, { ...args });
+            return await knex.transaction(async (trx) => {
+                // check for existing attendance record
+                const exists = await getAttendanceRecordExists(knex, { ...args });
 
-            if (existingRecords.length) {
-                throw new Error(
-                    `An attendance record has already been submitted for date "${dayjs(args.date).format(
-                        "YYYY-MM-DD"
-                    )}"`
-                );
-            }
+                if (exists) {
+                    throw new Error(
+                        `An attendance record has already been submitted for date "${dayjs(args.date).format(
+                            "YYYY-MM-DD"
+                        )}"`
+                    );
+                }
 
-            // create attendance-type event
-            const eventId = await addAttendanceEvent(knex, { ...args });
+                // create attendance-type event
+                const eventId = await addAttendanceEvent(trx, { ...args });
 
-            // relate event to group
-            await addEventGroup(knex, { eventId, ...args });
+                // relate event to group
+                await addEventGroup(trx, { eventId, ...args });
 
-            // add participants to event
-            const participantIds = await addEventParticipants(knex, {
-                eventId,
-                participantIds: args.participants,
+                // add participants to event
+                const participantIds = await addEventParticipants(trx, {
+                    eventId,
+                    participantIds: args.participants,
+                });
+
+                // get submitter contact
+                const contact = await getContact(customGraph, { ...args });
+
+                // submit mp form
+                DanyService.getSingleton().setMetaData(this.metadata);
+                await submitAttendanceForm({ formId, participantIds, contact, ...args });
+
+                return {
+                    groupId: args.groupId,
+                    eventId,
+                    date: dayjs(args.date).toISOString(),
+                    participants: participantIds,
+                    anonCount: args.anonCount,
+                    childCount: args.childCount,
+                    feedback: args.feedback,
+                };
             });
-
-            // get submitter contact
-            const contact = await getContact(customGraph, { ...args });
-
-            // submit mp form
-            DanyService.getSingleton().setMetaData(this.metadata);
-            await submitAttendanceForm({ formId, participantIds, contact, ...args });
-
-            return {
-                groupId: args.groupId,
-                eventId,
-                date: args.date,
-                participants: participantIds,
-                anonCount: args.anonCount,
-                childCount: args.childCount,
-                feedback: args.feedback,
-            };
         } catch (err) {
-            if (err instanceof Error) {
-                console.log(JSON.stringify(serializeError(err)));
-                return err;
-            } else {
-                console.log("An unknown error occurred.");
-                return new Error("An unknown error occurred.");
-            }
+            return errorHelper(err);
         }
     };
 }

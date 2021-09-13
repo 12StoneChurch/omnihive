@@ -8,8 +8,8 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import j from "joi";
 
 import { GroupMemberSummary } from "../models/GroupMember";
-import { countGroupParticipants } from "../queries/countGroupMembers";
-import { getGroupParticipants } from "../queries/getGroupMembers";
+import { countGroupParticipants } from "../queries/countGroupParticipants";
+import { getGroupParticipants } from "../queries/getGroupParticipants";
 
 interface Args {
     groupId: number;

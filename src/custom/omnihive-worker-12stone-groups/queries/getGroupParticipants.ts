@@ -35,6 +35,7 @@ export const getGroupParticipants: GroupParticipantsGetter = async (knex, { grou
         .leftJoin("dp_files as f", { "f.record_id": "c.contact_id", "f.page_id": 292, "f.default_image": 1 })
         .where("gp.group_id", groupId)
         .and.whereRaw("isnull(gp.end_date, '1/1/2100') >= getdate()")
+        .orderBy("c.last_name")
         .limit(perPage)
         .offset((page - 1) * perPage)) as SelectGroupParticipantsDTO;
 

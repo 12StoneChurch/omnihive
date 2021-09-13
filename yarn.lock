@@ -33,7 +33,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-analytics@workspace:*, @12stonechurch/omnihive-worker-analytics@workspace:src/custom/omnihive-worker-12stone-analytics":
+"@12stonechurch/omnihive-worker-analytics@workspace:src/custom/omnihive-worker-12stone-analytics":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-analytics@workspace:src/custom/omnihive-worker-12stone-analytics"
   dependencies:
@@ -89,6 +89,26 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@12stonechurch/omnihive-worker-cloudinary@npm:2.0.10":
+  version: 2.0.10
+  resolution: "@12stonechurch/omnihive-worker-cloudinary@npm:2.0.10"
+  dependencies:
+    "@withonevision/omnihive-core": 6.2.54
+    cloudinary: 1.26.1
+  checksum: 67d02e0d10cb9f1151f9db1fc3bdba98ebba6c949b43fde786db1cd1c27a2bd1a12a791f7b87aaa8369e147af49d5750eacf0ef41aaf71692d9c765f5d358f70
+  languageName: node
+  linkType: hard
+
+"@12stonechurch/omnihive-worker-cloudinary@npm:2.0.41":
+  version: 2.0.41
+  resolution: "@12stonechurch/omnihive-worker-cloudinary@npm:2.0.41"
+  dependencies:
+    "@withonevision/omnihive-core": 6.2.54
+    cloudinary: 1.26.1
+  checksum: 1a3737455a236bfa1e64aad6446cfec247f9a39d544b45f6f412431758d7f988a2603d011f739af074e82707331fd6b9209a158a9328a721b9c951e491bf8415
+  languageName: node
+  linkType: hard
+
 "@12stonechurch/omnihive-worker-cloudinary@workspace:*, @12stonechurch/omnihive-worker-cloudinary@workspace:src/custom/omnihive-worker-cloudinary":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-cloudinary@workspace:src/custom/omnihive-worker-cloudinary"
@@ -100,7 +120,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-cms@workspace:*, @12stonechurch/omnihive-worker-cms@workspace:src/custom/omnihive-worker-12stone-cms":
+"@12stonechurch/omnihive-worker-cms@workspace:src/custom/omnihive-worker-12stone-cms":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-cms@workspace:src/custom/omnihive-worker-12stone-cms"
   dependencies:
@@ -130,6 +150,20 @@ __metadata:
     typescript: 4.2.4
   languageName: unknown
   linkType: soft
+
+"@12stonechurch/omnihive-worker-common@npm:2.0.10":
+  version: 2.0.10
+  resolution: "@12stonechurch/omnihive-worker-common@npm:2.0.10"
+  dependencies:
+    "@12stonechurch/omnihive-worker-cloudinary": 2.0.10
+    "@12stonechurch/omnihive-worker-elastic": 2.0.10
+    "@withonevision/omnihive-client": 6.2.54
+    "@withonevision/omnihive-core": 6.2.54
+    axios: 0.21.1
+    serialize-error: 8.1.0
+  checksum: a841d56b8ae3036f4d742e31e78183d4fbbee31610b2412e7901a111ae3b5925119838e0b680e397f4b6c86364ec41057937a6a49a9442b9f1d6e2814360e6ec
+  languageName: node
+  linkType: hard
 
 "@12stonechurch/omnihive-worker-common@workspace:*, @12stonechurch/omnihive-worker-common@workspace:src/custom/omnihive-worker-12stone-common":
   version: 0.0.0-use.local
@@ -161,7 +195,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-communications@workspace:*, @12stonechurch/omnihive-worker-communications@workspace:src/custom/omnihive-worker-12stone-communications":
+"@12stonechurch/omnihive-worker-communications@workspace:src/custom/omnihive-worker-12stone-communications":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-communications@workspace:src/custom/omnihive-worker-12stone-communications"
   dependencies:
@@ -235,6 +269,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@12stonechurch/omnihive-worker-elastic@npm:2.0.10":
+  version: 2.0.10
+  resolution: "@12stonechurch/omnihive-worker-elastic@npm:2.0.10"
+  dependencies:
+    "@elastic/elasticsearch": 7.13.0
+    "@withonevision/omnihive-core": 6.2.54
+    serialize-error: 8.1.0
+  checksum: eccb41faa99ab7898bac8999eff2dbd7e06cd9a8805d55d73c7f01eeed1f6d79706959d2b1a4d932793beeaa53ec223701e41c71b1d988984e645fa2a6e22d38
+  languageName: node
+  linkType: hard
+
 "@12stonechurch/omnihive-worker-elastic@workspace:*, @12stonechurch/omnihive-worker-elastic@workspace:src/custom/omnihive-worker-elastic":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-elastic@workspace:src/custom/omnihive-worker-elastic"
@@ -275,7 +320,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-events@workspace:*, @12stonechurch/omnihive-worker-events@workspace:src/custom/omnihive-worker-12stone-events":
+"@12stonechurch/omnihive-worker-events@workspace:src/custom/omnihive-worker-12stone-events":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-events@workspace:src/custom/omnihive-worker-12stone-events"
   dependencies:
@@ -333,7 +378,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-graphql-builder-v1@workspace:*, @12stonechurch/omnihive-worker-graphql-builder-v1@workspace:src/custom/omnihive-worker-graphql-builder-v1":
+"@12stonechurch/omnihive-worker-graphql-builder-v1@npm:2.0.10":
+  version: 2.0.10
+  resolution: "@12stonechurch/omnihive-worker-graphql-builder-v1@npm:2.0.10"
+  dependencies:
+    "@withonevision/omnihive-core": 6.2.54
+    graphql: 15.5.0
+    knex: 0.95.7
+    lodash: 4.17.21
+    pluralize: 8.0.0
+  checksum: 09d76debad76a735fbfdafece5241668e8826917f853ba9eea99a945713ac8e686c17a7d3a894e7395eabd64e8faac61c4c311638f138f875d21eee1b28e0426
+  languageName: node
+  linkType: hard
+
+"@12stonechurch/omnihive-worker-graphql-builder-v1@workspace:src/custom/omnihive-worker-graphql-builder-v1":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-graphql-builder-v1@workspace:src/custom/omnihive-worker-graphql-builder-v1"
   dependencies:
@@ -379,7 +437,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-media@workspace:*, @12stonechurch/omnihive-worker-media@workspace:src/custom/omnihive-worker-12stone-media":
+"@12stonechurch/omnihive-worker-media@npm:2.0.10":
+  version: 2.0.10
+  resolution: "@12stonechurch/omnihive-worker-media@npm:2.0.10"
+  dependencies:
+    "@12stonechurch/omnihive-worker-common": 2.0.10
+    "@withonevision/omnihive-core": 6.2.54
+    serialize-error: 8.1.0
+  checksum: 452ebf9f7b5ca67e5648f5c8474770c271d308adaaae36bd92b10ecd09a03dc69b00445e799992af3e4512f94573149af97c577f96d5a456e7082a18ddfb1cd5
+  languageName: node
+  linkType: hard
+
+"@12stonechurch/omnihive-worker-media@workspace:src/custom/omnihive-worker-12stone-media":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-media@workspace:src/custom/omnihive-worker-12stone-media"
   dependencies:
@@ -405,7 +474,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-next@workspace:*, @12stonechurch/omnihive-worker-next@workspace:src/custom/omnihive-worker-12stone-next":
+"@12stonechurch/omnihive-worker-next@workspace:src/custom/omnihive-worker-12stone-next":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-next@workspace:src/custom/omnihive-worker-12stone-next"
   dependencies:
@@ -429,7 +498,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-old-versions@workspace:*, @12stonechurch/omnihive-worker-old-versions@workspace:src/custom/omnihive-worker-12stone-old-versions":
+"@12stonechurch/omnihive-worker-old-versions@workspace:src/custom/omnihive-worker-12stone-old-versions":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-old-versions@workspace:src/custom/omnihive-worker-12stone-old-versions"
   dependencies:
@@ -454,7 +523,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-trainings@workspace:*, @12stonechurch/omnihive-worker-trainings@workspace:src/custom/omnihive-worker-12stone-trainings":
+"@12stonechurch/omnihive-worker-trainings@workspace:src/custom/omnihive-worker-12stone-trainings":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-trainings@workspace:src/custom/omnihive-worker-12stone-trainings"
   dependencies:
@@ -507,7 +576,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-watch@workspace:*, @12stonechurch/omnihive-worker-watch@workspace:src/custom/omnihive-worker-12stone-watch":
+"@12stonechurch/omnihive-worker-watch@workspace:src/custom/omnihive-worker-12stone-watch":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-watch@workspace:src/custom/omnihive-worker-12stone-watch"
   dependencies:
@@ -3601,6 +3670,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@withonevision/omnihive-core@npm:6.2.62":
+  version: 6.2.62
+  resolution: "@withonevision/omnihive-core@npm:6.2.62"
+  dependencies:
+    graphql: 15.5.0
+  checksum: 2bb33b26e413349dfd689e8d6cd91e96c5fedca84ad8ebc47ad97b6f64d5ce1d5040bb53d9a80f28f5272bad2010dee7c2416b64d688258efd9656ce748dff16
+  languageName: node
+  linkType: hard
+
 "@withonevision/omnihive-core@workspace:*, @withonevision/omnihive-core@workspace:src/packages/omnihive-core":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-core@workspace:src/packages/omnihive-core"
@@ -3799,7 +3877,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@withonevision/omnihive-worker-graphql-builder-v2@workspace:*, @withonevision/omnihive-worker-graphql-builder-v2@workspace:src/packages/omnihive-worker-graphql-builder-v2":
+"@withonevision/omnihive-worker-graphql-builder-v2@npm:6.2.62":
+  version: 6.2.62
+  resolution: "@withonevision/omnihive-worker-graphql-builder-v2@npm:6.2.62"
+  dependencies:
+    "@graphql-tools/merge": 6.2.14
+    "@graphql-tools/schema": 7.1.5
+    "@withonevision/omnihive-core": 6.2.62
+    apollo-server: 2.25.2
+    graphql: 15.5.0
+    json5: 2.2.0
+    knex: 0.95.7
+    lodash: 4.17.21
+    pluralize: 8.0.0
+  checksum: b657b4d6abfa5de41b49be02e11d5240461a9258216e6e5afc8173c891b31e47f5622d3b769728749eed21a5ede763d3412ed4722a70808fe908fa919f67d33e
+  languageName: node
+  linkType: hard
+
+"@withonevision/omnihive-worker-graphql-builder-v2@workspace:src/packages/omnihive-worker-graphql-builder-v2":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-worker-graphql-builder-v2@workspace:src/packages/omnihive-worker-graphql-builder-v2"
   dependencies:
@@ -12041,22 +12136,13 @@ fsevents@^1.2.7:
   version: 0.0.0-use.local
   resolution: "omnihive@workspace:src/packages/omnihive"
   dependencies:
-    "@12stonechurch/omnihive-worker-analytics": "workspace:*"
     "@12stonechurch/omnihive-worker-auth": "workspace:*"
-    "@12stonechurch/omnihive-worker-cloudinary": "workspace:*"
-    "@12stonechurch/omnihive-worker-cms": "workspace:*"
-    "@12stonechurch/omnihive-worker-communications": "workspace:*"
+    "@12stonechurch/omnihive-worker-cloudinary": 2.0.41
     "@12stonechurch/omnihive-worker-contacts": "workspace:*"
-    "@12stonechurch/omnihive-worker-elastic": "workspace:*"
     "@12stonechurch/omnihive-worker-engagements": "workspace:*"
-    "@12stonechurch/omnihive-worker-events": "workspace:*"
-    "@12stonechurch/omnihive-worker-graphql-builder-v1": "workspace:*"
+    "@12stonechurch/omnihive-worker-graphql-builder-v1": 2.0.10
     "@12stonechurch/omnihive-worker-groups": "workspace:*"
-    "@12stonechurch/omnihive-worker-media": "workspace:*"
-    "@12stonechurch/omnihive-worker-next": "workspace:*"
-    "@12stonechurch/omnihive-worker-old-versions": "workspace:*"
-    "@12stonechurch/omnihive-worker-trainings": "workspace:*"
-    "@12stonechurch/omnihive-worker-watch": "workspace:*"
+    "@12stonechurch/omnihive-worker-media": 2.0.10
     "@socket.io/redis-adapter": 7.0.0
     "@socket.io/redis-emitter": 4.1.0
     "@types/cors": 2.8.10
@@ -12082,7 +12168,7 @@ fsevents@^1.2.7:
     "@withonevision/omnihive-worker-encryption-nodeforge": "workspace:*"
     "@withonevision/omnihive-worker-filesystem-fsextra": "workspace:*"
     "@withonevision/omnihive-worker-function-core": "workspace:*"
-    "@withonevision/omnihive-worker-graphql-builder-v2": "workspace:*"
+    "@withonevision/omnihive-worker-graphql-builder-v2": 6.2.62
     "@withonevision/omnihive-worker-knex-mssql": "workspace:*"
     "@withonevision/omnihive-worker-log-core": "workspace:*"
     "@withonevision/omnihive-worker-server-v1": "workspace:*"

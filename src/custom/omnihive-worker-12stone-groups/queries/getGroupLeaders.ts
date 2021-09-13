@@ -19,7 +19,8 @@ export const getGroupLeaders: GroupLeadersGetter = async (knex, { groupId }) => 
         .leftJoin("group_roles as gr", "gr.group_role_id", "gp.group_role_id")
         .leftJoin("contacts as c", "c.participant_record", "gp.participant_id")
         .where("gp.group_id", groupId)
-        .and.where("gr.role_title", "Leader")) as SelectGroupParticipantsDTO;
+        .and.where("gr.role_title", "Leader")
+        .and.whereRaw("isnull(gp.end_date, '1/1/2100') >= getdate()")) as SelectGroupParticipantsDTO;
 
     return result.map<GroupLeaderSummary>((row) => ({
         contactId: row.contact_id,

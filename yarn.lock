@@ -254,6 +254,33 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@12stonechurch/omnihive-worker-documents@workspace:src/custom/omnihive-worker-12stone-documents":
+  version: 0.0.0-use.local
+  resolution: "@12stonechurch/omnihive-worker-documents@workspace:src/custom/omnihive-worker-12stone-documents"
+  dependencies:
+    "@istanbuljs/nyc-config-typescript": 1.0.1
+    "@types/chai": 4.2.19
+    "@types/mocha": 8.2.2
+    "@types/node": 15.12.5
+    "@typescript-eslint/eslint-plugin": 4.28.1
+    "@typescript-eslint/parser": 4.28.1
+    "@withonevision/omnihive-core": 6.2.62
+    axios: 0.21.4
+    chai: 4.3.4
+    dayjs: 1.10.7
+    eslint: 7.29.0
+    eslint-config-prettier: 8.3.0
+    eslint-plugin-prettier: 3.4.0
+    knex: 0.95.11
+    mocha: 9.0.1
+    nyc: 15.1.0
+    prettier: 2.3.2
+    source-map-support: 0.5.19
+    ts-node: 10.0.0
+    typescript: 4.2.4
+  languageName: unknown
+  linkType: soft
+
 "@12stonechurch/omnihive-worker-docusign@workspace:src/custom/omnihive-worker-docusign":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-docusign@workspace:src/custom/omnihive-worker-docusign"
@@ -6487,6 +6514,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dayjs@npm:1.10.7":
+  version: 1.10.7
+  resolution: "dayjs@npm:1.10.7"
+  checksum: a0a4ca95abaa03d0702161dc2c35d16121188e342f5052b9c61cdf784dab68af766f477c04f87f71c6af666fd4d13db9b9853b87265850d6093b7b04e1bb1cd7
+  languageName: node
+  linkType: hard
+
 "dayjs@npm:^1.8.29":
   version: 1.10.6
   resolution: "dayjs@npm:1.10.6"
@@ -10373,6 +10407,40 @@ fsevents@^1.2.7:
   version: 6.0.3
   resolution: "kind-of@npm:6.0.3"
   checksum: 3ab01e7b1d440b22fe4c31f23d8d38b4d9b91d9f291df683476576493d5dfd2e03848a8b05813dd0c3f0e835bc63f433007ddeceb71f05cb25c45ae1b19c6d3b
+  languageName: node
+  linkType: hard
+
+"knex@npm:0.95.11":
+  version: 0.95.11
+  resolution: "knex@npm:0.95.11"
+  dependencies:
+    colorette: 1.2.1
+    commander: ^7.1.0
+    debug: 4.3.2
+    escalade: ^3.1.1
+    esm: ^3.2.25
+    getopts: 2.2.5
+    interpret: ^2.2.0
+    lodash: ^4.17.21
+    pg-connection-string: 2.5.0
+    rechoir: 0.7.0
+    resolve-from: ^5.0.0
+    tarn: ^3.0.1
+    tildify: 2.0.0
+  peerDependenciesMeta:
+    mysql:
+      optional: true
+    mysql2:
+      optional: true
+    pg:
+      optional: true
+    sqlite3:
+      optional: true
+    tedious:
+      optional: true
+  bin:
+    knex: bin/cli.js
+  checksum: a0a4451dad286e1bdec17380514e402d4b27130edb19775f4a41d5789e14811b4aaa52c0a359655cb7710aa456daa035df764d1086440e1756c2a2c4e71186b3
   languageName: node
   linkType: hard
 

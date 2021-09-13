@@ -3,6 +3,8 @@ export interface BaseGroupMemberSummary {
     participantId: number;
     firstName: string;
     lastName: string;
+    email: string;
+    phone?: string;
     startDate: string;
     isLeader: boolean;
     photoGuid?: string;

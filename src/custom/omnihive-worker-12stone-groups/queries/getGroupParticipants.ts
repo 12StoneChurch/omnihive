@@ -8,9 +8,11 @@ type SelectGroupParticipantsDTO = {
     contact_id: number;
     nickname: string;
     last_name: string;
+    email_address: string;
+    mobile_phone: string | null;
     start_date: Date;
     is_leader: boolean;
-    photo_guid?: string;
+    photo_guid: string | null;
 }[];
 
 interface GroupParticipantsGetter {
@@ -24,6 +26,8 @@ export const getGroupParticipants: GroupParticipantsGetter = async (knex, { grou
             "c.contact_id",
             "c.nickname",
             "c.last_name",
+            "c.email_address",
+            "c.mobile_phone",
             "gp.start_date",
             knex.raw("iif(gr.role_title = 'Leader', 1, 0) as is_leader"),
             "f.unique_name as photo_guid",
@@ -44,8 +48,10 @@ export const getGroupParticipants: GroupParticipantsGetter = async (knex, { grou
         contactId: row.contact_id,
         firstName: row.nickname,
         lastName: row.last_name,
+        email: row.email_address,
+        phone: row.mobile_phone ?? undefined,
         startDate: dayjs(row.start_date).toISOString(),
         isLeader: row.is_leader ? true : false,
-        photoGuid: row.photo_guid,
+        photoGuid: row.photo_guid ?? undefined,
     }));
 };

@@ -1,0 +1,9 @@
+export const getContactData = async (url: string, id: number): Promise<any> => {
+    const query = `
+        {
+            data: GetContact(customArgs: { contactId: ${id} })
+        }
+    `;
+
+    return (await global.omnihive.serverClient.graphClient(url, query)).data;
+};

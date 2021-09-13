@@ -41,8 +41,6 @@ export default class GetGroupMembers extends HiveWorkerBase implements IGraphEnd
 
                 const members = await Promise.all(
                     participants.map(async (participant) => {
-                        console.log({ participant });
-
                         const { photoGuid, ...participantRest } = participant;
 
                         let photoUrl: string | undefined = undefined;
@@ -50,14 +48,10 @@ export default class GetGroupMembers extends HiveWorkerBase implements IGraphEnd
                         if (photoGuid) {
                             const {
                                 GetCdnUrl: { url },
-                            } = await customGraph.runQuery(
-                                `query{GetCdnUrl(customArgs:{UniqueName:"${participant.photoGuid}"})}`
-                            );
+                            } = await customGraph.runQuery(`query{GetCdnUrl(customArgs:{UniqueName:"${photoGuid}"})}`);
 
                             photoUrl = url;
                         }
-
-                        console.log({ photoUrl });
 
                         return { ...participantRest, photoUrl };
                     })

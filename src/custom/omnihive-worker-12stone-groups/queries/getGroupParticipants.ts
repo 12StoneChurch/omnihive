@@ -6,6 +6,7 @@ import { BaseGroupMemberSummary } from "../models/GroupMember";
 type SelectGroupParticipantsDTO = {
     participant_id: number;
     contact_id: number;
+    household_id: number;
     nickname: string;
     last_name: string;
     email_address: string;
@@ -24,6 +25,7 @@ export const getGroupParticipants: GroupParticipantsGetter = async (knex, { grou
         .select([
             "gp.participant_id",
             "c.contact_id",
+            "c.household_id",
             "c.nickname",
             "c.last_name",
             "c.email_address",
@@ -46,6 +48,7 @@ export const getGroupParticipants: GroupParticipantsGetter = async (knex, { grou
     return result.map<BaseGroupMemberSummary>((row) => ({
         participantId: row.participant_id,
         contactId: row.contact_id,
+        householdId: row.household_id,
         firstName: row.nickname,
         lastName: row.last_name,
         email: row.email_address,

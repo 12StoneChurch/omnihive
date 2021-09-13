@@ -1,5 +1,7 @@
 import { Knex } from "knex";
 
+type InsertEventParticipantsDTO = number[];
+
 interface EventParticipantsAdder {
     (knex: Knex, opts: { eventId: number; participantIds: number[] }): Promise<number[]>;
 }
@@ -13,10 +15,10 @@ export const addEventParticipants: EventParticipantsAdder = async (knex, { event
             domain_id: 1,
         }));
 
-        const eventParticipantIds = await knex
+        const eventParticipantIds = (await knex
             .insert(data)
             .into("event_participants")
-            .returning<number[]>("participant_id");
+            .returning("participant_id")) as InsertEventParticipantsDTO;
 
         return eventParticipantIds;
     }

@@ -1,15 +1,16 @@
+import { errorHelper } from "@12stonechurch/omnihive-worker-common/helpers/ErrorHelper";
 import { getExecuteContext } from "@12stonechurch/omnihive-worker-common/helpers/ExecuteHelper";
 import { DanyService } from "@12stonechurch/omnihive-worker-common/services/DanyService";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import j from "joi";
-import { serializeError } from "serialize-error";
 
 import { MemberFormId } from "../common/constants";
 import { addGroupParticipant } from "../queries/addGroupParticipant";
 import { addParticipantRecord } from "../queries/addParticipantRecord";
 import { getContact } from "../queries/getContact";
+import { getParticipantExistsInGroup } from "../queries/getParticipantExistsInGroup";
 import { submitMemberForm } from "../queries/submitMemberForm";
 
 interface Args {
@@ -29,7 +30,7 @@ const argsSchema = j.object({
 });
 
 export default class AddGroupMember extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (rawArgs: unknown, context: GraphContext): Promise<{} | Error> => {
+    public execute = async (rawArgs: unknown, context: GraphContext): Promise<{ [K in any]: never } | Error> => {
         try {
             const { args, knex, customGraph } = await getExecuteContext<Args>({
                 worker: this,
@@ -38,7 +39,6 @@ export default class AddGroupMember extends HiveWorkerBase implements IGraphEndp
                 argsSchema,
             });
 
-            // set up form id
             let formId: number;
 
             switch (this.metadata.environment) {
@@ -55,31 +55,32 @@ export default class AddGroupMember extends HiveWorkerBase implements IGraphEndp
                     throw new Error(`Unknown metadata.environment value: ${this.metadata.environment}`);
             }
 
-            // submit mp form
             DanyService.getSingleton().setMetaData(this.metadata);
-            const contactId = await submitMemberForm({ formId, ...args });
 
-            // get contact
-            const contact = await getContact(customGraph, { contactId });
+            await knex.transaction(async (trx) => {
+                let participantId: number;
 
-            // create participant record if needed
-            if (!contact.participantId) {
-                const participantId = await addParticipantRecord(knex, { contactId: contact.id });
-                contact.participantId = participantId;
-            }
+                const contactId = await submitMemberForm({ formId, ...args });
+                const contact = await getContact(customGraph, { contactId });
 
-            // add participant to group
-            await addGroupParticipant(knex, { participantId: contact.participantId, ...args });
+                if (!contact.participantId) {
+                    participantId = await addParticipantRecord(trx, { contactId: contact.id });
+                } else {
+                    participantId = contact.participantId;
+                }
+
+                const exists = await getParticipantExistsInGroup(trx, { participantId, ...args });
+
+                if (exists) {
+                    throw new Error("Participant already exists in group.");
+                }
+
+                await addGroupParticipant(trx, { participantId, ...args });
+            });
 
             return {};
         } catch (err) {
-            if (err instanceof Error) {
-                console.log(JSON.stringify(serializeError(err)));
-                return err;
-            } else {
-                console.log("An unknown error occurred.");
-                return new Error("An unknown error occurred.");
-            }
+            return errorHelper(err);
         }
     };
 }

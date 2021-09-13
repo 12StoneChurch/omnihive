@@ -33,7 +33,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-analytics@workspace:*, @12stonechurch/omnihive-worker-analytics@workspace:src/custom/omnihive-worker-12stone-analytics":
+"@12stonechurch/omnihive-worker-analytics@workspace:src/custom/omnihive-worker-12stone-analytics":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-analytics@workspace:src/custom/omnihive-worker-12stone-analytics"
   dependencies:
@@ -89,6 +89,26 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@12stonechurch/omnihive-worker-cloudinary@npm:2.0.10":
+  version: 2.0.10
+  resolution: "@12stonechurch/omnihive-worker-cloudinary@npm:2.0.10"
+  dependencies:
+    "@withonevision/omnihive-core": 6.2.54
+    cloudinary: 1.26.1
+  checksum: 67d02e0d10cb9f1151f9db1fc3bdba98ebba6c949b43fde786db1cd1c27a2bd1a12a791f7b87aaa8369e147af49d5750eacf0ef41aaf71692d9c765f5d358f70
+  languageName: node
+  linkType: hard
+
+"@12stonechurch/omnihive-worker-cloudinary@npm:2.0.41":
+  version: 2.0.41
+  resolution: "@12stonechurch/omnihive-worker-cloudinary@npm:2.0.41"
+  dependencies:
+    "@withonevision/omnihive-core": 6.2.54
+    cloudinary: 1.26.1
+  checksum: 1a3737455a236bfa1e64aad6446cfec247f9a39d544b45f6f412431758d7f988a2603d011f739af074e82707331fd6b9209a158a9328a721b9c951e491bf8415
+  languageName: node
+  linkType: hard
+
 "@12stonechurch/omnihive-worker-cloudinary@workspace:*, @12stonechurch/omnihive-worker-cloudinary@workspace:src/custom/omnihive-worker-cloudinary":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-cloudinary@workspace:src/custom/omnihive-worker-cloudinary"
@@ -100,7 +120,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-cms@workspace:*, @12stonechurch/omnihive-worker-cms@workspace:src/custom/omnihive-worker-12stone-cms":
+"@12stonechurch/omnihive-worker-cms@workspace:src/custom/omnihive-worker-12stone-cms":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-cms@workspace:src/custom/omnihive-worker-12stone-cms"
   dependencies:
@@ -130,6 +150,20 @@ __metadata:
     typescript: 4.2.4
   languageName: unknown
   linkType: soft
+
+"@12stonechurch/omnihive-worker-common@npm:2.0.10":
+  version: 2.0.10
+  resolution: "@12stonechurch/omnihive-worker-common@npm:2.0.10"
+  dependencies:
+    "@12stonechurch/omnihive-worker-cloudinary": 2.0.10
+    "@12stonechurch/omnihive-worker-elastic": 2.0.10
+    "@withonevision/omnihive-client": 6.2.54
+    "@withonevision/omnihive-core": 6.2.54
+    axios: 0.21.1
+    serialize-error: 8.1.0
+  checksum: a841d56b8ae3036f4d742e31e78183d4fbbee31610b2412e7901a111ae3b5925119838e0b680e397f4b6c86364ec41057937a6a49a9442b9f1d6e2814360e6ec
+  languageName: node
+  linkType: hard
 
 "@12stonechurch/omnihive-worker-common@workspace:*, @12stonechurch/omnihive-worker-common@workspace:src/custom/omnihive-worker-12stone-common":
   version: 0.0.0-use.local
@@ -161,7 +195,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-communications@workspace:*, @12stonechurch/omnihive-worker-communications@workspace:src/custom/omnihive-worker-12stone-communications":
+"@12stonechurch/omnihive-worker-communications@workspace:src/custom/omnihive-worker-12stone-communications":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-communications@workspace:src/custom/omnihive-worker-12stone-communications"
   dependencies:
@@ -220,6 +254,32 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@12stonechurch/omnihive-worker-docusign@workspace:src/custom/omnihive-worker-docusign":
+  version: 0.0.0-use.local
+  resolution: "@12stonechurch/omnihive-worker-docusign@workspace:src/custom/omnihive-worker-docusign"
+  dependencies:
+    "@types/docusign-esign": 5.5.1
+    "@withonevision/omnihive-core": 6.2.54
+    axios: 0.21.4
+    chai: 4.3.4
+    docusign-esign: 4.14.0
+    jsonwebtoken: 8.5.1
+    serialize-error: 8.1.0
+    typescript: 4.2.4
+  languageName: unknown
+  linkType: soft
+
+"@12stonechurch/omnihive-worker-elastic@npm:2.0.10":
+  version: 2.0.10
+  resolution: "@12stonechurch/omnihive-worker-elastic@npm:2.0.10"
+  dependencies:
+    "@elastic/elasticsearch": 7.13.0
+    "@withonevision/omnihive-core": 6.2.54
+    serialize-error: 8.1.0
+  checksum: eccb41faa99ab7898bac8999eff2dbd7e06cd9a8805d55d73c7f01eeed1f6d79706959d2b1a4d932793beeaa53ec223701e41c71b1d988984e645fa2a6e22d38
+  languageName: node
+  linkType: hard
+
 "@12stonechurch/omnihive-worker-elastic@workspace:*, @12stonechurch/omnihive-worker-elastic@workspace:src/custom/omnihive-worker-elastic":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-elastic@workspace:src/custom/omnihive-worker-elastic"
@@ -260,7 +320,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-events@workspace:*, @12stonechurch/omnihive-worker-events@workspace:src/custom/omnihive-worker-12stone-events":
+"@12stonechurch/omnihive-worker-events@workspace:src/custom/omnihive-worker-12stone-events":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-events@workspace:src/custom/omnihive-worker-12stone-events"
   dependencies:
@@ -318,7 +378,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-graphql-builder-v1@workspace:*, @12stonechurch/omnihive-worker-graphql-builder-v1@workspace:src/custom/omnihive-worker-graphql-builder-v1":
+"@12stonechurch/omnihive-worker-graphql-builder-v1@npm:2.0.10":
+  version: 2.0.10
+  resolution: "@12stonechurch/omnihive-worker-graphql-builder-v1@npm:2.0.10"
+  dependencies:
+    "@withonevision/omnihive-core": 6.2.54
+    graphql: 15.5.0
+    knex: 0.95.7
+    lodash: 4.17.21
+    pluralize: 8.0.0
+  checksum: 09d76debad76a735fbfdafece5241668e8826917f853ba9eea99a945713ac8e686c17a7d3a894e7395eabd64e8faac61c4c311638f138f875d21eee1b28e0426
+  languageName: node
+  linkType: hard
+
+"@12stonechurch/omnihive-worker-graphql-builder-v1@workspace:src/custom/omnihive-worker-graphql-builder-v1":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-graphql-builder-v1@workspace:src/custom/omnihive-worker-graphql-builder-v1"
   dependencies:
@@ -364,7 +437,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-media@workspace:*, @12stonechurch/omnihive-worker-media@workspace:src/custom/omnihive-worker-12stone-media":
+"@12stonechurch/omnihive-worker-media@npm:2.0.10":
+  version: 2.0.10
+  resolution: "@12stonechurch/omnihive-worker-media@npm:2.0.10"
+  dependencies:
+    "@12stonechurch/omnihive-worker-common": 2.0.10
+    "@withonevision/omnihive-core": 6.2.54
+    serialize-error: 8.1.0
+  checksum: 452ebf9f7b5ca67e5648f5c8474770c271d308adaaae36bd92b10ecd09a03dc69b00445e799992af3e4512f94573149af97c577f96d5a456e7082a18ddfb1cd5
+  languageName: node
+  linkType: hard
+
+"@12stonechurch/omnihive-worker-media@workspace:src/custom/omnihive-worker-12stone-media":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-media@workspace:src/custom/omnihive-worker-12stone-media"
   dependencies:
@@ -390,7 +474,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-next@workspace:*, @12stonechurch/omnihive-worker-next@workspace:src/custom/omnihive-worker-12stone-next":
+"@12stonechurch/omnihive-worker-next@workspace:src/custom/omnihive-worker-12stone-next":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-next@workspace:src/custom/omnihive-worker-12stone-next"
   dependencies:
@@ -414,7 +498,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-old-versions@workspace:*, @12stonechurch/omnihive-worker-old-versions@workspace:src/custom/omnihive-worker-12stone-old-versions":
+"@12stonechurch/omnihive-worker-old-versions@workspace:src/custom/omnihive-worker-12stone-old-versions":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-old-versions@workspace:src/custom/omnihive-worker-12stone-old-versions"
   dependencies:
@@ -439,7 +523,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-trainings@workspace:*, @12stonechurch/omnihive-worker-trainings@workspace:src/custom/omnihive-worker-12stone-trainings":
+"@12stonechurch/omnihive-worker-trainings@workspace:src/custom/omnihive-worker-12stone-trainings":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-trainings@workspace:src/custom/omnihive-worker-12stone-trainings"
   dependencies:
@@ -492,7 +576,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-watch@workspace:*, @12stonechurch/omnihive-worker-watch@workspace:src/custom/omnihive-worker-12stone-watch":
+"@12stonechurch/omnihive-worker-watch@workspace:src/custom/omnihive-worker-12stone-watch":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-watch@workspace:src/custom/omnihive-worker-12stone-watch"
   dependencies:
@@ -2812,6 +2896,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/docusign-esign@npm:5.5.1":
+  version: 5.5.1
+  resolution: "@types/docusign-esign@npm:5.5.1"
+  dependencies:
+    "@types/node": "*"
+  checksum: ae98242c32e566238a9fdb03c0214f402b4a4f06eb15428c6e344013b9e84f511ede29b4317cd038bb22c750c2224fea071e27ffa80a0a53f0bbf762edef0b1f
+  languageName: node
+  linkType: hard
+
 "@types/express-jwt@npm:0.0.42":
   version: 0.0.42
   resolution: "@types/express-jwt@npm:0.0.42"
@@ -3577,6 +3670,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@withonevision/omnihive-core@npm:6.2.62":
+  version: 6.2.62
+  resolution: "@withonevision/omnihive-core@npm:6.2.62"
+  dependencies:
+    graphql: 15.5.0
+  checksum: 2bb33b26e413349dfd689e8d6cd91e96c5fedca84ad8ebc47ad97b6f64d5ce1d5040bb53d9a80f28f5272bad2010dee7c2416b64d688258efd9656ce748dff16
+  languageName: node
+  linkType: hard
+
 "@withonevision/omnihive-core@workspace:*, @withonevision/omnihive-core@workspace:src/packages/omnihive-core":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-core@workspace:src/packages/omnihive-core"
@@ -3775,7 +3877,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@withonevision/omnihive-worker-graphql-builder-v2@workspace:*, @withonevision/omnihive-worker-graphql-builder-v2@workspace:src/packages/omnihive-worker-graphql-builder-v2":
+"@withonevision/omnihive-worker-graphql-builder-v2@npm:6.2.62":
+  version: 6.2.62
+  resolution: "@withonevision/omnihive-worker-graphql-builder-v2@npm:6.2.62"
+  dependencies:
+    "@graphql-tools/merge": 6.2.14
+    "@graphql-tools/schema": 7.1.5
+    "@withonevision/omnihive-core": 6.2.62
+    apollo-server: 2.25.2
+    graphql: 15.5.0
+    json5: 2.2.0
+    knex: 0.95.7
+    lodash: 4.17.21
+    pluralize: 8.0.0
+  checksum: b657b4d6abfa5de41b49be02e11d5240461a9258216e6e5afc8173c891b31e47f5622d3b769728749eed21a5ede763d3412ed4722a70808fe908fa919f67d33e
+  languageName: node
+  linkType: hard
+
+"@withonevision/omnihive-worker-graphql-builder-v2@workspace:src/packages/omnihive-worker-graphql-builder-v2":
   version: 0.0.0-use.local
   resolution: "@withonevision/omnihive-worker-graphql-builder-v2@workspace:src/packages/omnihive-worker-graphql-builder-v2"
   dependencies:
@@ -4805,6 +4924,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axios@npm:0.21.4":
+  version: 0.21.4
+  resolution: "axios@npm:0.21.4"
+  dependencies:
+    follow-redirects: ^1.14.0
+  checksum: 44245f24ac971e7458f3120c92f9d66d1fc695e8b97019139de5b0cc65d9b8104647db01e5f46917728edfc0cfd88eb30fc4c55e6053eef4ace76768ce95ff3c
+  languageName: node
+  linkType: hard
+
 "babel-plugin-dynamic-import-node@npm:^2.3.3":
   version: 2.3.3
   resolution: "babel-plugin-dynamic-import-node@npm:2.3.3"
@@ -5803,7 +5931,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"component-emitter@npm:^1.2.1, component-emitter@npm:^1.3.0, component-emitter@npm:~1.3.0":
+"component-emitter@npm:^1.2.0, component-emitter@npm:^1.2.1, component-emitter@npm:^1.3.0, component-emitter@npm:~1.3.0":
   version: 1.3.0
   resolution: "component-emitter@npm:1.3.0"
   checksum: b3c46de38ffd35c57d1c02488355be9f218e582aec72d72d1b8bbec95a3ac1b38c96cd6e03ff015577e68f550fbb361a3bfdbd9bb248be9390b7b3745691be6b
@@ -6139,7 +6267,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookiejar@npm:^2.1.2":
+"cookiejar@npm:^2.1.0, cookiejar@npm:^2.1.2":
   version: 2.1.2
   resolution: "cookiejar@npm:2.1.2"
   checksum: 706cad1a56db51dfb13c1fef73dab8e7fabcfdfbe5d58d463139b4af1482603291832053cc85564bc998a05784956a6cf0ac667414a0a8d7765c65ed3ed42f3e
@@ -6260,6 +6388,15 @@ __metadata:
   version: 0.0.10
   resolution: "cssfilter@npm:0.0.10"
   checksum: bc2c52bbb3426c3f2e4832edb6f8573e6cfa65b40b540932762d1e018f0f0157725e2991b77344bbc8266c6bbf4daa2803b0707cfb1bd0877505bf83a68e4b04
+  languageName: node
+  linkType: hard
+
+"csv-stringify@npm:^1.0.0":
+  version: 1.1.2
+  resolution: "csv-stringify@npm:1.1.2"
+  dependencies:
+    lodash.get: ~4.4.2
+  checksum: 81e5c6c8e926b5c4a4816e6a2e1e0e645bc2e09175eef1dd4c32d162c8a8ea20a68d3071f0c877497a2219f246d12facd8a1ce88a41e930678c0ad2730ae8e65
   languageName: node
   linkType: hard
 
@@ -6687,6 +6824,19 @@ __metadata:
   dependencies:
     esutils: ^2.0.2
   checksum: fd7673ca77fe26cd5cba38d816bc72d641f500f1f9b25b83e8ce28827fe2da7ad583a8da26ab6af85f834138cf8dae9f69b0cd6ab925f52ddab1754db44d99ce
+  languageName: node
+  linkType: hard
+
+"docusign-esign@npm:4.14.0":
+  version: 4.14.0
+  resolution: "docusign-esign@npm:4.14.0"
+  dependencies:
+    csv-stringify: ^1.0.0
+    jsonwebtoken: 8.2.0
+    passport-oauth2: 1.4.0
+    safe-buffer: ^5.1.2
+    superagent: 3.8.2
+  checksum: 79ffbd05522ef6de3fe4c8f15338d32abf61233e9804bb17441ba4d9b6d0c850f543c2ea947db57e5eb8486456324ae733f92e3027cfa8892df6eddcd14fe739
   languageName: node
   linkType: hard
 
@@ -7460,7 +7610,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"extend@npm:^3.0.2, extend@npm:~3.0.2":
+"extend@npm:^3.0.0, extend@npm:^3.0.2, extend@npm:~3.0.2":
   version: 3.0.2
   resolution: "extend@npm:3.0.2"
   checksum: a50a8309ca65ea5d426382ff09f33586527882cf532931cb08ca786ea3146c0553310bda688710ff61d7668eba9f96b923fe1420cdf56a2c3eaf30fcab87b515
@@ -7845,6 +7995,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"follow-redirects@npm:^1.14.0":
+  version: 1.14.3
+  resolution: "follow-redirects@npm:1.14.3"
+  peerDependenciesMeta:
+    debug:
+      optional: true
+  checksum: b4d89339afd119b5e6fd92f0e81ae7d3621a5421af7d4a7d94539765c1d5546cf61d2f3219d40596e53c7c253307fbaf5dc772254aa9170fdfe1f9d7731732a9
+  languageName: node
+  linkType: hard
+
 "for-each@npm:^0.3.3":
   version: 0.3.3
   resolution: "for-each@npm:0.3.3"
@@ -7902,7 +8062,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"form-data@npm:^2.5.0":
+"form-data@npm:^2.3.1, form-data@npm:^2.5.0":
   version: 2.5.1
   resolution: "form-data@npm:2.5.1"
   dependencies:
@@ -7935,7 +8095,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"formidable@npm:^1.2.2":
+"formidable@npm:^1.1.1, formidable@npm:^1.2.2":
   version: 1.2.2
   resolution: "formidable@npm:1.2.2"
   checksum: 43b3ec9a8f8055112e1a9a40eb748cdcd86cb9076dc9a17b0caa2bc26908eeae865dbee62d7c4bc26681fb75c2f42d60323af9c9d06c843e94f51f9b46954a0a
@@ -10042,6 +10202,24 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"jsonwebtoken@npm:8.2.0":
+  version: 8.2.0
+  resolution: "jsonwebtoken@npm:8.2.0"
+  dependencies:
+    jws: ^3.1.4
+    lodash.includes: ^4.3.0
+    lodash.isboolean: ^3.0.3
+    lodash.isinteger: ^4.0.4
+    lodash.isnumber: ^3.0.3
+    lodash.isplainobject: ^4.0.6
+    lodash.isstring: ^4.0.1
+    lodash.once: ^4.0.0
+    ms: ^2.1.1
+    xtend: ^4.0.1
+  checksum: 3a6a7b14b59a84e7cfbc58a6e1af88478e2fade683014f9ed392a2982d3355553d73e53835162045bff44558889e481831b95f6318b8319a30e1b1324faf1aa0
+  languageName: node
+  linkType: hard
+
 "jsonwebtoken@npm:8.5.1, jsonwebtoken@npm:^8.5.1":
   version: 8.5.1
   resolution: "jsonwebtoken@npm:8.5.1"
@@ -10119,7 +10297,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"jws@npm:3.x.x, jws@npm:^3.2.2":
+"jws@npm:3.x.x, jws@npm:^3.1.4, jws@npm:^3.2.2":
   version: 3.2.2
   resolution: "jws@npm:3.2.2"
   dependencies:
@@ -10456,7 +10634,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"lodash.get@npm:^4.4.2":
+"lodash.get@npm:^4.4.2, lodash.get@npm:~4.4.2":
   version: 4.4.2
   resolution: "lodash.get@npm:4.4.2"
   checksum: e403047ddb03181c9d0e92df9556570e2b67e0f0a930fcbbbd779370972368f5568e914f913e93f3b08f6d492abc71e14d4e9b7a18916c31fa04bd2306efe545
@@ -10900,7 +11078,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"methods@npm:^1.1.2, methods@npm:~1.1.2":
+"methods@npm:^1.1.1, methods@npm:^1.1.2, methods@npm:~1.1.2":
   version: 1.1.2
   resolution: "methods@npm:1.1.2"
   checksum: 0917ff4041fa8e2f2fda5425a955fe16ca411591fbd123c0d722fcf02b73971ed6f764d85f0a6f547ce49ee0221ce2c19a5fa692157931cecb422984f1dcd13a
@@ -10954,7 +11132,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"mime@npm:1.6.0":
+"mime@npm:1.6.0, mime@npm:^1.4.1":
   version: 1.6.0
   resolution: "mime@npm:1.6.0"
   bin:
@@ -11867,6 +12045,13 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"oauth@npm:0.9.x":
+  version: 0.9.15
+  resolution: "oauth@npm:0.9.15"
+  checksum: 957c0d8d85300398dcb0e293953650c0fc3facc795bee8228238414f19f59cef5fd4ee8d17a972c142924c10c5f6ec50ef80f77f4a6cc6e3c98f9d22c027801c
+  languageName: node
+  linkType: hard
+
 "object-assign@npm:^4, object-assign@npm:^4.1.0, object-assign@npm:^4.1.1":
   version: 4.1.1
   resolution: "object-assign@npm:4.1.1"
@@ -11951,22 +12136,13 @@ fsevents@^1.2.7:
   version: 0.0.0-use.local
   resolution: "omnihive@workspace:src/packages/omnihive"
   dependencies:
-    "@12stonechurch/omnihive-worker-analytics": "workspace:*"
     "@12stonechurch/omnihive-worker-auth": "workspace:*"
-    "@12stonechurch/omnihive-worker-cloudinary": "workspace:*"
-    "@12stonechurch/omnihive-worker-cms": "workspace:*"
-    "@12stonechurch/omnihive-worker-communications": "workspace:*"
+    "@12stonechurch/omnihive-worker-cloudinary": 2.0.41
     "@12stonechurch/omnihive-worker-contacts": "workspace:*"
-    "@12stonechurch/omnihive-worker-elastic": "workspace:*"
     "@12stonechurch/omnihive-worker-engagements": "workspace:*"
-    "@12stonechurch/omnihive-worker-events": "workspace:*"
-    "@12stonechurch/omnihive-worker-graphql-builder-v1": "workspace:*"
+    "@12stonechurch/omnihive-worker-graphql-builder-v1": 2.0.10
     "@12stonechurch/omnihive-worker-groups": "workspace:*"
-    "@12stonechurch/omnihive-worker-media": "workspace:*"
-    "@12stonechurch/omnihive-worker-next": "workspace:*"
-    "@12stonechurch/omnihive-worker-old-versions": "workspace:*"
-    "@12stonechurch/omnihive-worker-trainings": "workspace:*"
-    "@12stonechurch/omnihive-worker-watch": "workspace:*"
+    "@12stonechurch/omnihive-worker-media": 2.0.10
     "@socket.io/redis-adapter": 7.0.0
     "@socket.io/redis-emitter": 4.1.0
     "@types/cors": 2.8.10
@@ -11992,7 +12168,7 @@ fsevents@^1.2.7:
     "@withonevision/omnihive-worker-encryption-nodeforge": "workspace:*"
     "@withonevision/omnihive-worker-filesystem-fsextra": "workspace:*"
     "@withonevision/omnihive-worker-function-core": "workspace:*"
-    "@withonevision/omnihive-worker-graphql-builder-v2": "workspace:*"
+    "@withonevision/omnihive-worker-graphql-builder-v2": 6.2.62
     "@withonevision/omnihive-worker-knex-mssql": "workspace:*"
     "@withonevision/omnihive-worker-log-core": "workspace:*"
     "@withonevision/omnihive-worker-server-v1": "workspace:*"
@@ -12431,6 +12607,25 @@ fsevents@^1.2.7:
   version: 0.1.1
   resolution: "pascalcase@npm:0.1.1"
   checksum: f83681c3c8ff75fa473a2bb2b113289952f802ff895d435edd717e7cb898b0408cbdb247117a938edcbc5d141020909846cc2b92c47213d764e2a94d2ad2b925
+  languageName: node
+  linkType: hard
+
+"passport-oauth2@npm:1.4.0":
+  version: 1.4.0
+  resolution: "passport-oauth2@npm:1.4.0"
+  dependencies:
+    oauth: 0.9.x
+    passport-strategy: 1.x.x
+    uid2: 0.0.x
+    utils-merge: 1.x.x
+  checksum: 3ae0724315cfd0669fd63024134bcfc31727ae21ffdab96c13d5578f6b2b2a185645d57014a68ea8367fc44632b2582620d783f01b1dbd309cf066c212d41481
+  languageName: node
+  linkType: hard
+
+"passport-strategy@npm:1.x.x":
+  version: 1.0.0
+  resolution: "passport-strategy@npm:1.0.0"
+  checksum: 5086693f2508e538dffa55a338c89fe8192fb5f4478c71f80cd5890b8573419a098f4fec88b505374f60bbe9049f6f24b9f3992678612528a3370b4dc73354a2
   languageName: node
   linkType: hard
 
@@ -12986,7 +13181,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"qs@npm:^6.7.0, qs@npm:^6.9.4":
+"qs@npm:^6.5.1, qs@npm:^6.7.0, qs@npm:^6.9.4":
   version: 6.10.1
   resolution: "qs@npm:6.10.1"
   dependencies:
@@ -13164,7 +13359,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"readable-stream@npm:2.3.7, readable-stream@npm:^2.0.2, readable-stream@npm:^2.0.6, readable-stream@npm:^2.3.7, readable-stream@npm:~2.3.6":
+"readable-stream@npm:2.3.7, readable-stream@npm:^2.0.2, readable-stream@npm:^2.0.5, readable-stream@npm:^2.0.6, readable-stream@npm:^2.3.7, readable-stream@npm:~2.3.6":
   version: 2.3.7
   resolution: "readable-stream@npm:2.3.7"
   dependencies:
@@ -14734,6 +14929,24 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"superagent@npm:3.8.2":
+  version: 3.8.2
+  resolution: "superagent@npm:3.8.2"
+  dependencies:
+    component-emitter: ^1.2.0
+    cookiejar: ^2.1.0
+    debug: ^3.1.0
+    extend: ^3.0.0
+    form-data: ^2.3.1
+    formidable: ^1.1.1
+    methods: ^1.1.1
+    mime: ^1.4.1
+    qs: ^6.5.1
+    readable-stream: ^2.0.5
+  checksum: 51b7b4b742cd612143966cf9cf48a15ae252047c5c6a8cd7a17510690f7207e53e48bafe8b9a8a371425777f9b93fe10a0e9fff215a8dd6e496ab9f0f0a96b9c
+  languageName: node
+  linkType: hard
+
 "superagent@npm:^5.1.1":
   version: 5.3.1
   resolution: "superagent@npm:5.3.1"
@@ -15517,6 +15730,13 @@ typescript@4.3.5:
   languageName: node
   linkType: hard
 
+"uid2@npm:0.0.x":
+  version: 0.0.4
+  resolution: "uid2@npm:0.0.4"
+  checksum: e92325ce2e3b7be504b19e835dbb5a8b0495031f364b08ca46745468ed0ae0f202a4fdaf99a1a2715844156efc3ab410456ae24a0f7c0ae4b0a2e9f2784edfd9
+  languageName: node
+  linkType: hard
+
 "unbox-primitive@npm:^1.0.1":
   version: 1.0.1
   resolution: "unbox-primitive@npm:1.0.1"
@@ -15755,7 +15975,7 @@ typescript@4.3.5:
   languageName: node
   linkType: hard
 
-"utils-merge@npm:1.0.1":
+"utils-merge@npm:1.0.1, utils-merge@npm:1.x.x":
   version: 1.0.1
   resolution: "utils-merge@npm:1.0.1"
   checksum: c81095493225ecfc28add49c106ca4f09cdf56bc66731aa8dabc2edbbccb1e1bfe2de6a115e5c6a380d3ea166d1636410b62ef216bb07b3feb1cfde1d95d5080
@@ -16144,7 +16364,7 @@ typescript@4.3.5:
   languageName: node
   linkType: hard
 
-"xtend@npm:^4.0.0, xtend@npm:~4.0.1":
+"xtend@npm:^4.0.0, xtend@npm:^4.0.1, xtend@npm:~4.0.1":
   version: 4.0.2
   resolution: "xtend@npm:4.0.2"
   checksum: ac5dfa738b21f6e7f0dd6e65e1b3155036d68104e67e5d5d1bde74892e327d7e5636a076f625599dc394330a731861e87343ff184b0047fef1360a7ec0a5a36a

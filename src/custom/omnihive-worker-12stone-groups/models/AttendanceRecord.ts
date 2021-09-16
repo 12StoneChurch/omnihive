@@ -1,9 +1,11 @@
-export interface AttendanceRecord {
+export interface AttendanceRecordSummary {
     groupId: number;
     eventId: number;
     date: string;
-    participants: number[];
+    memberCount: number;
     anonCount: number;
     childCount: number;
+    totalCount: number;
+    meetingOccurred: boolean;
     feedback?: string;
 }

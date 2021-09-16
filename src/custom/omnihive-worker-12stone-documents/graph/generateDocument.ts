@@ -24,9 +24,16 @@ export default class GenerateDocument extends HiveWorkerBase implements IGraphEn
         const name = `${contactData.nickname} ${contactData.lastName}`;
 
         if (docusignWorker) {
-            const envelopeData: any = await docusignWorker.createEnvelope(templateId, email, name, customArgs.role);
+            const mpId = await this.createMpEnvelopeData(customArgs.templateId, contactData.id);
+            const envelopeData: any = await docusignWorker.createEnvelope(
+                templateId,
+                email,
+                name,
+                customArgs.role,
+                mpId
+            );
 
-            await this.storeEnvelopeData(customArgs.templateId, contactData.id, envelopeData);
+            await this.storeEnvelopeData(mpId, envelopeData);
 
             const url = await docusignWorker.getEnvelopeUrl(
                 customArgs.redirectUrl,
@@ -62,7 +69,31 @@ export default class GenerateDocument extends HiveWorkerBase implements IGraphEn
         return results[0][0].id;
     };
 
-    private storeEnvelopeData = async (formId: number, contactId: number, data: any): Promise<any> => {
+    private createMpEnvelopeData = async (formId: number, contactId: number): Promise<number> => {
+        const databaseWorker: IDatabaseWorker | undefined = this.getWorker<IDatabaseWorker>(
+            HiveWorkerType.Database,
+            "dbMinistryPlatform"
+        );
+
+        if (!databaseWorker) {
+            throw new Error("Database worker not configured");
+        }
+
+        const insertData: any = {
+            Form_ID: formId,
+            Contact_ID: contactId,
+            Status_ID: 1,
+            Domain_ID: 1,
+        };
+
+        const queryBuilder: Knex.QueryBuilder = databaseWorker?.connection.queryBuilder();
+        queryBuilder.from("DocuSign_Envelopes");
+        queryBuilder.insert(insertData, ["DocuSign_Envelope_ID"]);
+
+        return (await databaseWorker.executeQuery(queryBuilder.toString()))?.[0]?.[0]?.DocuSign_Envelope_ID;
+    };
+
+    private storeEnvelopeData = async (mpId: number, data: any): Promise<any> => {
         const databaseWorker: IDatabaseWorker | undefined = this.getWorker<IDatabaseWorker>(
             HiveWorkerType.Database,
             "dbMinistryPlatform"
@@ -74,18 +105,17 @@ export default class GenerateDocument extends HiveWorkerBase implements IGraphEn
 
         const dateCreated: string = dayjs(data.statusDateTime).format("YYYY-MM-DD hh:mm:ssa");
 
-        const insertData: any = {
-            Contact_ID: contactId,
-            Form_ID: formId,
+        const updateData: any = {
             Envelope_ID: data.envelopeId,
-            Created_Date: dateCreated,
+            Status_ID: 2,
             Last_Updated_Date: dateCreated,
             Domain_ID: 1,
         };
 
         const queryBuilder: Knex.QueryBuilder = databaseWorker?.connection.queryBuilder();
         queryBuilder.from("DocuSign_Envelopes");
-        queryBuilder.insert(insertData);
+        queryBuilder.update(updateData);
+        queryBuilder.where("DocuSign_Envelope_ID", mpId);
 
         await databaseWorker.executeQuery(queryBuilder.toString());
     };

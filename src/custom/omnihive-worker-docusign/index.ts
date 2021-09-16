@@ -49,10 +49,16 @@ export default class DocuSignWorker extends HiveWorkerBase {
         }
     };
 
-    public createEnvelope = async (templateId: string, email: string, name: string, role: string) => {
+    public createEnvelope = async (
+        templateId: string,
+        email: string,
+        name: string,
+        role: string,
+        clientUserId?: any
+    ) => {
         await this.authenticate();
 
-        const envDef = { envelopeDefinition: this.makeEnvelope(templateId, email, name, role) };
+        const envDef = { envelopeDefinition: this.makeEnvelope(templateId, email, name, role, clientUserId) };
         try {
             if (this._client && this._userInfo && this._userInfo.accounts && this._userInfo.accounts.length > 0) {
                 this._client.setBasePath(this._userInfo.accounts[0].baseUri + "/restapi");
@@ -68,7 +74,7 @@ export default class DocuSignWorker extends HiveWorkerBase {
         throw new Error("Authentication error");
     };
 
-    private makeEnvelope = (templateId: string, email: string, name: string, role: string) => {
+    private makeEnvelope = (templateId: string, email: string, name: string, role: string, clientUserId: any) => {
         const envDef: EnvelopeDefinition = {};
 
         envDef.templateId = templateId;
@@ -77,6 +83,7 @@ export default class DocuSignWorker extends HiveWorkerBase {
             email: email,
             name: name,
             roleName: role,
+            clientUserId: clientUserId,
         };
 
         envDef.templateRoles = [signer];
@@ -92,12 +99,16 @@ export default class DocuSignWorker extends HiveWorkerBase {
             const envelopesApi = new docusign.EnvelopesApi(this._client);
             this._client.setBasePath(this._userInfo.accounts[0].baseUri + "/restapi");
 
+            const recipientsData = await envelopesApi.listRecipients(this._userInfo.accounts[0].accountId, envelopeId);
+            const userId = recipientsData.signers?.[0]?.clientUserId;
+
             const viewRequest = {
                 recipientViewRequest: {
                     returnUrl: redirectUrl,
                     authenticationMethod: "none",
                     email: email,
                     userName: name,
+                    clientUserId: userId,
                 },
             };
 

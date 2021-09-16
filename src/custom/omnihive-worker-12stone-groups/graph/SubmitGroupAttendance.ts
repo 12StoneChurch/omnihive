@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import j from "joi";
 
 import { AttendanceFormId } from "../common/constants";
-import { AttendanceRecord } from "../models/AttendanceRecord";
+import { AttendanceRecordSummary } from "../models/AttendanceRecord";
 import { addAttendanceEvent } from "../queries/addAttendanceEvent";
 import { addEventGroup } from "../queries/addEventGroup";
 import { addEventParticipants } from "../queries/addEventParticipants";
@@ -39,7 +39,7 @@ const argsSchema = j.object({
 });
 
 export default class SubmitGroupAttendance extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (rawArgs: unknown, context: GraphContext): Promise<AttendanceRecord | Error> => {
+    public execute = async (rawArgs: unknown, context: GraphContext): Promise<AttendanceRecordSummary | Error> => {
         try {
             const { args, knex, customGraph } = await getExecuteContext<Args>({
                 worker: this,
@@ -84,25 +84,40 @@ export default class SubmitGroupAttendance extends HiveWorkerBase implements IGr
                 await addEventGroup(trx, { eventId, ...args });
 
                 // add participants to event
-                const participantIds = await addEventParticipants(trx, {
-                    eventId,
-                    participantIds: args.participants,
-                });
+                let participantIds: number[];
+
+                if (args.meetingOccurred) {
+                    participantIds = await addEventParticipants(trx, {
+                        eventId,
+                        participantIds: args.participants,
+                    });
+                } else {
+                    participantIds = [];
+                }
 
                 // get submitter contact
                 const contact = await getContact(customGraph, { ...args });
 
                 // submit mp form
                 DanyService.getSingleton().setMetaData(this.metadata);
-                await submitAttendanceForm({ formId, participantIds, contact, ...args });
+                await submitAttendanceForm({
+                    formId,
+                    participantIds,
+                    contact,
+                    ...args,
+                    anonCount: args.meetingOccurred ? args.anonCount : 0,
+                    childCount: args.meetingOccurred ? args.childCount : 0,
+                });
 
                 return {
                     groupId: args.groupId,
                     eventId,
                     date: dayjs(args.date).toISOString(),
-                    participants: participantIds,
-                    anonCount: args.anonCount,
-                    childCount: args.childCount,
+                    memberCount: participantIds.length,
+                    anonCount: args.meetingOccurred ? args.anonCount : 0,
+                    childCount: args.meetingOccurred ? args.childCount : 0,
+                    totalCount: args.meetingOccurred ? args.anonCount + args.childCount + participantIds.length : 0,
+                    meetingOccurred: args.meetingOccurred,
                     feedback: args.feedback,
                 };
             });

@@ -11,6 +11,7 @@ import { init } from "../lib/services/GraphService";
 
 export default class QueueAutomation extends HiveWorkerBase implements ITaskEndpointWorker {
     private messages: any;
+    private sentTexts: { [phoneNumber: string]: number[] } = {};
 
     public execute = async (): Promise<any> => {
         await init(this.registeredWorkers, this.environmentVariables);
@@ -106,14 +107,10 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
             }
         }
 
-        try {
-            await sendEmails(emails, this.metadata);
+        await sendEmails(emails, this.metadata);
 
-            for (const ids of sentEmailData) {
-                await updateCommunicationMessageStatus(graphUrl, ids.commId, ids.contactId, 3);
-            }
-        } catch (err) {
-            throw new Error(err);
+        for (const ids of sentEmailData) {
+            await updateCommunicationMessageStatus(graphUrl, ids.commId, ids.contactId, 3);
         }
     };
 
@@ -136,6 +133,22 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                     "Recipient's e-mail address or phone number is not provided."
                 );
             } else {
+                if (
+                    this.sentTexts[message.ToAddress] &&
+                    this.sentTexts[message.ToAddress].length > 0 &&
+                    this.sentTexts[message.ToAddress].some((x: number) => x === message.CommunicationId)
+                ) {
+                    await updateCommunicationMessageStatus(
+                        graphUrl,
+                        message.CommunicationId,
+                        message.ContactId,
+                        9,
+                        "Recipient's phone number is duplicated and the message has already been sent to this number."
+                    );
+
+                    continue;
+                }
+
                 const text = {
                     data: {
                         to: "+1" + message.ToAddress.replace(/-/g, ""),
@@ -149,6 +162,12 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                 try {
                     const result = await sendTwilioSms(text, this.metadata);
 
+                    if (!this.sentTexts[message.ToAddress]) {
+                        this.sentTexts[message.ToAddress] = [];
+                    }
+
+                    this.sentTexts[message.ToAddress].push(message.CommunicationId);
+
                     await updateCommunicationMessageStatus(
                         graphUrl,
                         message.CommunicationId,
@@ -157,7 +176,7 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                         "",
                         result
                     );
-                } catch (err) {
+                } catch (err: any) {
                     if (err.code === 21610) {
                         await updateCommunicationMessageStatus(
                             graphUrl,

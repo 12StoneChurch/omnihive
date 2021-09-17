@@ -1,3 +1,5 @@
+import { GroupMemberSummary } from "./GroupMember";
+
 export interface AttendanceRecordSummary {
     groupId: number;
     eventId: number;
@@ -8,4 +10,8 @@ export interface AttendanceRecordSummary {
     totalCount: number;
     meetingOccurred: boolean;
     feedback?: string;
+}
+
+export interface AttendanceRecordDetail extends AttendanceRecordSummary {
+    members: GroupMemberSummary[];
 }

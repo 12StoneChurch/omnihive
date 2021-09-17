@@ -16,15 +16,13 @@ interface SelectEventGroupsDTO {
     meeting_occurred: number;
 }
 
-export interface AttendanceRecordsGetter {
-    (knex: Knex, opts: { formId: number; groupId: number; page: number; perPage: number }): Promise<
-        AttendanceRecordSummary[]
-    >;
+export interface AttendanceRecordGetter {
+    (knex: Knex, opts: { formId: number; eventId: number }): Promise<AttendanceRecordSummary>;
 }
 
-export const getAttendanceRecords: AttendanceRecordsGetter = async (knex, { formId, groupId, page, perPage }) => {
+export const getAttendanceRecord: AttendanceRecordGetter = async (knex, { formId, eventId }) => {
     const result = (await knex
-        .select([
+        .first([
             "eg.event_id",
             "eg.group_id",
             "sub.form_response_id",
@@ -63,7 +61,7 @@ export const getAttendanceRecords: AttendanceRecordsGetter = async (knex, { form
                 this.andOn("sub.date", "=", knex.raw("try_cast(e.event_start_date as date)"));
             }
         )
-        .where("eg.group_id", groupId)
+        .where("eg.event_id", eventId)
         .andWhere("et.event_type", "Attendance")
         .groupBy([
             "eg.event_id",
@@ -73,20 +71,17 @@ export const getAttendanceRecords: AttendanceRecordsGetter = async (knex, { form
             "sub.anon_count",
             "sub.child_count",
             "sub.feedback",
-        ])
-        .orderBy("e.event_start_date", "desc")
-        .limit(perPage)
-        .offset((page - 1) * perPage)) as SelectEventGroupsDTO[];
+        ])) as SelectEventGroupsDTO;
 
-    return result.map((row) => ({
-        groupId: row.group_id,
-        eventId: row.event_id,
-        date: dayjs(row.date).toISOString(),
-        memberCount: row.member_count,
-        anonCount: row.anon_count,
-        childCount: row.child_count,
-        totalCount: row.total_count,
-        meetingOccurred: row.total_count > 0 ? true : false,
-        feedback: row.feedback ?? undefined,
-    }));
+    return {
+        groupId: result.group_id,
+        eventId: result.event_id,
+        date: dayjs(result.date).toISOString(),
+        memberCount: result.member_count,
+        anonCount: result.anon_count,
+        childCount: result.child_count,
+        totalCount: result.total_count,
+        meetingOccurred: result.total_count > 0 ? true : false,
+        feedback: result.feedback ?? undefined,
+    };
 };

@@ -77,6 +77,8 @@ export const getLeaderGroupDetail: LeaderGroupDetailGetter = async (knex, { grou
             "g.coach",
             "c.nickname",
             "c.last_name",
+            "c.email_address",
+            "c.mobile_phone",
             "g.group_status_id",
             "gs.group_status",
         ])) as SelectGroupsDTO;

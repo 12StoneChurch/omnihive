@@ -33,6 +33,8 @@ interface SelectGroupsDTO {
     coach_contact_id: number | null;
     coach_nickname: string | null;
     coach_last_name: string | null;
+    coach_email_address: string | null;
+    coach_mobile_phone: string | null;
     group_status_id: number;
     group_status: GroupStatus;
     total_participants: number;
@@ -53,6 +55,8 @@ export const getLeaderGroupDetail: LeaderGroupDetailGetter = async (knex, { grou
             "g.coach as coach_contact_id",
             "c.nickname as coach_nickname",
             "c.last_name as coach_last_name",
+            "c.email_address as coach_email_address",
+            "c.mobile_phone as coach_mobile_phone",
             "g.group_status_id",
             "gs.group_status",
             knex.raw("count(gp.participant_id) as total_participants"),
@@ -96,6 +100,8 @@ export const getLeaderGroupDetail: LeaderGroupDetailGetter = async (knex, { grou
                       contactId: result.coach_contact_id,
                       firstName: result.coach_nickname,
                       lastName: result.coach_last_name,
+                      email: result.coach_email_address ?? undefined,
+                      phone: result.coach_mobile_phone ?? undefined,
                   }
                 : undefined,
         totalParticipants: result.total_participants,

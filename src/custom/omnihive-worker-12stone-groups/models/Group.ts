@@ -33,6 +33,8 @@ export interface BaseGroupDetail extends BaseGroupSummary {
         contactId: number;
         firstName: string;
         lastName: string;
+        email?: string;
+        phone?: string;
     };
 }
 

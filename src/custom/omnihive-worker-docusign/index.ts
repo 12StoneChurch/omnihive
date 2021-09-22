@@ -129,4 +129,27 @@ export default class DocuSignWorker extends HiveWorkerBase {
         });
         this._client.setOAuthBasePath(this.metadata.oAuthBasePath);
     };
+
+    public getStatusByEnvelopeIdList = async (envelopeIds: string[]) => {
+        await this.authenticate();
+
+        if (this._client && this._userInfo && this._userInfo.accounts && this._userInfo.accounts.length > 0) {
+            const envelopesApi = new docusign.EnvelopesApi(this._client);
+            this._client.setBasePath(this._userInfo.accounts[0].baseUri + "/restapi");
+
+            const response = await envelopesApi.listStatus(this._userInfo.accounts[0].accountId, {
+                envelopeIds: envelopeIds,
+            });
+
+            if (response?.envelopes && response.envelopes.length > 0) {
+                return response?.envelopes?.map((envelope) => ({
+                    envelopeId: envelope.envelopeId,
+                    status: envelope.status,
+                    updateTime: envelope.statusChangedDateTime ?? envelope.statusDateTime,
+                }));
+            }
+        }
+
+        return [];
+    };
 }

@@ -3,7 +3,7 @@ import DocuSignWorker from "@12stonechurch/omnihive-worker-docusign";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
-import { getContactData } from "../common/getContactData";
+import { getDocumentUrl } from "../common/getDocumentUrl";
 
 export default class GetDocumentUrl extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: any, omniHiveContext: GraphContext): Promise<{}> => {
@@ -13,12 +13,14 @@ export default class GetDocumentUrl extends HiveWorkerBase implements IGraphEndp
 
         const docusignWorker = this.getWorker<DocuSignWorker>("unknown", "DocuSignWorker");
 
-        if (docusignWorker) {
-            const contactData: any = await getContactData(webRootUrl + this.metadata.customSlug, customArgs.contactId);
-            const email = contactData.email;
-            const name = `${contactData.nickname} ${contactData.lastName}`;
-
-            const url = await docusignWorker.getEnvelopeUrl(customArgs.redirectUrl, email, name, customArgs.envelopeId);
+        if (docusignWorker && webRootUrl) {
+            const url = await getDocumentUrl(
+                docusignWorker,
+                webRootUrl + this.metadata.customSlug,
+                customArgs.contactId,
+                customArgs.redirectUrl,
+                customArgs.envelopeId
+            );
 
             return { url: url };
         }

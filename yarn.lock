@@ -99,16 +99,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@12stonechurch/omnihive-worker-cloudinary@npm:2.0.11":
-  version: 2.0.11
-  resolution: "@12stonechurch/omnihive-worker-cloudinary@npm:2.0.11"
-  dependencies:
-    "@withonevision/omnihive-core": 6.2.54
-    cloudinary: 1.26.1
-  checksum: 457a7300f3e4bc1e30935a51915364b05b1a628af48b2f83bfef0116f1350fbfc25caf598894e7df0fd7658e969a61cb65d4ba4d6fa503c41a41c1c470c6dd3a
-  languageName: node
-  linkType: hard
-
 "@12stonechurch/omnihive-worker-cloudinary@npm:2.0.41":
   version: 2.0.41
   resolution: "@12stonechurch/omnihive-worker-cloudinary@npm:2.0.41"
@@ -175,20 +165,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@12stonechurch/omnihive-worker-common@npm:2.0.11":
-  version: 2.0.11
-  resolution: "@12stonechurch/omnihive-worker-common@npm:2.0.11"
-  dependencies:
-    "@12stonechurch/omnihive-worker-cloudinary": 2.0.11
-    "@12stonechurch/omnihive-worker-elastic": 2.0.11
-    "@withonevision/omnihive-client": 6.2.54
-    "@withonevision/omnihive-core": 6.2.54
-    axios: 0.21.1
-    serialize-error: 8.1.0
-  checksum: 7c1efacf2e7f9541675d236d6f441faf546872d5c1dffd44acd6b18d0c20c5572e914d40fe867b4939e53ba39e3f56e8816fda1de352b86d66088460315bb096
-  languageName: node
-  linkType: hard
-
 "@12stonechurch/omnihive-worker-common@workspace:*, @12stonechurch/omnihive-worker-common@workspace:src/custom/omnihive-worker-12stone-common":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-common@workspace:src/custom/omnihive-worker-12stone-common"
@@ -219,23 +195,6 @@ __metadata:
     typescript: 4.2.4
   languageName: unknown
   linkType: soft
-
-"@12stonechurch/omnihive-worker-communications@npm:2.0.11":
-  version: 2.0.11
-  resolution: "@12stonechurch/omnihive-worker-communications@npm:2.0.11"
-  dependencies:
-    "@12stonechurch/omnihive-worker-common": 2.0.11
-    "@sendgrid/client": 7.4.3
-    "@sendgrid/mail": 7.4.5
-    "@withonevision/omnihive-core": 6.2.54
-    dayjs: 1.10.5
-    enquirer: 2.3.6
-    listr2: 3.10.0
-    serialize-error: 8.1.0
-    twilio: 3.65.0
-  checksum: 8ea3c96c86103856b30efbd2b5f61da897e430565f2ef9913812c2ac217d3e2dd0735607fb8234b3f8791e8e91f7a35d97c753fd1c9dad2de41b605d70a07de8
-  languageName: node
-  linkType: hard
 
 "@12stonechurch/omnihive-worker-communications@workspace:src/custom/omnihive-worker-12stone-communications":
   version: 0.0.0-use.local
@@ -346,17 +305,6 @@ __metadata:
     "@withonevision/omnihive-core": 6.2.54
     serialize-error: 8.1.0
   checksum: eccb41faa99ab7898bac8999eff2dbd7e06cd9a8805d55d73c7f01eeed1f6d79706959d2b1a4d932793beeaa53ec223701e41c71b1d988984e645fa2a6e22d38
-  languageName: node
-  linkType: hard
-
-"@12stonechurch/omnihive-worker-elastic@npm:2.0.11":
-  version: 2.0.11
-  resolution: "@12stonechurch/omnihive-worker-elastic@npm:2.0.11"
-  dependencies:
-    "@elastic/elasticsearch": 7.13.0
-    "@withonevision/omnihive-core": 6.2.54
-    serialize-error: 8.1.0
-  checksum: 83eac139603fc7e3eaf51efaf835c81968a39917cdb8a314e39c70571f830118ef642615f981ab8c655d58f0e0b5f377ff325bbbf328b8e684a34e0279794595
   languageName: node
   linkType: hard
 
@@ -12225,7 +12173,6 @@ fsevents@^1.2.7:
   dependencies:
     "@12stonechurch/omnihive-worker-auth": "workspace:*"
     "@12stonechurch/omnihive-worker-cloudinary": 2.0.41
-    "@12stonechurch/omnihive-worker-communications": 2.0.11
     "@12stonechurch/omnihive-worker-contacts": "workspace:*"
     "@12stonechurch/omnihive-worker-engagements": "workspace:*"
     "@12stonechurch/omnihive-worker-graphql-builder-v1": 2.0.10

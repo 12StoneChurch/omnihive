@@ -82,7 +82,7 @@ const storeEnvelopeData = async (mpId: number, data: any, databaseWorker: IDatab
     const updateData: any = {
         Envelope_ID: data.envelopeId,
         Status_ID: 2,
-        Last_Updated_Date: dateCreated,
+        _Last_Updated_Date: dateCreated,
         Domain_ID: 1,
     };
 

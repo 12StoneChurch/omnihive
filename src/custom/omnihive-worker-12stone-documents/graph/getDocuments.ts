@@ -8,6 +8,7 @@ import DocuSignWorker from "@12stonechurch/omnihive-worker-docusign";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import dayjs from "dayjs";
 import { getDatabaseObjects } from "@12stonechurch/omnihive-worker-common/helpers/GenericFunctions";
+import { getDocumentUrl } from "../common/getDocumentUrl";
 
 export default class GetDocuments extends HiveWorkerBase implements IGraphEndpointWorker {
     private databaseWorker?: IDatabaseWorker;
@@ -24,19 +25,23 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
 
         const docusignWorker = this.getWorker<DocuSignWorker>(HiveWorkerType.Unknown, "DocuSignWorker");
 
-        const dsEnvelopes = await docusignWorker?.getStatusByEnvelopeIdList(
-            dbEnvelopes
-                .map((data) => {
-                    return data.envelopeId;
-                })
-                .filter((data) => data)
-        );
+        const validEnvelopeIds = dbEnvelopes
+            .map((data) => {
+                return data.envelopeId;
+            })
+            .filter((data) => data);
+
+        const dsEnvelopes = await docusignWorker?.getStatusByEnvelopeIdList(validEnvelopeIds);
 
         if (dsEnvelopes) {
             await this.syncDocumentStatus(dbEnvelopes, dsEnvelopes);
         }
 
-        return await this.getExtendedData(customArgs.contactId);
+        const results = await this.getExtendedData(customArgs.contactId);
+
+        await this.populateUrl(results, customArgs.contactId, customArgs.redirectUrl);
+
+        return results;
     };
 
     private getUserEnvelopes = async (contactId: number) => {
@@ -102,7 +107,7 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
 
         const updateObject: any = {
             Status_ID: statusId,
-            Last_Updated_Date: updatedDateTime,
+            _Last_Updated_Date: updatedDateTime,
         };
 
         if (statusId === 10) {
@@ -147,14 +152,37 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
             "de.Contact_ID as contactId",
             "df.DocuSign_Form_ID as formId",
             "df.Name as formName",
-            "df.Template_ID as templateId",
-            "de.Envelope_ID as envelopeId",
+            "de.DocuSign_Envelope_ID as documentId",
             "des.Status as status",
             "de.Completion_Date as completionDate",
-            "de.Created_Date as createdDate",
-            "de.Last_Updated_Date as updatedDate"
+            "de._Created_Date as createdDate",
+            "de._Last_Updated_Date as updatedDate"
         );
 
         return (await this.databaseWorker.executeQuery(queryBuilder.toString()))[0];
+    };
+
+    private populateUrl = async (documents: any, contactId: number, redirectUrl: string) => {
+        const urls = await Promise.all(
+            documents.map(async (doc: any) => {
+                let url = "";
+
+                if (doc.documentId) {
+                    url = await getDocumentUrl(this, contactId, redirectUrl, doc.documentId);
+                }
+
+                return {
+                    id: doc.documentId,
+                    url: url,
+                };
+            })
+        );
+
+        for (const doc of documents) {
+            const docUrlObject: any = urls.find((x: any) => x.id === doc.documentId);
+            if (docUrlObject) {
+                doc.url = docUrlObject.url;
+            }
+        }
     };
 }

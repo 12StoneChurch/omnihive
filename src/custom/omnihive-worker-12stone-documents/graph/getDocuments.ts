@@ -8,35 +8,39 @@ import DocuSignWorker from "@12stonechurch/omnihive-worker-docusign";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import dayjs from "dayjs";
 import { getDatabaseObjects } from "@12stonechurch/omnihive-worker-common/helpers/GenericFunctions";
+import { getDocumentUrl } from "../common/getDocumentUrl";
+import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 
 export default class GetDocuments extends HiveWorkerBase implements IGraphEndpointWorker {
     private databaseWorker?: IDatabaseWorker;
     private knex?: Knex;
 
     public execute = async (customArgs: any, omniHiveContext: GraphContext): Promise<{}> => {
-        await verifyToken(omniHiveContext);
+        await AwaitHelper.execute(verifyToken(omniHiveContext));
 
         const { databaseWorker, knex } = getDatabaseObjects(this, "dbMinistryPlatform");
         this.databaseWorker = databaseWorker;
         this.knex = knex;
 
-        const dbEnvelopes = await this.getUserEnvelopes(customArgs.contactId);
+        const dbEnvelopes = await AwaitHelper.execute(this.getUserEnvelopes(customArgs.contactId));
 
         const docusignWorker = this.getWorker<DocuSignWorker>(HiveWorkerType.Unknown, "DocuSignWorker");
 
-        const dsEnvelopes = await docusignWorker?.getStatusByEnvelopeIdList(
-            dbEnvelopes
-                .map((data) => {
-                    return data.envelopeId;
-                })
-                .filter((data) => data)
+        const validEnvelopeIds = dbEnvelopes
+            .map((data) => {
+                return data.envelopeId;
+            })
+            .filter((data) => data);
+
+        const dsEnvelopes = await docusignWorker?.getStatusByEnvelopeIdList(validEnvelopeIds);
+
+        const results = await AwaitHelper.execute(
+            Promise.all([this.syncDocumentStatus(dbEnvelopes, dsEnvelopes), this.getExtendedData(customArgs.contactId)])
         );
 
-        if (dsEnvelopes) {
-            await this.syncDocumentStatus(dbEnvelopes, dsEnvelopes);
-        }
+        await AwaitHelper.execute(this.populateUrl(results[1], customArgs.contactId, customArgs.redirectUrl));
 
-        return await this.getExtendedData(customArgs.contactId);
+        return results[1];
     };
 
     private getUserEnvelopes = async (contactId: number) => {
@@ -54,19 +58,21 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
         queryBuilder.leftJoin("DocuSign_Envelope_Statuses as des", "des.DocuSign_Envelope_Status_ID", "de.Status_ID");
         queryBuilder.select("de.DocuSign_Envelope_ID as id", "de.Envelope_ID as envelopeId", "des.Status as status");
 
-        return (await this.databaseWorker.executeQuery(queryBuilder.toString()))[0];
+        return (await AwaitHelper.execute(this.databaseWorker.executeQuery(queryBuilder.toString())))[0];
     };
 
     private syncDocumentStatus = async (
         database: { id: number; envelopeId: string; status: string }[],
-        docusign: any[]
+        docusign: any[] | undefined
     ) => {
-        for (const doc of database) {
-            const syncingDoc = docusign.find((x) => x.envelopeId === doc.envelopeId);
+        if (docusign) {
+            for (const doc of database) {
+                const syncingDoc = docusign.find((x) => x.envelopeId === doc.envelopeId);
 
-            if (syncingDoc && doc.status.toLowerCase() !== syncingDoc.status.toLowerCase()) {
-                const newStatusId = await this.getStatusId(syncingDoc.status);
-                await this.updateDocStatus(doc.id, newStatusId, syncingDoc.updateTime);
+                if (syncingDoc && doc.status.toLowerCase() !== syncingDoc.status.toLowerCase()) {
+                    const newStatusId = await AwaitHelper.execute(this.getStatusId(syncingDoc.status));
+                    await AwaitHelper.execute(this.updateDocStatus(doc.id, newStatusId, syncingDoc.updateTime));
+                }
             }
         }
     };
@@ -86,7 +92,7 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
         queryBuilder.whereRaw(`des.Status = '${status}'`);
         queryBuilder.select("des.DocuSign_Envelope_Status_ID as statusId");
 
-        return (await this.databaseWorker.executeQuery(queryBuilder.toString()))[0][0].statusId;
+        return (await AwaitHelper.execute(this.databaseWorker.executeQuery(queryBuilder.toString())))[0][0].statusId;
     };
 
     private updateDocStatus = async (id: number, statusId: number, updateTime: any) => {
@@ -102,7 +108,7 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
 
         const updateObject: any = {
             Status_ID: statusId,
-            Last_Updated_Date: updatedDateTime,
+            _Last_Updated_Date: updatedDateTime,
         };
 
         if (statusId === 10) {
@@ -114,7 +120,7 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
         queryBuilder.where("DocuSign_Envelope_ID", id);
         queryBuilder.update(updateObject);
 
-        return await this.databaseWorker.executeQuery(queryBuilder.toString());
+        return await AwaitHelper.execute(this.databaseWorker.executeQuery(queryBuilder.toString()));
     };
 
     private getExtendedData = async (contactId: number) => {
@@ -147,14 +153,39 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
             "de.Contact_ID as contactId",
             "df.DocuSign_Form_ID as formId",
             "df.Name as formName",
-            "df.Template_ID as templateId",
-            "de.Envelope_ID as envelopeId",
+            "de.DocuSign_Envelope_ID as documentId",
             "des.Status as status",
             "de.Completion_Date as completionDate",
-            "de.Created_Date as createdDate",
-            "de.Last_Updated_Date as updatedDate"
+            "de._Created_Date as createdDate",
+            "de._Last_Updated_Date as updatedDate"
         );
 
-        return (await this.databaseWorker.executeQuery(queryBuilder.toString()))[0];
+        return (await AwaitHelper.execute(this.databaseWorker.executeQuery(queryBuilder.toString())))[0];
+    };
+
+    private populateUrl = async (documents: any, contactId: number, redirectUrl: string) => {
+        const urls = await AwaitHelper.execute(
+            Promise.all(
+                documents.map(async (doc: any) => {
+                    let url = "";
+
+                    if (doc.documentId) {
+                        url = await AwaitHelper.execute(getDocumentUrl(this, contactId, redirectUrl, doc.documentId));
+                    }
+
+                    return {
+                        id: doc.documentId,
+                        url: url,
+                    };
+                })
+            )
+        );
+
+        for (const doc of documents) {
+            const docUrlObject: any = urls.find((x: any) => x.id === doc.documentId);
+            if (docUrlObject) {
+                doc.url = docUrlObject.url;
+            }
+        }
     };
 }

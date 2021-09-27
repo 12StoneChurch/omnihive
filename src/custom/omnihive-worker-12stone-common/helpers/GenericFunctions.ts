@@ -29,7 +29,7 @@ export const getDatabaseObjects = (
 ): { databaseWorker: IDatabaseWorker; knex: Knex; queryBuilder: Knex.QueryBuilder<any, any> } => {
     const databaseWorker: IDatabaseWorker | undefined = worker.getWorker<IDatabaseWorker>(
         HiveWorkerType.Database,
-        dbWorkerName
+        dbWorkerName ?? undefined
     );
 
     if (!databaseWorker) {

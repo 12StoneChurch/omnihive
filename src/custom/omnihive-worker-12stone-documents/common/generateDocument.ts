@@ -1,3 +1,4 @@
+import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import dayjs from "dayjs";
 import { Knex } from "knex";
@@ -13,19 +14,29 @@ export const generateDocument = async (
     redirectUrl: string,
     contactId: number
 ) => {
-    const templateId: string = await getDocuSignTemplateId(mpTemplateId, databaseWorker);
+    const dataResults = await AwaitHelper.execute(
+        Promise.all([
+            getDocuSignTemplateId(mpTemplateId, databaseWorker),
+            getContactData(webRootUrl + customSlug, contactId),
+        ])
+    );
 
-    const contactData: any = await getContactData(webRootUrl + customSlug, contactId);
+    const templateId: string = dataResults[0];
+    const contactData: any = dataResults[1];
     const email = contactData.email;
     const name = `${contactData.nickname} ${contactData.lastName}`;
 
     if (docusignWorker) {
-        const mpId = await createMpEnvelopeData(mpTemplateId, contactData.id, databaseWorker);
-        const envelopeData: any = await docusignWorker.createEnvelope(templateId, email, name, role, mpId);
+        const mpId = await AwaitHelper.execute(createMpEnvelopeData(mpTemplateId, contactData.id, databaseWorker));
+        const envelopeData: any = await AwaitHelper.execute(
+            docusignWorker.createEnvelope(templateId, email, name, role, mpId)
+        );
 
-        await storeEnvelopeData(mpId, envelopeData, databaseWorker);
+        await AwaitHelper.execute(storeEnvelopeData(mpId, envelopeData, databaseWorker));
 
-        const url = await docusignWorker.getEnvelopeUrl(redirectUrl, email, name, envelopeData.envelopeId);
+        const url = await AwaitHelper.execute(
+            docusignWorker.getEnvelopeUrl(redirectUrl, email, name, envelopeData.envelopeId)
+        );
 
         return { envelopeUrl: url };
     } else {
@@ -44,7 +55,7 @@ const getDocuSignTemplateId = async (id: number, databaseWorker: IDatabaseWorker
     queryBuilder.where("df.DocuSign_Form_ID", id);
     queryBuilder.select("df.Template_ID as id");
 
-    const results = await databaseWorker.executeQuery(queryBuilder.toString());
+    const results = await AwaitHelper.execute(databaseWorker.executeQuery(queryBuilder.toString()));
 
     return results[0][0].id;
 };
@@ -69,7 +80,8 @@ const createMpEnvelopeData = async (
     queryBuilder.from("DocuSign_Envelopes");
     queryBuilder.insert(insertData, ["DocuSign_Envelope_ID"]);
 
-    return (await databaseWorker.executeQuery(queryBuilder.toString()))?.[0]?.[0]?.DocuSign_Envelope_ID;
+    return (await AwaitHelper.execute(databaseWorker.executeQuery(queryBuilder.toString())))?.[0]?.[0]
+        ?.DocuSign_Envelope_ID;
 };
 
 const storeEnvelopeData = async (mpId: number, data: any, databaseWorker: IDatabaseWorker): Promise<any> => {
@@ -82,7 +94,7 @@ const storeEnvelopeData = async (mpId: number, data: any, databaseWorker: IDatab
     const updateData: any = {
         Envelope_ID: data.envelopeId,
         Status_ID: 2,
-        Last_Updated_Date: dateCreated,
+        _Last_Updated_Date: dateCreated,
         Domain_ID: 1,
     };
 
@@ -91,5 +103,5 @@ const storeEnvelopeData = async (mpId: number, data: any, databaseWorker: IDatab
     queryBuilder.update(updateData);
     queryBuilder.where("DocuSign_Envelope_ID", mpId);
 
-    await databaseWorker.executeQuery(queryBuilder.toString());
+    await AwaitHelper.execute(databaseWorker.executeQuery(queryBuilder.toString()));
 };

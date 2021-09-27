@@ -6,10 +6,11 @@ import { verifyToken } from "@12stonechurch/omnihive-worker-common/helpers/Token
 import { generateDocument } from "../common/generateDocument";
 import { HiveWorkerType } from "@withonevision/omnihive-core/enums/HiveWorkerType";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
+import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 
 export default class GenerateDocument extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: any, omniHiveContext: GraphContext): Promise<{}> => {
-        await verifyToken(omniHiveContext);
+        await AwaitHelper.execute(verifyToken(omniHiveContext));
 
         const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
 
@@ -17,15 +18,17 @@ export default class GenerateDocument extends HiveWorkerBase implements IGraphEn
         const databaseWorker = this.getWorker<IDatabaseWorker>(HiveWorkerType.Database, "dbMinistryPlatform");
 
         if (docusignWorker && databaseWorker && webRootUrl) {
-            return await generateDocument(
-                docusignWorker,
-                databaseWorker,
-                customArgs.templateId,
-                webRootUrl,
-                this.metadata.customSlug,
-                customArgs.role,
-                customArgs.redirectUrl,
-                customArgs.contactId
+            return await AwaitHelper.execute(
+                generateDocument(
+                    docusignWorker,
+                    databaseWorker,
+                    customArgs.templateId,
+                    webRootUrl,
+                    this.metadata.customSlug,
+                    customArgs.role,
+                    customArgs.redirectUrl,
+                    customArgs.contactId
+                )
             );
         }
 

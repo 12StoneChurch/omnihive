@@ -1,3 +1,4 @@
+import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { getDatabaseObjects } from "src/custom/omnihive-worker-12stone-common/helpers/GenericFunctions";
 import DocuSignWorker from "src/custom/omnihive-worker-docusign";
@@ -21,12 +22,14 @@ export const getDocumentUrl = async (
     const webRootUrl = worker.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
     const docusignWorker = worker.getWorker<DocuSignWorker>("unknown", "DocuSignWorker");
 
-    const envelopeId = await getEnvelopeId(worker, documentId);
-
     const dataUrl = webRootUrl + worker.metadata.customSlug;
 
+    const baseResults = await Promise.all([getEnvelopeId(worker, documentId), getContactData(dataUrl, contactId)]);
+
+    const envelopeId = baseResults[0];
+
     if (docusignWorker) {
-        const contactData: any = await getContactData(dataUrl, contactId);
+        const contactData: any = baseResults[1];
         const email = contactData.email;
         const name = `${contactData.nickname} ${contactData.lastName}`;
 
@@ -48,5 +51,5 @@ const getEnvelopeId = async (worker: HiveWorkerBase, documentId: number) => {
     queryBuilder.where("de.DocuSign_Envelope_ID", knex.raw(documentId));
     queryBuilder.select("de.Envelope_ID as envelopeId");
 
-    return (await databaseWorker.executeQuery(queryBuilder.toString()))?.[0]?.[0]?.envelopeId;
+    return (await AwaitHelper.execute(databaseWorker.executeQuery(queryBuilder.toString())))?.[0]?.[0]?.envelopeId;
 };

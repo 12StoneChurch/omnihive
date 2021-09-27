@@ -395,7 +395,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@12stonechurch/omnihive-worker-events@workspace:src/custom/omnihive-worker-12stone-events":
+"@12stonechurch/omnihive-worker-events@workspace:*, @12stonechurch/omnihive-worker-events@workspace:src/custom/omnihive-worker-12stone-events":
   version: 0.0.0-use.local
   resolution: "@12stonechurch/omnihive-worker-events@workspace:src/custom/omnihive-worker-12stone-events"
   dependencies:
@@ -12204,6 +12204,7 @@ fsevents@^1.2.7:
     "@12stonechurch/omnihive-worker-contacts": 2.0.50
     "@12stonechurch/omnihive-worker-documents": "workspace:*"
     "@12stonechurch/omnihive-worker-docusign": "workspace:*"
+    "@12stonechurch/omnihive-worker-events": "workspace:*"
     "@12stonechurch/omnihive-worker-media": 2.0.10
     "@socket.io/redis-adapter": 7.0.0
     "@socket.io/redis-emitter": 4.1.0

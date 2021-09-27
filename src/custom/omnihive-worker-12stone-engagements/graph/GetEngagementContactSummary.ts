@@ -184,7 +184,8 @@ const selectBuilder = (connection: Knex, args: Args) => {
                 .select(connection.raw("count(engagement_id) as total"), "contact_id")
                 .from("engagements")
                 .groupBy("contact_id")
-                .as("e"),
+                .as("e")
+                .whereIn("engagement_status_id", [1, 2]),
             { "c.contact_id": "e.contact_id" }
         )
         .leftJoin(

@@ -22,7 +22,7 @@ export default class NotifyGroupLeaders extends HiveWorkerBase {
 
             for await (const leader of leaders) {
                 if (leader.isToday) {
-                    const body = `Your group, \\\"${leader.groupName}\\\", has a scheduled meeting today. Please record your meeting attendance in the 12Stone App: ${rootUrl}/more/group-leader/${leader.groupId}?screen=report`;
+                    const body = `Your group, \\\"${leader.groupName}\\\", has a scheduled meeting today. Please record your meeting attendance in the 12Stone App: ${rootUrl}/more/group-leader/${leader.groupId}/report`;
                     const to = leader.phone;
 
                     await customGraph.runQuery(

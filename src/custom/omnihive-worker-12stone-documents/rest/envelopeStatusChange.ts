@@ -3,7 +3,7 @@ import { IRestEndpointWorker } from "@withonevision/omnihive-core/interfaces/IRe
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { RestEndpointExecuteResponse } from "@withonevision/omnihive-core/models/RestEndpointExecuteResponse";
 import dayjs from "dayjs";
-import { getDatabaseObjects } from "src/custom/omnihive-worker-12stone-common/helpers/GenericFunctions";
+import { getDatabaseObjects } from "@12stonechurch/omnihive-worker-common/helpers/GenericFunctions";
 
 export default class EnvelopeStatusChange extends HiveWorkerBase implements IRestEndpointWorker {
     public getSwaggerDefinition = (): any => {

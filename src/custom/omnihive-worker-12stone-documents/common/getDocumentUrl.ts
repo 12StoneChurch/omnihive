@@ -1,7 +1,7 @@
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
-import { getDatabaseObjects } from "src/custom/omnihive-worker-12stone-common/helpers/GenericFunctions";
-import DocuSignWorker from "src/custom/omnihive-worker-docusign";
+import { getDatabaseObjects } from "@12stonechurch/omnihive-worker-common/helpers/GenericFunctions";
+import DocuSignWorker from "@12stonechurch/omnihive-worker-docusign";
 import { getContactData } from "./getContactData";
 
 /**

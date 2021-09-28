@@ -71,7 +71,9 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
 
                 if (syncingDoc && doc.status.toLowerCase() !== syncingDoc.status.toLowerCase()) {
                     const newStatusId = await AwaitHelper.execute(this.getStatusId(syncingDoc.status));
-                    await AwaitHelper.execute(this.updateDocStatus(doc.id, newStatusId, syncingDoc.updateTime));
+                    await AwaitHelper.execute(
+                        this.updateDocStatus(doc.id, newStatusId, syncingDoc.updateTime, syncingDoc.completedDateTime)
+                    );
                 }
             }
         }
@@ -95,7 +97,7 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
         return (await AwaitHelper.execute(this.databaseWorker.executeQuery(queryBuilder.toString())))[0][0].statusId;
     };
 
-    private updateDocStatus = async (id: number, statusId: number, updateTime: any) => {
+    private updateDocStatus = async (id: number, statusId: number, updateTime: any, completionTime: any) => {
         if (!this.databaseWorker) {
             throw new Error("The database worker is not configured properly");
         }
@@ -111,8 +113,8 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
             _Last_Updated_Date: updatedDateTime,
         };
 
-        if (statusId === 10) {
-            updateObject["Completion_Date"] = updatedDateTime;
+        if (completionTime) {
+            updateObject["Completion_Date"] = dayjs(completionTime).format("YYYY-MM-DD hh:mm:ss a");
         }
 
         const queryBuilder = this.knex.queryBuilder();

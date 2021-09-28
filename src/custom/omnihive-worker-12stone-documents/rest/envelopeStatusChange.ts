@@ -197,10 +197,14 @@ export default class EnvelopeStatusChange extends HiveWorkerBase implements IRes
             dbStatuses.length > 1 ? dbStatuses.find((x) => x.status === body.status)?.id : dbStatuses[0].id;
 
         if (statusId && statusId > 0) {
-            const updateObject = {
+            const updateObject: any = {
                 Status_ID: statusId,
                 _Last_Updated_Date: dayjs(body.lastModifiedDateTime).format("YYYY-MM-DD hh:mm:ss a"),
             };
+
+            if (body.completedDateTime) {
+                updateObject["Completion_Date"] = body.completedDateTime;
+            }
 
             queryBuilder.from("DocuSign_Envelopes");
             queryBuilder.where("Envelope_ID", body.envelopeId);

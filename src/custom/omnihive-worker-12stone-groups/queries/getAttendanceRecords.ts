@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import { Knex } from "knex";
 
 import { AttendanceRecordSummary } from "../models/AttendanceRecord";
+import { getDefaultParticipant } from "./getDefaultParticipant";
 
 interface SelectEventGroupsDTO {
     event_id: number;
@@ -23,6 +24,8 @@ export interface AttendanceRecordsGetter {
 }
 
 export const getAttendanceRecords: AttendanceRecordsGetter = async (knex, { formId, groupId, page, perPage }) => {
+    const defaultParticipantId = await getDefaultParticipant(knex);
+
     const result = (await knex
         .select([
             "eg.event_id",
@@ -39,7 +42,9 @@ export const getAttendanceRecords: AttendanceRecordsGetter = async (knex, { form
         .from("event_groups as eg")
         .leftJoin("events as e", "eg.event_id", "e.event_id")
         .leftJoin("event_types as et", "e.event_type_id", "et.event_type_id")
-        .leftJoin("event_participants as ep", "eg.event_id", "ep.event_id")
+        .leftJoin("event_participants as ep", function () {
+            this.on("eg.event_id", "=", "ep.event_id").onVal("ep.participant_id", "<>", defaultParticipantId);
+        })
         .innerJoin(
             knex.raw(`(select form_response_id,
 					          try_cast(groupid as int) as group_id,
@@ -65,6 +70,7 @@ export const getAttendanceRecords: AttendanceRecordsGetter = async (knex, { form
         )
         .where("eg.group_id", groupId)
         .andWhere("et.event_type", "Attendance")
+        // .andWhereNot("ep.participant_id", defaultParticipantId)
         .groupBy([
             "eg.event_id",
             "eg.group_id",

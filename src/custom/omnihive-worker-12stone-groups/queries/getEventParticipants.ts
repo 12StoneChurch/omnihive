@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import { Knex } from "knex";
 
 import { BaseGroupMemberSummary } from "../models/GroupMember";
+import { getDefaultParticipant } from "./getDefaultParticipant";
 
 type SelectEventParticipantsDTO = {
     participant_id: number;
@@ -21,6 +22,8 @@ interface EventParticipantsGetter {
 }
 
 export const getEventParticipants: EventParticipantsGetter = async (knex, { eventId }) => {
+    const defaultParticipantId = await getDefaultParticipant(knex);
+
     const result = (await knex
         .select([
             "ep.participant_id",
@@ -46,7 +49,8 @@ export const getEventParticipants: EventParticipantsGetter = async (knex, { even
         .leftJoin("contacts as c", "ep.participant_id", "c.participant_record")
         .leftJoin("dp_files as f", { "f.record_id": "c.contact_id", "f.page_id": 292, "f.default_image": 1 })
         .where("et.event_type", "Attendance")
-        .andWhere("ep.event_id", eventId)) as SelectEventParticipantsDTO;
+        .andWhere("ep.event_id", eventId)
+        .andWhere("ep.participant_id", "<>", defaultParticipantId)) as SelectEventParticipantsDTO;
 
     return result.map<BaseGroupMemberSummary>((row) => ({
         participantId: row.participant_id,

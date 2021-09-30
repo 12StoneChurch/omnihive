@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import { Knex } from "knex";
 
 import { AttendanceRecordSummary } from "../models/AttendanceRecord";
+import { getDefaultParticipant } from "./getDefaultParticipant";
 
 interface SelectEventGroupsDTO {
     event_id: number;
@@ -21,6 +22,8 @@ export interface AttendanceRecordGetter {
 }
 
 export const getAttendanceRecord: AttendanceRecordGetter = async (knex, { formId, eventId }) => {
+    const defaultParticipantId = await getDefaultParticipant(knex);
+
     const result = (await knex
         .first([
             "eg.event_id",
@@ -37,7 +40,9 @@ export const getAttendanceRecord: AttendanceRecordGetter = async (knex, { formId
         .from("event_groups as eg")
         .leftJoin("events as e", "eg.event_id", "e.event_id")
         .leftJoin("event_types as et", "e.event_type_id", "et.event_type_id")
-        .leftJoin("event_participants as ep", "eg.event_id", "ep.event_id")
+        .leftJoin("event_participants as ep", function () {
+            this.on("eg.event_id", "=", "ep.event_id").onVal("ep.participant_id", "<>", defaultParticipantId);
+        })
         .innerJoin(
             knex.raw(`(select form_response_id,
 					          try_cast(groupid as int) as group_id,

@@ -42,7 +42,7 @@ const argsSchema = j.object({
 });
 
 export default class SubmitGroupAttendance extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (rawArgs: unknown, context: GraphContext): Promise<AttendanceRecordSummary | Error> => {
+    public execute = async (rawArgs: unknown, context: GraphContext): Promise<AttendanceRecordSummary | {} | Error> => {
         try {
             const { args, knex, customGraph } = await getExecuteContext<Args>({
                 worker: this,
@@ -50,6 +50,10 @@ export default class SubmitGroupAttendance extends HiveWorkerBase implements IGr
                 rawArgs,
                 argsSchema,
             });
+
+            if (!args.meetingOccurred) {
+                return {};
+            }
 
             // set up form id
             let formId: number;

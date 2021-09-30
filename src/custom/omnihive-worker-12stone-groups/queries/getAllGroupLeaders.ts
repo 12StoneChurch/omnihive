@@ -48,7 +48,8 @@ export const getAllGroupLeaders: AllGroupLeadersGetter = async (knex: Knex) => {
         .and.whereRaw("isnull(gp.end_date, '1/1/2100') >= getdate()")
         .and.whereIn("gs.group_status", ["Open For Signup", "Full", "Private", "Closed"])
         .and.where("gr.role_title", "Leader")
-        .and.whereNotNull("c.mobile_phone")) as GroupParticipantsDTO[];
+        .and.whereNotNull("c.mobile_phone")
+        .and.where("c.do_not_next", 0)) as GroupParticipantsDTO[];
 
     return result.map((row) => {
         return {

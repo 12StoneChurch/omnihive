@@ -203,7 +203,7 @@ export default class EnvelopeStatusChange extends HiveWorkerBase implements IRes
             };
 
             if (body.completedDateTime) {
-                updateObject["Completion_Date"] = body.completedDateTime;
+                updateObject["Completion_Date"] = dayjs(body.completedDateTime).format("YYYY-MM-DD hh:mm:ss a");
             }
 
             queryBuilder.from("DocuSign_Envelopes");

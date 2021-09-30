@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import { Knex } from "knex";
 
 import { AttendanceRecordSummary } from "../models/AttendanceRecord";
+import { getDefaultParticipant } from "./getDefaultParticipant";
 
 interface SelectEventGroupsDTO {
     event_id: number;
@@ -23,6 +24,8 @@ export interface AttendanceRecordsGetter {
 }
 
 export const getAttendanceRecords: AttendanceRecordsGetter = async (knex, { formId, groupId, page, perPage }) => {
+    const defaultParticipantId = await getDefaultParticipant(knex);
+
     const result = (await knex
         .select([
             "eg.event_id",
@@ -39,14 +42,16 @@ export const getAttendanceRecords: AttendanceRecordsGetter = async (knex, { form
         .from("event_groups as eg")
         .leftJoin("events as e", "eg.event_id", "e.event_id")
         .leftJoin("event_types as et", "e.event_type_id", "et.event_type_id")
-        .leftJoin("event_participants as ep", "eg.event_id", "ep.event_id")
+        .leftJoin("event_participants as ep", function () {
+            this.on("eg.event_id", "=", "ep.event_id").onVal("ep.participant_id", "<>", defaultParticipantId);
+        })
         .innerJoin(
             knex.raw(`(select form_response_id,
-					          try_cast(groupid as int) as group_id,
-						      try_cast(date as date) as date,
+					          try_cast(gatheringid as int) as group_id,
+						      try_cast(meetingdate as date) as date,
 						      try_cast(anonparticipants as int) as anon_count,
 						      try_cast(childparticipants as int) as child_count,
-						      coachfeedback as feedback
+						      coachhelp as feedback
 					   from (select fr.form_response_id,
 						            ff.code_model_property,
 									fra.response
@@ -55,7 +60,7 @@ export const getAttendanceRecords: AttendanceRecordsGetter = async (knex, { form
 						     left join form_fields as ff on ff.form_field_id = fra.form_field_id
 						     where fr.form_id = ${formId}
 						) as t
-					   pivot (max(response) for code_model_property in (GroupId, Date, GroupParticipants, AnonParticipants, ChildParticipants, CountParticipants, CoachFeedback)) as p
+					   pivot (max(response) for code_model_property in (GatheringId, MeetingDate, GroupParticipants, AnonParticipants, ChildParticipants, CountParticipants, CoachHelp)) as p
 					  ) as sub`),
 
             function () {
@@ -65,6 +70,7 @@ export const getAttendanceRecords: AttendanceRecordsGetter = async (knex, { form
         )
         .where("eg.group_id", groupId)
         .andWhere("et.event_type", "Attendance")
+        // .andWhereNot("ep.participant_id", defaultParticipantId)
         .groupBy([
             "eg.event_id",
             "eg.group_id",

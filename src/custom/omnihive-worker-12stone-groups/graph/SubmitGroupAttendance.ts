@@ -10,10 +10,13 @@ import j from "joi";
 import { AttendanceFormId } from "../common/constants";
 import { AttendanceRecordSummary } from "../models/AttendanceRecord";
 import { addAttendanceEvent } from "../queries/addAttendanceEvent";
+import { addEventAnonParticipants } from "../queries/addEventAnonParticipants";
+import { addEventChildParticipants } from "../queries/addEventChildParticipants";
 import { addEventGroup } from "../queries/addEventGroup";
 import { addEventParticipants } from "../queries/addEventParticipants";
 import { getAttendanceRecordExists } from "../queries/getAttendanceRecordExists";
 import { getContact } from "../queries/getContact";
+import { getDefaultParticipant } from "../queries/getDefaultParticipant";
 import { submitAttendanceForm } from "../queries/submitAttendanceForm";
 
 export interface Args {
@@ -39,7 +42,7 @@ const argsSchema = j.object({
 });
 
 export default class SubmitGroupAttendance extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (rawArgs: unknown, context: GraphContext): Promise<AttendanceRecordSummary | Error> => {
+    public execute = async (rawArgs: unknown, context: GraphContext): Promise<AttendanceRecordSummary | {} | Error> => {
         try {
             const { args, knex, customGraph } = await getExecuteContext<Args>({
                 worker: this,
@@ -47,6 +50,10 @@ export default class SubmitGroupAttendance extends HiveWorkerBase implements IGr
                 rawArgs,
                 argsSchema,
             });
+
+            if (!args.meetingOccurred) {
+                return {};
+            }
 
             // set up form id
             let formId: number;
@@ -90,6 +97,20 @@ export default class SubmitGroupAttendance extends HiveWorkerBase implements IGr
                     participantIds = await addEventParticipants(trx, {
                         eventId,
                         participantIds: args.participants,
+                    });
+
+                    const defaultParticipantId = await getDefaultParticipant(trx);
+
+                    await addEventAnonParticipants(trx, {
+                        eventId,
+                        participantId: defaultParticipantId,
+                        anonCount: args.anonCount,
+                    });
+
+                    await addEventChildParticipants(trx, {
+                        eventId,
+                        participantId: defaultParticipantId,
+                        childCount: args.childCount,
                     });
                 } else {
                     participantIds = [];

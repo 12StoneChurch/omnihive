@@ -10,10 +10,13 @@ import j from "joi";
 import { AttendanceFormId } from "../common/constants";
 import { AttendanceRecordSummary } from "../models/AttendanceRecord";
 import { addAttendanceEvent } from "../queries/addAttendanceEvent";
+import { addEventAnonParticipants } from "../queries/addEventAnonParticipants";
+import { addEventChildParticipants } from "../queries/addEventChildParticipants";
 import { addEventGroup } from "../queries/addEventGroup";
 import { addEventParticipants } from "../queries/addEventParticipants";
 import { getAttendanceRecordExists } from "../queries/getAttendanceRecordExists";
 import { getContact } from "../queries/getContact";
+import { getDefaultParticipant } from "../queries/getDefaultParticipant";
 import { submitAttendanceForm } from "../queries/submitAttendanceForm";
 
 export interface Args {
@@ -90,6 +93,20 @@ export default class SubmitGroupAttendance extends HiveWorkerBase implements IGr
                     participantIds = await addEventParticipants(trx, {
                         eventId,
                         participantIds: args.participants,
+                    });
+
+                    const defaultParticipantId = await getDefaultParticipant(trx);
+
+                    await addEventAnonParticipants(trx, {
+                        eventId,
+                        participantId: defaultParticipantId,
+                        anonCount: args.anonCount,
+                    });
+
+                    await addEventChildParticipants(trx, {
+                        eventId,
+                        participantId: defaultParticipantId,
+                        childCount: args.childCount,
                     });
                 } else {
                     participantIds = [];

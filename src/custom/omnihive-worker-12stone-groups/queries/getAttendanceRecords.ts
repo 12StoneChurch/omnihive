@@ -47,11 +47,11 @@ export const getAttendanceRecords: AttendanceRecordsGetter = async (knex, { form
         })
         .innerJoin(
             knex.raw(`(select form_response_id,
-					          try_cast(groupid as int) as group_id,
-						      try_cast(date as date) as date,
+					          try_cast(gatheringid as int) as group_id,
+						      try_cast(meetingdate as date) as date,
 						      try_cast(anonparticipants as int) as anon_count,
 						      try_cast(childparticipants as int) as child_count,
-						      coachfeedback as feedback
+						      coachhelp as feedback
 					   from (select fr.form_response_id,
 						            ff.code_model_property,
 									fra.response
@@ -60,7 +60,7 @@ export const getAttendanceRecords: AttendanceRecordsGetter = async (knex, { form
 						     left join form_fields as ff on ff.form_field_id = fra.form_field_id
 						     where fr.form_id = ${formId}
 						) as t
-					   pivot (max(response) for code_model_property in (GroupId, Date, GroupParticipants, AnonParticipants, ChildParticipants, CountParticipants, CoachFeedback)) as p
+					   pivot (max(response) for code_model_property in (GatheringId, MeetingDate, GroupParticipants, AnonParticipants, ChildParticipants, CountParticipants, CoachHelp)) as p
 					  ) as sub`),
 
             function () {

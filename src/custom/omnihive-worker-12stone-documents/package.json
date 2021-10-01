@@ -30,6 +30,7 @@
     },
     "devDependencies": {
         "@istanbuljs/nyc-config-typescript": "1.0.1",
+        "@sendgrid/mail": "7.4.5",
         "@types/chai": "4.2.19",
         "@types/mocha": "8.2.2",
         "@types/node": "15.12.5",

@@ -26,13 +26,7 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
 
         const docusignWorker = this.getWorker<DocuSignWorker>(HiveWorkerType.Unknown, "DocuSignWorker");
 
-        const validEnvelopeIds = dbEnvelopes
-            .map((data) => {
-                return data.envelopeId;
-            })
-            .filter((data) => data);
-
-        const dsEnvelopes = await docusignWorker?.getStatusByEnvelopeIdList(validEnvelopeIds);
+        const dsEnvelopes = await docusignWorker?.getStatusByEnvelopeIdList(dbEnvelopes.map((x) => x.envelopeId));
 
         const results = await AwaitHelper.execute(
             Promise.all([this.syncDocumentStatus(dbEnvelopes, dsEnvelopes), this.getExtendedData(customArgs.contactId)])
@@ -156,13 +150,53 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
             "df.DocuSign_Form_ID as formId",
             "df.Name as formName",
             "de.DocuSign_Envelope_ID as documentId",
+            "de.Role_ID as roleId",
             "des.Status as status",
             "de.Completion_Date as completionDate",
             "de._Created_Date as createdDate",
-            "de._Last_Updated_Date as updatedDate"
+            "de._Last_Updated_Date as updatedDate",
+            "de.Null_Envelope_Email_Sent as errorEmailSent"
         );
 
-        return (await AwaitHelper.execute(this.databaseWorker.executeQuery(queryBuilder.toString())))[0];
+        const availableForms = (
+            await AwaitHelper.execute(this.databaseWorker.executeQuery(queryBuilder.toString()))
+        )[0];
+
+        await this.buildRoleData(availableForms);
+
+        return availableForms;
+    };
+
+    private buildRoleData = async (forms: any[]) => {
+        if (!this.databaseWorker) {
+            throw new Error("The database worker is not configured properly");
+        }
+
+        if (!this.knex) {
+            throw new Error("Knex has not been properly initialized");
+        }
+
+        const formIds: number[] = [];
+        forms.forEach((form) => {
+            if (!formIds.some((id) => id === form.formId) && !form.documentId) {
+                formIds.push(form.formId);
+            }
+        });
+
+        const queryBuilder = this.knex.queryBuilder();
+        queryBuilder.from("DocuSign_Form_Signers as dfs");
+        queryBuilder.whereIn("dfs.Form_ID", formIds);
+        queryBuilder.select("dfs.DocuSign_Form_Signer_ID as id", "dfs.Signer_Role as role", "dfs.Form_ID as formId");
+
+        const signerRoles = (await AwaitHelper.execute(this.databaseWorker.executeQuery(queryBuilder.toString())))[0];
+
+        forms.forEach((form) => {
+            const roles = signerRoles.filter((role) => role.formId === form.formId);
+
+            if (roles && roles.length > 0) {
+                form.roles = roles;
+            }
+        });
     };
 
     private populateUrl = async (documents: any, contactId: number, redirectUrl: string) => {

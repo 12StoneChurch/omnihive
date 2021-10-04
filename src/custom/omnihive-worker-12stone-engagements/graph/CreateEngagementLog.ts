@@ -10,6 +10,7 @@ import type { Knex } from "knex";
 import { serializeError } from "serialize-error";
 
 import { EngagementLogModel } from "../lib/models/EngagementLog";
+import { getContactName } from "../queries/getContactName";
 import {
     insertEngagementLogQuery,
     selectEngagementStatusesQuery,
@@ -19,12 +20,14 @@ import {
 
 export interface CreateEngagementWorkerArgs {
     engagementId: number;
+    actorContactId?: number;
     description?: string;
     typeId: number;
 }
 
 const argsSchema = Joi.object({
     engagementId: Joi.number().integer().required(),
+    actorContactId: Joi.number().integer().optional(),
     description: Joi.string().max(1000).optional(),
     typeId: Joi.number().integer().required(),
 });
@@ -50,6 +53,10 @@ export default class CreateEngagementLog extends HiveWorkerBase implements IGrap
             } else {
                 customArgs = value;
             }
+
+            customArgs.description = customArgs.actorContactId
+                ? `${customArgs.description} by ${await getContactName(connection, customArgs.actorContactId)}`
+                : `${customArgs.description} by System`;
 
             /* Insert engagement log */
             const insertQuery = insertEngagementLogQuery(connection, customArgs);

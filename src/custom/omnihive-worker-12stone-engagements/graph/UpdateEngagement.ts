@@ -12,6 +12,7 @@ import { serializeError } from "serialize-error";
 import { getDashboardUrl } from "./../lib/helpers/getDashboardUrl";
 import { getEngagementByIdQuery } from "./../queries/getEngagementById";
 import { getTwilioNumber } from "./../queries/getTwilioNumber";
+import { getContactName } from "../queries/getContactName";
 import { getPhoneByContactId } from "../queries/getPhoneByContactId";
 import { insertEngagementLogQuery } from "../queries/insertEngagementLog";
 import { sendText } from "../queries/sendText";
@@ -19,6 +20,7 @@ import { sendText } from "../queries/sendText";
 export interface UpdateEngagementWorkerArgs {
     engagementId: number;
     contactId?: number;
+    actorContactId?: number;
     ownerContactId?: number;
     description?: string;
     congregationId?: number;
@@ -41,6 +43,14 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
 
             // Use Transaction so that if anything fails, it reverts changes and doesn't create unnecessary data
             const updatedEngagement = await connection.transaction(async (trx) => {
+                // get actor contact name and append to description
+                if (customArgs.actorContactId) {
+                    const actorName = await getContactName(trx, customArgs.actorContactId);
+                    customArgs.description = `${customArgs.description} by ${actorName}`;
+                } else {
+                    customArgs.description = `${customArgs.description} by System`;
+                }
+
                 const existingEngagement = await getEngagementByIdQuery(
                     connection,
                     customArgs.engagementId

@@ -43,14 +43,6 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
 
             // Use Transaction so that if anything fails, it reverts changes and doesn't create unnecessary data
             const updatedEngagement = await connection.transaction(async (trx) => {
-                // get actor contact name and append to description
-                if (customArgs.actorContactId) {
-                    const actorName = await getContactName(trx, customArgs.actorContactId);
-                    customArgs.description = `${customArgs.description} by ${actorName}`;
-                } else {
-                    customArgs.description = `${customArgs.description} by System`;
-                }
-
                 const existingEngagement = await getEngagementByIdQuery(
                     connection,
                     customArgs.engagementId
@@ -76,10 +68,19 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
 
                 // On owner change create engagement log and send new owner a message
                 if (existingEngagement[0].Owner_Contact_ID !== updatedEngagement[0].Owner_Contact_ID) {
+                    // get actor contact name
+
+                    const engagementLogDescription = customArgs.actorContactId
+                        ? `Owner changed to ${updatedEngagement[0].Owner_First_Name} by ${await getContactName(
+                              trx,
+                              customArgs.actorContactId
+                          )}`
+                        : `Owner changed to ${updatedEngagement[0].Owner_First_Name} by System`;
+
                     // Create engagement log
                     const logArgs = {
                         engagementId: customArgs.engagementId,
-                        description: `Owner changed to ${updatedEngagement[0].Owner_First_Name} ${updatedEngagement[0].Owner_Last_Name}`,
+                        description: engagementLogDescription,
                         typeId: 3,
                     };
 

@@ -11,12 +11,14 @@ import { serializeError } from "serialize-error";
 import { getDashboardUrl } from "./../lib/helpers/getDashboardUrl";
 import { getEngagementByIdQuery } from "./../queries/getEngagementById";
 import { getTwilioNumber } from "./../queries/getTwilioNumber";
+import { getContactName } from "../queries/getContactName";
 import { getPhoneByContactId } from "../queries/getPhoneByContactId";
 import { insertEngagementLogQuery } from "../queries/insertEngagementLog";
 import { sendText } from "../queries/sendText";
 
 interface Args {
     contactId: number;
+    actorContactId?: number;
     ownerContactId?: number;
     description?: string;
     congregationId: number;
@@ -83,9 +85,16 @@ export default class CreateEngagement extends HiveWorkerBase implements IGraphEn
                 ).transacting(trx);
 
                 // CREATE ENGAGEMENT LOG
+
+                // get actor contact name and append to description
+
+                const engagementLogDescription = customArgs.actorContactId
+                    ? `Engagement created by ${await getContactName(trx, customArgs.actorContactId)}`
+                    : `Engagement created by System`;
+
                 const logData = {
                     engagementId: engagementData[0].Engagement_ID,
-                    description: "Engagement created.",
+                    description: engagementLogDescription,
                     typeId: 1, // Created
                 };
 

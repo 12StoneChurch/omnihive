@@ -9,7 +9,7 @@ import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDataba
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 
 export default class GenerateDocument extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: any, omniHiveContext: GraphContext): Promise<{}> => {
+    public execute = async (customArgs: any, omniHiveContext: GraphContext): Promise<any> => {
         await AwaitHelper.execute(verifyToken(omniHiveContext));
 
         const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
@@ -18,18 +18,25 @@ export default class GenerateDocument extends HiveWorkerBase implements IGraphEn
         const databaseWorker = this.getWorker<IDatabaseWorker>(HiveWorkerType.Database, "dbMinistryPlatform");
 
         if (docusignWorker && databaseWorker && webRootUrl) {
-            return await AwaitHelper.execute(
-                generateDocument(
-                    docusignWorker,
-                    databaseWorker,
-                    customArgs.templateId,
-                    webRootUrl,
-                    this.metadata.customSlug,
-                    customArgs.role,
-                    customArgs.redirectUrl,
-                    customArgs.contactId
-                )
+            const results = await Promise.all(
+                customArgs.signers.map(async (signer: any) => ({
+                    contactId: signer.contactId,
+                    url: await AwaitHelper.execute(
+                        generateDocument(
+                            docusignWorker,
+                            databaseWorker,
+                            customArgs.templateId,
+                            webRootUrl,
+                            this.metadata.customSlug,
+                            signer.roleId,
+                            customArgs.redirectUrl,
+                            signer.contactId
+                        )
+                    ),
+                }))
             );
+
+            return results.find((x: any) => x.contactId === customArgs.contactId) ?? {};
         }
 
         throw new Error("Web Root Url, DocuSign, and/or Database Workers are not properly configured.");

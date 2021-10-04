@@ -10,7 +10,7 @@ export const generateDocument = async (
     mpTemplateId: number,
     webRootUrl: string,
     customSlug: string,
-    role: string,
+    roleId: number,
     redirectUrl: string,
     contactId: number
 ) => {
@@ -26,8 +26,12 @@ export const generateDocument = async (
     const email = contactData.email;
     const name = `${contactData.nickname} ${contactData.lastName}`;
 
+    const role = await getRole(roleId, databaseWorker);
+
     if (docusignWorker) {
-        const mpId = await AwaitHelper.execute(createMpEnvelopeData(mpTemplateId, contactData.id, databaseWorker));
+        const mpId = await AwaitHelper.execute(
+            createMpEnvelopeData(mpTemplateId, contactData.id, roleId, databaseWorker)
+        );
         const envelopeData: any = await AwaitHelper.execute(
             docusignWorker.createEnvelope(templateId, email, name, role, mpId)
         );
@@ -45,10 +49,6 @@ export const generateDocument = async (
 };
 
 const getDocuSignTemplateId = async (id: number, databaseWorker: IDatabaseWorker): Promise<string> => {
-    if (!databaseWorker) {
-        throw new Error("Database worker not configured");
-    }
-
     const queryBuilder: Knex.QueryBuilder = databaseWorker?.connection.queryBuilder();
 
     queryBuilder.from("DocuSign_Forms as df");
@@ -63,15 +63,13 @@ const getDocuSignTemplateId = async (id: number, databaseWorker: IDatabaseWorker
 const createMpEnvelopeData = async (
     formId: number,
     contactId: number,
+    roleId: number,
     databaseWorker: IDatabaseWorker
 ): Promise<number> => {
-    if (!databaseWorker) {
-        throw new Error("Database worker not configured");
-    }
-
     const insertData: any = {
         Form_ID: formId,
         Contact_ID: contactId,
+        Role_ID: roleId,
         Status_ID: 1,
         Domain_ID: 1,
     };
@@ -85,10 +83,6 @@ const createMpEnvelopeData = async (
 };
 
 const storeEnvelopeData = async (mpId: number, data: any, databaseWorker: IDatabaseWorker): Promise<any> => {
-    if (!databaseWorker) {
-        throw new Error("Database worker not configured");
-    }
-
     const dateCreated: string = dayjs(data.statusDateTime).format("YYYY-MM-DD hh:mm:ssa");
 
     const updateData: any = {
@@ -104,4 +98,14 @@ const storeEnvelopeData = async (mpId: number, data: any, databaseWorker: IDatab
     queryBuilder.where("DocuSign_Envelope_ID", mpId);
 
     await AwaitHelper.execute(databaseWorker.executeQuery(queryBuilder.toString()));
+};
+
+const getRole = async (id: number, databaseWorker: IDatabaseWorker) => {
+    const queryBuilder = databaseWorker.connection.queryBuilder();
+
+    queryBuilder.from("DocuSign_Form_Signers as dfs");
+    queryBuilder.where("dfs.DocuSign_Form_Signer_ID", id);
+    queryBuilder.select("dfs.Signer_Role as role");
+
+    return (await AwaitHelper.execute(databaseWorker.executeQuery(queryBuilder.toString())))?.[0]?.[0].role;
 };

@@ -45,7 +45,7 @@ export default class CheckExpiredSnoozedEngagements extends HiveWorkerBase imple
                 /* create engagement log */
                 const logArgs = {
                     engagementId: dto.engagement_id,
-                    description: `Status changed to Open`,
+                    description: `Status changed to Open by System`,
                     typeId: 2,
                 };
 

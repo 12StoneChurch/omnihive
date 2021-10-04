@@ -145,54 +145,52 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                         9,
                         "Recipient's phone number is duplicated and the message has already been sent to this number."
                     );
+                } else {
+                    const text = {
+                        data: {
+                            to: "+1" + message.ToAddress.replace(/-/g, ""),
+                            from: message.FromAddress.length > 5 ? "+1" + message.FromAddress : message.FromAddress,
+                            body: message.Body,
+                        },
+                        id: message.CommunicationId,
+                        contactId: message.ContactId,
+                    };
 
-                    continue;
-                }
+                    try {
+                        const result = await sendTwilioSms(text, this.metadata);
 
-                const text = {
-                    data: {
-                        to: "+1" + message.ToAddress.replace(/-/g, ""),
-                        from: message.FromAddress.length > 5 ? "+1" + message.FromAddress : message.FromAddress,
-                        body: message.Body,
-                    },
-                    id: message.CommunicationId,
-                    contactId: message.ContactId,
-                };
+                        if (!this.sentTexts[message.ToAddress]) {
+                            this.sentTexts[message.ToAddress] = [];
+                        }
 
-                try {
-                    const result = await sendTwilioSms(text, this.metadata);
+                        this.sentTexts[message.ToAddress].push(message.CommunicationId);
 
-                    if (!this.sentTexts[message.ToAddress]) {
-                        this.sentTexts[message.ToAddress] = [];
-                    }
-
-                    this.sentTexts[message.ToAddress].push(message.CommunicationId);
-
-                    await updateCommunicationMessageStatus(
-                        graphUrl,
-                        message.CommunicationId,
-                        message.ContactId,
-                        3,
-                        "",
-                        result
-                    );
-                } catch (err: any) {
-                    if (err.code === 21610) {
                         await updateCommunicationMessageStatus(
                             graphUrl,
                             message.CommunicationId,
                             message.ContactId,
-                            5,
-                            "Recipient's phone number is currently blocking messages from the communication manager."
+                            3,
+                            "",
+                            result
                         );
-                    } else {
-                        await updateCommunicationMessageStatus(
-                            graphUrl,
-                            message.CommunicationId,
-                            message.ContactId,
-                            9,
-                            "Recipient's phone number is encountering an unknown error."
-                        );
+                    } catch (err: any) {
+                        if (err.code === 21610) {
+                            await updateCommunicationMessageStatus(
+                                graphUrl,
+                                message.CommunicationId,
+                                message.ContactId,
+                                5,
+                                "Recipient's phone number is currently blocking messages from the communication manager."
+                            );
+                        } else {
+                            await updateCommunicationMessageStatus(
+                                graphUrl,
+                                message.CommunicationId,
+                                message.ContactId,
+                                9,
+                                "Recipient's phone number is encountering an unknown error."
+                            );
+                        }
                     }
                 }
             }

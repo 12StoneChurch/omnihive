@@ -34,6 +34,7 @@
         "@12stonechurch/omnihive-worker-docusign": "workspace:*",
         "@12stonechurch/omnihive-worker-events": "workspace:*",
         "@12stonechurch/omnihive-worker-media": "2.0.10",
+        "@12stonechurch/omnihive-worker-trainings": "2.0.76",
         "@socket.io/redis-adapter": "7.0.0",
         "@socket.io/redis-emitter": "4.1.0",
         "@withonevision/omnihive-client": "workspace:*",

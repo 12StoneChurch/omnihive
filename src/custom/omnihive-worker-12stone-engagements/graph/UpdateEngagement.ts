@@ -58,9 +58,16 @@ export default class UpdateEngagement extends HiveWorkerBase implements IGraphEn
 
                 // Create engagement log for status changes
                 if (existingEngagement[0].Engagement_Status_ID !== updatedEngagement[0].Engagement_Status_ID) {
+                    const engagementLogDescription = customArgs.actorContactId
+                        ? `Status changed to ${updatedEngagement[0].Status} by ${await getContactName(
+                              trx,
+                              customArgs.actorContactId
+                          )}`
+                        : `Status changed to ${updatedEngagement[0].Status} by System}`;
+
                     const logArgs = {
                         engagementId: customArgs.engagementId,
-                        description: `Status changed to ${updatedEngagement[0].Status}`,
+                        description: engagementLogDescription,
                         typeId: 2,
                     };
                     await insertEngagementLogQuery(connection, logArgs).transacting(trx);

@@ -17,6 +17,5 @@ export const countLeaderGroups: LeaderGroupsCounter = async (knex: Knex, { parti
             .and.where("g.enable_attendance", 1)
             .and.whereRaw("isnull(g.end_date, '1/1/2100') >= getdate()")
             .and.whereRaw("isnull(gp.end_date, '1/1/2100') >= getdate()")
-            .and.whereIn("gs.group_status", ["Open For Signup", "Full", "Private", "Closed"])
     ).length;
 };

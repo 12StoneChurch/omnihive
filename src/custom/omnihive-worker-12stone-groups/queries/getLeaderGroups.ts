@@ -38,7 +38,6 @@ export const getLeaderGroups: LeaderGroupsGetter = async (knex, { participantId,
         .and.whereRaw("isnull(g.end_date, '1/1/2100') >= getdate()")
         .and.whereRaw("isnull(gp.end_date, '1/1/2100') >= getdate()")
         .and.whereRaw("isnull(gp2.end_date, '1/1/2100') >= getdate()")
-        .and.whereIn("gs.group_status", ["Open For Signup", "Full", "Private", "Closed"])
         .groupBy(["g.group_id", "g.group_name", "g.meeting_day_id", "md.meeting_day", "g.meeting_time"])
         .orderBy("g.group_name")
         .limit(perPage)

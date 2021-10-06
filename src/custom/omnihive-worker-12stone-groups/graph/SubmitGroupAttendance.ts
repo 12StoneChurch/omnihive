@@ -74,7 +74,7 @@ export default class SubmitGroupAttendance extends HiveWorkerBase implements IGr
 
             return await knex.transaction(async (trx) => {
                 // check for existing attendance record
-                const exists = await getAttendanceRecordExists(knex, { ...args });
+                const exists = await getAttendanceRecordExists(trx, { ...args });
 
                 if (exists) {
                     throw new Error(

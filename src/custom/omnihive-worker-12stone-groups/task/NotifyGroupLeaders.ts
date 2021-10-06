@@ -21,7 +21,7 @@ export default class NotifyGroupLeaders extends HiveWorkerBase {
             const leaders = await getAllGroupLeaders(knex);
 
             for await (const leader of leaders) {
-                if (leader.isToday) {
+                if (leader.isToday && leader.isLastHour) {
                     const body = `Your group, \\\"${leader.groupName}\\\", has a scheduled meeting today. Please record your meeting attendance in the 12Stone App: ${rootUrl}/more/group-leader/${leader.groupId}/report`;
                     const to = leader.phone;
 

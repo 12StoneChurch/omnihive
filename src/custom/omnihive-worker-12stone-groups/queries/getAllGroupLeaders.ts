@@ -1,10 +1,12 @@
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import weekday from "dayjs/plugin/weekday";
 import { Knex } from "knex";
 
 import { NotificationSummary } from "../models/Notification";
 
 dayjs.extend(weekday);
+dayjs.extend(utc);
 
 const getMeetingIsToday = (meetingDay: number) => {
     const convertedMeetingDay = meetingDay - 1; // because mp meeting days are Sunday = 1 with no zero index
@@ -14,12 +16,29 @@ const getMeetingIsToday = (meetingDay: number) => {
     return day === convertedMeetingDay;
 };
 
+const getMeetingIsLastHour = (meetingTime: Date) => {
+    const meetingHour = dayjs(meetingTime).utc().hour();
+
+    const hour = dayjs().utc(true).hour();
+
+    if (hour === 0 && meetingHour === 23) {
+        return true;
+    }
+
+    if (hour - 1 === meetingHour) {
+        return true;
+    }
+
+    return false;
+};
+
 interface GroupParticipantsDTO {
     group_id: number;
     contact_id: number;
     group_name: string;
     meeting_day_id: number;
     meeting_day: string;
+    meeting_time: Date;
     mobile_phone: string;
 }
 
@@ -35,6 +54,7 @@ export const getAllGroupLeaders: AllGroupLeadersGetter = async (knex: Knex) => {
             "g.group_name",
             "g.meeting_day_id",
             "md.meeting_day",
+            "g.meeting_time",
             "c.mobile_phone",
         ])
         .from("group_participants as gp")
@@ -44,11 +64,12 @@ export const getAllGroupLeaders: AllGroupLeadersGetter = async (knex: Knex) => {
         .leftJoin("meeting_days as md", "g.meeting_day_id", "md.meeting_day_id")
         .leftJoin("contacts as c", "gp.participant_id", "c.participant_record")
         .whereNotNull("g.meeting_day_id")
+        .and.whereNotNull("g.meeting_time")
         .and.whereRaw("isnull(g.end_date, '1/1/2100') >= getdate()")
         .and.whereRaw("isnull(gp.end_date, '1/1/2100') >= getdate()")
         .and.where("gr.role_title", "Leader")
         .and.whereNotNull("c.mobile_phone")
-        .and.where("c.do_not_next", 0)) as GroupParticipantsDTO[];
+        .and.where("c.do_not_text", 0)) as GroupParticipantsDTO[];
 
     return result.map((row) => {
         return {
@@ -60,6 +81,7 @@ export const getAllGroupLeaders: AllGroupLeadersGetter = async (knex: Knex) => {
                 name: row.meeting_day,
             },
             isToday: getMeetingIsToday(row.meeting_day_id),
+            isLastHour: getMeetingIsLastHour(row.meeting_time),
             phone: row.mobile_phone,
         };
     });

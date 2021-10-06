@@ -7,5 +7,6 @@ export interface NotificationSummary {
         name: string;
     };
     isToday: boolean;
+    isLastHour: boolean;
     phone: string;
 }

@@ -6,6 +6,6 @@ export enum AttendanceFormId {
 
 export enum MemberFormId {
     DEV = 176,
-    BETA = 176,
+    BETA = 179,
     PROD = 176,
 }

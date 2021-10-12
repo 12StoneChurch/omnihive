@@ -77,6 +77,7 @@ export default class GetContact extends HiveWorkerBase implements IGraphEndpoint
                 email: dto.email,
                 phone: dto.phone ?? undefined,
                 age: dto.age ?? undefined,
+                dateOfBirth: dto.date_of_birth ?? undefined,
                 address: dto.address_line_1
                     ? {
                           line1: dto.address_line_1,
@@ -117,6 +118,7 @@ interface SelectContactDTO {
     state: string | null;
     zip: string | null;
     age: number | null;
+    date_of_birth: string | null;
     campus_id: number;
     campus_name: string;
     household_id: number;

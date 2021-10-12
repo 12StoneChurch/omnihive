@@ -9,6 +9,7 @@ export interface ContactModel {
     email: string;
     phone?: string;
     age?: number;
+    dateOfBirth?: string;
     address?: {
         line1: string;
         line2?: string;

@@ -61,7 +61,7 @@ export class GetExtendedContactReturn implements BaseWorkerModel {
             .pattern(/^[a-zA-Z, ]+$/, { name: "alpha characters" })
             .required(),
         dateOfBirth: joi.date().iso().optional(),
-        genderId: joi.number().integer().positive().optional(),
+        genderId: joi.number().integer().optional(),
         email: joi.string().email().required(),
         phone: joi
             .string()
@@ -74,27 +74,30 @@ export class GetExtendedContactReturn implements BaseWorkerModel {
         bulkTextOptOut: joi.boolean().default(false).optional(),
         removeFromDirectory: joi.boolean().default(false).optional(),
         canImpersonate: joi.boolean().default(false).optional(),
-        customApplicationUserSettingsId: joi.number().integer().positive().optional(),
-        userSettings: joi.string().optional(),
-        householdId: joi.number().integer().positive().optional(),
-        congregationId: joi.number().integer().positive().optional(),
-        congregationName: joi.string().optional(),
-        addressId: joi.number().integer().positive().optional(),
-        addressLine1: joi.string().optional(),
+        customApplicationUserSettingsId: joi.number().integer().optional(),
+        userSettings: joi.string().empty("").optional(),
+        householdId: joi.number().integer().optional(),
+        congregationId: joi.number().integer().optional(),
+        congregationName: joi.string().empty("").optional(),
+        addressId: joi.number().integer().optional(),
+        addressLine1: joi.string().empty("").optional(),
         addressLine2: joi.any().optional(),
         city: joi
             .string()
+            .empty("")
             .pattern(/^[a-zA-Z ]+$/, { name: "alpha characters" })
             .optional(),
         stateRegion: joi
             .string()
+            .empty("")
             .pattern(/^[a-zA-Z]+$/, { name: "alpha characters" })
             .optional(),
         postalCode: joi
             .string()
+            .empty("")
             .pattern(/^[0-9]+$/, { name: "numeric characters" })
             .optional(),
-        photoUrl: joi.string().uri().optional(),
+        photoUrl: joi.string().empty("").optional(),
     });
 
     public validateProperties = (): GetExtendedContactReturn => {

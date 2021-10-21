@@ -1,6 +1,6 @@
 import joi from "joi";
-import { validateProperties } from "src/custom/omnihive-worker-12stone-common/helpers/ArgsHelper";
-import { addDataToObject } from "src/custom/omnihive-worker-12stone-common/helpers/GenericFunctions";
+import { validateProperties } from "@12stonechurch/omnihive-worker-common/helpers/ArgsHelper";
+import { addDataToObject } from "@12stonechurch/omnihive-worker-common/helpers/GenericFunctions";
 import { BaseWorkerModel } from "../../../BaseWorkerModel";
 
 export class GetExtendedContactArgs implements BaseWorkerModel {

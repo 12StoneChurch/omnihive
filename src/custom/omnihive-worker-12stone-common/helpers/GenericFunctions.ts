@@ -48,3 +48,14 @@ export const getDatabaseObjects = (
         queryBuilder: knex.queryBuilder(),
     };
 };
+
+export const addDataToObject = <T extends unknown>(type: { new (): T }, target: any, data: any) => {
+    const generic: T = new type();
+
+    Object.keys(data).forEach((key) => {
+        // @ts-ignore
+        if (key in generic) {
+            target[key] = data[key];
+        }
+    });
+};

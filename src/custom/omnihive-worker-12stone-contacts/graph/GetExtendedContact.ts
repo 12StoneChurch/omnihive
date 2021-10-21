@@ -4,15 +4,20 @@ import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IG
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { getContactPhotoUrl } from "../common/GetContactPhoto";
+import { GetExtendedContactArgs } from "@12stonechurch/omnihive-worker-common/models/custom-worker-args/graph/contacts/GetExtendedContactArgs";
+import { GetExtendedContactReturn } from "@12stonechurch/omnihive-worker-common/models/custom-worker-returns/graph/contacts/GetExtendedContactReturn";
 
 export default class GetExtendedUser extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: any, omniHiveContext: GraphContext): Promise<any> => {
+    public execute = async (customArgs: GetExtendedContactArgs, omniHiveContext: GraphContext): Promise<any> => {
         await verifyToken(omniHiveContext);
+
+        let args: GetExtendedContactArgs = new GetExtendedContactArgs(customArgs);
+        args = args.validateProperties();
 
         const { databaseWorker, queryBuilder } = getDatabaseObjects(this, "dbMinistryPlatform");
 
         queryBuilder.from("Contacts as c");
-        queryBuilder.where("c.User_Account", customArgs.userId);
+        queryBuilder.where("c.User_Account", args.userId);
         queryBuilder.select(
             "c.User_Account as userId",
             "c.Contact_ID as contactId",
@@ -32,12 +37,12 @@ export default class GetExtendedUser extends HiveWorkerBase implements IGraphEnd
             "c.Remove_From_Directory as removeFromDirectory"
         );
 
-        if (!customArgs.disableUser) {
+        if (!args.disableUser) {
             queryBuilder.leftJoin("dp_Users as du", "du.User_ID", "c.User_Account");
             queryBuilder.select("du.Can_Impersonate as canImpersonate");
         }
 
-        if (!customArgs.disableSettings) {
+        if (!args.disableSettings) {
             queryBuilder.leftJoin("Custom_Application_User_Settings as caus", "caus.User_ID", "c.User_Account");
             queryBuilder.select(
                 "caus.Custom_Application_User_Settings_ID as customApplicationUserSettingsId",
@@ -45,11 +50,11 @@ export default class GetExtendedUser extends HiveWorkerBase implements IGraphEnd
             );
         }
 
-        if (!customArgs.disableHousehold) {
+        if (!args.disableHousehold) {
             queryBuilder.leftJoin("Households as h", "h.Household_ID", "c.Household_ID");
             queryBuilder.select("h.Household_ID as householdId");
 
-            if (!customArgs.disableCongregation) {
+            if (!args.disableCongregation) {
                 queryBuilder.leftJoin("Congregations as cong", "cong.Congregation_ID", "h.Congregation_ID");
                 queryBuilder.select(
                     "cong.Congregation_ID as congregationId",
@@ -57,7 +62,7 @@ export default class GetExtendedUser extends HiveWorkerBase implements IGraphEnd
                 );
             }
 
-            if (!customArgs.disableAddress) {
+            if (!args.disableAddress) {
                 queryBuilder.leftJoin("Addresses as a", "a.Address_ID", "h.Address_ID");
                 queryBuilder.select(
                     "a.Address_ID as addressId",
@@ -70,12 +75,17 @@ export default class GetExtendedUser extends HiveWorkerBase implements IGraphEnd
             }
         }
 
-        const results = (await databaseWorker.executeQuery(queryBuilder.toString()))[0][0];
+        const results: GetExtendedContactReturn = (
+            await databaseWorker.executeQuery(queryBuilder.toString())
+        )[0][0] as GetExtendedContactReturn;
 
-        if (!customArgs.disableProfilePicture) {
+        if (!args.disableProfilePicture) {
             results.photoUrl = await getContactPhotoUrl(this, results.contactId);
         }
 
-        return results;
+        let validatedResults: GetExtendedContactReturn = new GetExtendedContactReturn(results);
+        validatedResults = validatedResults.validateProperties();
+
+        return validatedResults;
     };
 }

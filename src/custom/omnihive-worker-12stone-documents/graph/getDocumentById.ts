@@ -2,8 +2,8 @@ import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDataba
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
-import { getDatabaseObjects } from "src/custom/omnihive-worker-12stone-common/helpers/GenericFunctions";
-import { verifyToken } from "src/custom/omnihive-worker-12stone-common/helpers/TokenHelper";
+import { getDatabaseObjects } from "@12stonechurch/omnihive-worker-common/helpers/GenericFunctions";
+import { verifyToken } from "@12stonechurch/omnihive-worker-common/helpers/TokenHelper";
 
 export default class GetDocumentById extends HiveWorkerBase implements IGraphEndpointWorker {
     public execute = async (customArgs: any, omniHiveContext: GraphContext): Promise<{}> => {

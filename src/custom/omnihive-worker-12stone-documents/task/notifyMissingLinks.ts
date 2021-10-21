@@ -2,11 +2,11 @@ import { MailDataRequired } from "@sendgrid/mail";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
-import dayjs from "dayjs";
+import * as dayjs from "dayjs";
 import { Knex } from "knex";
-import { getDatabaseObjects } from "src/custom/omnihive-worker-12stone-common/helpers/GenericFunctions";
-import { sendEmails } from "src/custom/omnihive-worker-12stone-communications/common/sendEmails";
-import { ITaskEndpointWorker } from "src/packages/omnihive-core/interfaces/ITaskEndpointWorker";
+import { getDatabaseObjects } from "@12stonechurch/omnihive-worker-common/helpers/GenericFunctions";
+import { sendEmails } from "@12stonechurch/omnihive-worker-communications/common/sendEmails";
+import { ITaskEndpointWorker } from "@withonevision/omnihive-core/interfaces/ITaskEndpointWorker";
 
 export default class NotifyMissingLinks extends HiveWorkerBase implements ITaskEndpointWorker {
     private databaseWorker?: IDatabaseWorker;

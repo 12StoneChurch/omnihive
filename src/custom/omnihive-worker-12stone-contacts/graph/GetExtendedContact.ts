@@ -1,8 +1,8 @@
-import { getDatabaseObjects } from "src/custom/omnihive-worker-12stone-common/helpers/GenericFunctions";
-import { verifyToken } from "src/custom/omnihive-worker-12stone-common/helpers/TokenHelper";
-import { IGraphEndpointWorker } from "src/packages/omnihive-core/interfaces/IGraphEndpointWorker";
-import { GraphContext } from "src/packages/omnihive-core/models/GraphContext";
-import { HiveWorkerBase } from "src/packages/omnihive-core/models/HiveWorkerBase";
+import { getDatabaseObjects } from "@12stonechurch/omnihive-worker-common/helpers/GenericFunctions";
+import { verifyToken } from "@12stonechurch/omnihive-worker-common/helpers/TokenHelper";
+import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
+import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
+import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
 import { getContactPhotoUrl } from "../common/GetContactPhoto";
 
 export default class GetExtendedUser extends HiveWorkerBase implements IGraphEndpointWorker {

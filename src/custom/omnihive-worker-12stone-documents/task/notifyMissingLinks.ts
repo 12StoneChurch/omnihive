@@ -2,7 +2,7 @@ import { MailDataRequired } from "@sendgrid/mail";
 import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 import { IDatabaseWorker } from "@withonevision/omnihive-core/interfaces/IDatabaseWorker";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
-import * as dayjs from "dayjs";
+import dayjs from "dayjs";
 import { Knex } from "knex";
 import { getDatabaseObjects } from "@12stonechurch/omnihive-worker-common/helpers/GenericFunctions";
 import { sendEmails } from "@12stonechurch/omnihive-worker-communications/common/sendEmails";

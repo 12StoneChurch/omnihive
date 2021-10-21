@@ -8,6 +8,8 @@ on:
 jobs:
     build:
         runs-on: ubuntu-latest
+        env:
+            YARN_ENABLE_IMMUTABLE_INSTALLS: false
         steps:
             - uses: actions/checkout@v2
             - name: Yarn Install

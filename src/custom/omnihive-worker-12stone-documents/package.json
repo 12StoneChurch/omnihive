@@ -24,6 +24,8 @@
         "build": "tsc"
     },
     "dependencies": {
+        "@12stonechurch/omnihive-worker-common": "workspace:*",
+        "@12stonechurch/omnihive-worker-docusign": "workspace:*",
         "@withonevision/omnihive-core": "6.2.62",
         "axios": "0.21.4",
         "dayjs": "1.10.7"

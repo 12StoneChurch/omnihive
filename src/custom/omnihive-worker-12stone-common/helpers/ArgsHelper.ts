@@ -16,3 +16,17 @@ export const validateArgs = <T>(args: unknown, schema: Schema): T => {
     args = value;
     return value;
 };
+
+export const validateProperties = <T>(args: unknown, schema: Schema): T => {
+    const { value, error } = schema.validate(args, {
+        allowUnknown: true,
+        stripUnknown: true,
+        convert: true,
+    }) as JoiValidationResult<T>;
+
+    if (error) {
+        throw error;
+    }
+
+    return value;
+};

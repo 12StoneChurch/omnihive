@@ -36,7 +36,13 @@ export default class GenerateDocument extends HiveWorkerBase implements IGraphEn
                 }))
             );
 
-            return results.find((x: any) => x.contactId === customArgs.contactId) ?? {};
+            const contactResult: any = results.find((x: any) => x.contactId === customArgs.contactId);
+
+            if (contactResult) {
+                return contactResult.url;
+            }
+
+            return {};
         }
 
         throw new Error("Web Root Url, DocuSign, and/or Database Workers are not properly configured.");

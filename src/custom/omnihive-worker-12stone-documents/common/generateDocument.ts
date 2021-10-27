@@ -42,7 +42,7 @@ export const generateDocument = async (
             docusignWorker.getEnvelopeUrl(redirectUrl, email, name, envelopeData.envelopeId)
         );
 
-        return { envelopeUrl: url };
+        return url;
     } else {
         throw new Error("DocuSign worker not found.");
     }

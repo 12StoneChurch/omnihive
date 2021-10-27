@@ -65,8 +65,14 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
 
                 if (syncingDoc && doc.status.toLowerCase() !== syncingDoc.status.toLowerCase()) {
                     const newStatusId = await AwaitHelper.execute(this.getStatusId(syncingDoc.status));
+
+                    let completedDate = syncingDoc.completedDate;
+                    if (!completedDate && syncingDoc.status.toLowerCase() === "completed") {
+                        completedDate = syncingDoc.updateTime;
+                    }
+
                     await AwaitHelper.execute(
-                        this.updateDocStatus(doc.id, newStatusId, syncingDoc.updateTime, syncingDoc.completedDateTime)
+                        this.updateDocStatus(doc.id, newStatusId, syncingDoc.updateTime, completedDate)
                     );
                 }
             }
@@ -164,7 +170,7 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
 
         await this.buildRoleData(availableForms);
 
-        return availableForms;
+        return availableForms.filter((form) => (!form.status && form.roles.length === 1) || form.status);
     };
 
     private buildRoleData = async (forms: any[]) => {
@@ -186,6 +192,7 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
         const queryBuilder = this.knex.queryBuilder();
         queryBuilder.from("DocuSign_Form_Signers as dfs");
         queryBuilder.whereIn("dfs.Form_ID", formIds);
+        queryBuilder.andWhere("dfs.Archived", 0);
         queryBuilder.select("dfs.DocuSign_Form_Signer_ID as id", "dfs.Signer_Role as role", "dfs.Form_ID as formId");
 
         const signerRoles = (await AwaitHelper.execute(this.databaseWorker.executeQuery(queryBuilder.toString())))[0];
@@ -195,6 +202,8 @@ export default class GetDocuments extends HiveWorkerBase implements IGraphEndpoi
 
             if (roles && roles.length > 0) {
                 form.roles = roles;
+            } else {
+                form.roles = [];
             }
         });
     };

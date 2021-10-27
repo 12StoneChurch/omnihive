@@ -133,6 +133,10 @@ export default class DocuSignWorker extends HiveWorkerBase {
     public getStatusByEnvelopeIdList = async (envelopeIds: string[]) => {
         await this.authenticate();
 
+        if (!envelopeIds || envelopeIds.length <= 0) {
+            return [];
+        }
+
         if (this._client && this._userInfo && this._userInfo.accounts && this._userInfo.accounts.length > 0) {
             const envelopesApi = new docusign.EnvelopesApi(this._client);
             this._client.setBasePath(this._userInfo.accounts[0].baseUri + "/restapi");

@@ -21,6 +21,7 @@ export default class GetExtendedUser extends HiveWorkerBase implements IGraphEnd
         queryBuilder.select(
             "c.User_Account as userId",
             "c.Contact_ID as contactId",
+            "c.Contact_GUID as contactGuid",
             "c.First_Name as firstName",
             "c.Last_Name as lastName",
             "c.Nickname as nickname",

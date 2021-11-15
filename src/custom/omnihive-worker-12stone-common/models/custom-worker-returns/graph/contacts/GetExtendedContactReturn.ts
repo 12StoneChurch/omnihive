@@ -12,6 +12,7 @@ export class GetExtendedContactReturn implements BaseWorkerModel {
 
     public userId: number = 0;
     public contactId: number = 0;
+    public contactGuid: string = "";
     public firstName: string = "";
     public lastName: string = "";
     public nickname: string = "";
@@ -44,6 +45,7 @@ export class GetExtendedContactReturn implements BaseWorkerModel {
     public propertySchema: joi.ObjectSchema<any> = joi.object({
         userId: joi.number().integer().positive().required(),
         contactId: joi.number().integer().positive().required(),
+        contactGuid: joi.string().guid().optional(),
         firstName: joi
             .string()
             .pattern(/^[a-zA-Z ]+$/, { name: "alpha characters" })

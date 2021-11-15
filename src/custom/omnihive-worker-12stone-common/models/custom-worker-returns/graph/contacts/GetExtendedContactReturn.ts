@@ -1,6 +1,7 @@
-import joi from "joi";
 import { validateProperties } from "@12stonechurch/omnihive-worker-common/helpers/ArgsHelper";
 import { addDataToObject } from "@12stonechurch/omnihive-worker-common/helpers/GenericFunctions";
+import joi from "joi";
+
 import { BaseWorkerModel } from "../../../BaseWorkerModel";
 
 export class GetExtendedContactReturn implements BaseWorkerModel {
@@ -19,6 +20,7 @@ export class GetExtendedContactReturn implements BaseWorkerModel {
     public displayName: string = "";
     public dateOfBirth: string = "";
     public genderId: number = 0;
+    public maritalStatusId: number = 0;
     public email: string = "";
     public phone: string = "";
     public participantRecord: number = 0;
@@ -64,6 +66,7 @@ export class GetExtendedContactReturn implements BaseWorkerModel {
             .required(),
         dateOfBirth: joi.date().iso().optional(),
         genderId: joi.number().integer().optional(),
+        maritalStatusId: joi.number().integer().optional(),
         email: joi.string().email().required(),
         phone: joi
             .string()

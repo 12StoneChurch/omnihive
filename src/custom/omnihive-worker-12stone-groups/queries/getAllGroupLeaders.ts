@@ -73,7 +73,7 @@ export const getAllGroupLeaders: AllGroupLeadersGetter = async (
     queryBuilder.andWhereRaw("isNull(g.end_date, '1/1/2100') >= getDate()");
     queryBuilder.andWhereRaw("isNull(gp.end_date, '1/1/2100') >= getDate()");
     queryBuilder.andWhere("gr.role_title", "Leader");
-    queryBuilder.andWhereRaw("c.mobile_phone is null");
+    queryBuilder.andWhereRaw("c.mobile_phone is not null");
     queryBuilder.andWhere("c.do_not_text", 0);
 
     if (attendanceOnly) {

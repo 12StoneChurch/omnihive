@@ -38,6 +38,7 @@ interface SelectGroupsDTO {
     group_status_id: number;
     group_status: GroupStatus;
     total_participants: number;
+    enable_invites: boolean;
 }
 
 export interface LeaderGroupDetailGetter {
@@ -60,6 +61,7 @@ export const getLeaderGroupDetail: LeaderGroupDetailGetter = async (knex, { grou
             "g.group_status_id",
             "gs.group_status",
             knex.raw("count(gp.participant_id) as total_participants"),
+            "g.Enable_Invites as enable_invites",
         ])
         .from("groups as g")
         .leftJoin("group_statuses as gs", "gs.group_status_id", "g.group_status_id")
@@ -81,6 +83,7 @@ export const getLeaderGroupDetail: LeaderGroupDetailGetter = async (knex, { grou
             "c.mobile_phone",
             "g.group_status_id",
             "gs.group_status",
+            "g.Enable_Invites",
         ])) as SelectGroupsDTO;
 
     return {
@@ -107,5 +110,6 @@ export const getLeaderGroupDetail: LeaderGroupDetailGetter = async (knex, { grou
                   }
                 : undefined,
         totalParticipants: result.total_participants,
+        enable_invites: result.enable_invites,
     };
 };

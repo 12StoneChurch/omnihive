@@ -1,14 +1,18 @@
 import { getDatabaseObjects } from "@12stonechurch/omnihive-worker-common/helpers/GenericFunctions";
 import { verifyToken } from "@12stonechurch/omnihive-worker-common/helpers/TokenHelper";
+import { GetExtendedContactArgs } from "@12stonechurch/omnihive-worker-common/models/custom-worker-args/graph/contacts/GetExtendedContactArgs";
+import { GetExtendedContactReturn } from "@12stonechurch/omnihive-worker-common/models/custom-worker-returns/graph/contacts/GetExtendedContactReturn";
 import { IGraphEndpointWorker } from "@withonevision/omnihive-core/interfaces/IGraphEndpointWorker";
 import { GraphContext } from "@withonevision/omnihive-core/models/GraphContext";
 import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBase";
+
 import { getContactPhotoUrl } from "../common/GetContactPhoto";
-import { GetExtendedContactArgs } from "@12stonechurch/omnihive-worker-common/models/custom-worker-args/graph/contacts/GetExtendedContactArgs";
-import { GetExtendedContactReturn } from "@12stonechurch/omnihive-worker-common/models/custom-worker-returns/graph/contacts/GetExtendedContactReturn";
 
 export default class GetExtendedUser extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: GetExtendedContactArgs, omniHiveContext: GraphContext): Promise<any> => {
+    public execute = async (
+        customArgs: GetExtendedContactArgs,
+        omniHiveContext: GraphContext
+    ): Promise<GetExtendedContactReturn> => {
         await verifyToken(omniHiveContext);
 
         let args: GetExtendedContactArgs = new GetExtendedContactArgs(customArgs);
@@ -28,6 +32,7 @@ export default class GetExtendedUser extends HiveWorkerBase implements IGraphEnd
             "c.Display_Name as displayName",
             "c.Date_Of_Birth as dateOfBirth",
             "c.Gender_ID as genderId",
+            "c.Marital_Status_ID as maritalStatusId",
             "c.Email_Address as email",
             "c.Mobile_Phone as phone",
             "c.Participant_Record as participantRecord",

@@ -104,7 +104,7 @@ export class GetExtendedContactReturn implements BaseWorkerModel {
             .string()
             .allow(null)
             .empty("")
-            .pattern(/^[0-9]+$/, { name: "numeric characters" })
+            .pattern(/^[0-9-]+$/, { name: "numeric characters" })
             .optional(),
         photoUrl: joi.string().allow(null).empty("").optional(),
     });

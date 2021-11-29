@@ -9,7 +9,10 @@ import { HiveWorkerBase } from "@withonevision/omnihive-core/models/HiveWorkerBa
 import { getContactPhotoUrl } from "../common/GetContactPhoto";
 
 export default class GetExtendedUser extends HiveWorkerBase implements IGraphEndpointWorker {
-    public execute = async (customArgs: GetExtendedContactArgs, omniHiveContext: GraphContext): Promise<any> => {
+    public execute = async (
+        customArgs: GetExtendedContactArgs,
+        omniHiveContext: GraphContext
+    ): Promise<GetExtendedContactReturn> => {
         await verifyToken(omniHiveContext);
 
         let args: GetExtendedContactArgs = new GetExtendedContactArgs(customArgs);

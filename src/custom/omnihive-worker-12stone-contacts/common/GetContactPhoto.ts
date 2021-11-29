@@ -13,10 +13,12 @@ export const getContactPhotoUrl = async (worker: HiveWorkerBase, contactId: numb
 
     const results = (await databaseWorker.executeQuery(queryBuilder.toString()))[0][0];
 
-    const imageResult = getImageUrl(worker, results.photoGuid);
+    if (results?.photoGuid) {
+        const imageResult = getImageUrl(worker, results.photoGuid);
 
-    if (imageResult) {
-        return imageResult.url;
+        if (imageResult) {
+            return imageResult.url;
+        }
     }
 
     return "";

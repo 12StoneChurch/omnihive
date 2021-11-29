@@ -65,8 +65,8 @@ export class GetExtendedContactReturn implements BaseWorkerModel {
             .pattern(/^[a-zA-Z, ]+$/, { name: "alpha characters" })
             .required(),
         dateOfBirth: joi.date().allow(null).optional(),
-        genderId: joi.number().integer().optional(),
-        maritalStatusId: joi.number().integer().optional(),
+        genderId: joi.number().integer().allow(null).optional(),
+        maritalStatusId: joi.number().allow(null).integer().optional(),
         email: joi.string().email().required(),
         phone: joi
             .string()

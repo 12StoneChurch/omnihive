@@ -106,11 +106,63 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                 sentEmailData.push({ commId: idObj.id, contactId: idObj.contactId });
             }
         }
+        try {
+            await sendEmails(emails, this.metadata);
 
-        await sendEmails(emails, this.metadata);
+            for (const ids of sentEmailData) {
+                await updateCommunicationMessageStatus(graphUrl, ids.commId, ids.contactId, 3);
+            }
+        } catch (err: any) {
+            // servernotifications@withone.vision
+            const args = [
+                {
+                    to: "servernotifications@withone.vision",
+                    from: "noreply@12stone.com",
+                    subject: "Comm Manager - SendGrid Error",
+                    html: `
+                    <div>
+                        <h2>Communication Manager Error - SendGrid Send</h2>
+                        <br />
+                        <table>
+                            <tr>
+                                <td>
+                                    Communication IDs
+                                </td>
+                                <td>
+                                    [${this.messages.map((x: any) => x.CommunicationId)}]
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Contact IDs
+                                </td>
+                                <td>
+                                    [${this.messages.map((x: any) => x.ContactId)}]
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Email Addresses
+                                </td>
+                                <td>
+                                    [${this.messages.map((x: any) => x.ToAddress)}]
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Error
+                                </td>
+                                <td>
+                                    ${err.message}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                `,
+                },
+            ];
 
-        for (const ids of sentEmailData) {
-            await updateCommunicationMessageStatus(graphUrl, ids.commId, ids.contactId, 3);
+            await sendEmails(args, this.metadata);
         }
     };
 

@@ -50,19 +50,19 @@ export class GetExtendedContactReturn implements BaseWorkerModel {
         contactGuid: joi.string().guid().optional(),
         firstName: joi
             .string()
-            .pattern(/^[a-zA-Z ]+$/, { name: "alpha characters" })
+            .pattern(/^[a-zA-Z -]+$/, { name: "alpha characters" })
             .required(),
         lastName: joi
             .string()
-            .pattern(/^[a-zA-Z ]+$/, { name: "alpha characters" })
+            .pattern(/^[a-zA-Z -]+$/, { name: "alpha characters" })
             .required(),
         nickname: joi
             .string()
-            .pattern(/^[a-zA-Z ]+$/, { name: "alpha characters" })
+            .pattern(/^[a-zA-Z -]+$/, { name: "alpha characters" })
             .required(),
         displayName: joi
             .string()
-            .pattern(/^[a-zA-Z, ]+$/, { name: "alpha characters" })
+            .pattern(/^[a-zA-Z, -]+$/, { name: "alpha characters" })
             .required(),
         dateOfBirth: joi.date().allow(null).optional(),
         genderId: joi.number().integer().allow(null).optional(),

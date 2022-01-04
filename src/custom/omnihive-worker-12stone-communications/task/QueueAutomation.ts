@@ -8,6 +8,7 @@ import { updateCommunicationMessageStatus } from "../common/updateCommunicationM
 import { getMessages } from "../common/getCommunicationMessages";
 import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 import { init } from "../lib/services/GraphService";
+import { AwaitHelper } from "src/packages/omnihive-core/helpers/AwaitHelper";
 
 export default class QueueAutomation extends HiveWorkerBase implements ITaskEndpointWorker {
     private messages: any;
@@ -58,59 +59,62 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
     };
 
     private sendEmails = async (): Promise<void> => {
-        const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
-
-        if (IsHelper.isNullOrUndefined(webRootUrl)) {
-            throw new Error("Web Root URL undefined");
-        }
-
-        const emails: MailDataRequired[] = [];
-        const graphUrl = `${webRootUrl}/${this.metadata.dataSlug}`;
-        const sentEmailData = [];
-
-        for (const message of this.messages.filter((message: any) => message.MessageTypeId === 1)) {
-            const idObj: { id: number; contactId: number } = {
-                id: message.CommunicationId,
-                contactId: message.ContactId,
-            };
-
-            if (!message.ToAddress || !message.FromAddress || !message.Body) {
-                await updateCommunicationMessageStatus(
-                    graphUrl,
-                    idObj.id,
-                    idObj.contactId,
-                    9,
-                    "Recipient's e-mail address or phone number is not provided."
-                );
-            } else {
-                emails.push({
-                    to: message.ToAddress,
-                    from: message.FromAddress,
-                    subject: message.Subject,
-                    html: message.Body,
-                    customArgs: {
-                        ApplicationName: "CommunicationManager",
-                        CommunicationId: idObj.id,
-                        ContactId: idObj.contactId,
-                    },
-                    trackingSettings: {
-                        clickTracking: {
-                            enable: true,
-                        },
-                        openTracking: {
-                            enable: true,
-                        },
-                    },
-                });
-
-                sentEmailData.push({ commId: idObj.id, contactId: idObj.contactId });
-            }
-        }
         try {
-            await sendEmails(emails, this.metadata);
+            const webRootUrl = this.getEnvironmentVariable<string>("OH_WEB_ROOT_URL");
+
+            if (IsHelper.isNullOrUndefined(webRootUrl)) {
+                throw new Error("Web Root URL undefined");
+            }
+
+            const emails: MailDataRequired[] = [];
+            const graphUrl = `${webRootUrl}/${this.metadata.dataSlug}`;
+            const sentEmailData = [];
+
+            for (const message of this.messages.filter((message: any) => message.MessageTypeId === 1)) {
+                const idObj: { id: number; contactId: number } = {
+                    id: message.CommunicationId,
+                    contactId: message.ContactId,
+                };
+
+                if (!message.ToAddress || !message.FromAddress || !message.Body) {
+                    await AwaitHelper.execute(
+                        updateCommunicationMessageStatus(
+                            graphUrl,
+                            idObj.id,
+                            idObj.contactId,
+                            9,
+                            "Recipient's e-mail address or phone number is not provided."
+                        )
+                    );
+                } else {
+                    emails.push({
+                        to: message.ToAddress,
+                        from: message.FromAddress,
+                        subject: message.Subject,
+                        html: message.Body,
+                        customArgs: {
+                            ApplicationName: "CommunicationManager",
+                            CommunicationId: idObj.id,
+                            ContactId: idObj.contactId,
+                        },
+                        trackingSettings: {
+                            clickTracking: {
+                                enable: true,
+                            },
+                            openTracking: {
+                                enable: true,
+                            },
+                        },
+                    });
+
+                    sentEmailData.push({ commId: idObj.id, contactId: idObj.contactId });
+                }
+            }
+
+            await AwaitHelper.execute(sendEmails(emails, this.metadata));
 
             for (const ids of sentEmailData) {
-                await updateCommunicationMessageStatus(graphUrl, ids.commId, ids.contactId, 3);
+                await AwaitHelper.execute(updateCommunicationMessageStatus(graphUrl, ids.commId, ids.contactId, 3));
             }
         } catch (err: any) {
             // servernotifications@withone.vision
@@ -162,7 +166,7 @@ export default class QueueAutomation extends HiveWorkerBase implements ITaskEndp
                 },
             ];
 
-            await sendEmails(args, this.metadata);
+            await AwaitHelper.execute(sendEmails(args, this.metadata));
         }
     };
 

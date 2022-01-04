@@ -8,7 +8,7 @@ import { updateCommunicationMessageStatus } from "../common/updateCommunicationM
 import { getMessages } from "../common/getCommunicationMessages";
 import { IsHelper } from "@withonevision/omnihive-core/helpers/IsHelper";
 import { init } from "../lib/services/GraphService";
-import { AwaitHelper } from "src/packages/omnihive-core/helpers/AwaitHelper";
+import { AwaitHelper } from "@withonevision/omnihive-core/helpers/AwaitHelper";
 
 export default class QueueAutomation extends HiveWorkerBase implements ITaskEndpointWorker {
     private messages: any;
